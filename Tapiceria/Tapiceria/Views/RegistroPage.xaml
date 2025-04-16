@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Tapiceria.Views.RegistroPage"
+             Title="Registro de Usuario">
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="15">
+
+            <Label Text="Registro de Usuario" 
+             FontSize="Medium" 
+             HorizontalOptions="Center" />
+
+            <Entry x:Name="entryNombreUsuario" 
+             Placeholder="Usuario" />
+
+            <Entry x:Name="entryCorreo" 
+             Placeholder="Correo electrónico" 
+             Keyboard="Email" />
+
+            <Entry x:Name="entryContrasena" 
+             Placeholder="Contraseña" 
+             IsPassword="True" />
+
+            <Entry x:Name="entryConfirmarContrasena" 
+             Placeholder="Confirmar contraseña" 
+             IsPassword="True" />
+
+            <Button Text="Registrar" 
+              Clicked="OnRegistrarClicked" />
+
+        </StackLayout>
+    </ScrollView>
+</ContentPage>
