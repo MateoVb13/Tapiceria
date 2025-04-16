@@ -2,31 +2,66 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Tapiceria.Views.RegistroPage"
+             BackgroundColor="#121212"
              Title="Registro de Usuario">
+
     <ScrollView>
-        <StackLayout Padding="20" Spacing="15">
+        <StackLayout Padding="30" Spacing="20" VerticalOptions="CenterAndExpand">
 
-            <Label Text="Registro de Usuario" 
-             FontSize="Medium" 
-             HorizontalOptions="Center" />
+            <!-- Título -->
+            <Label Text="Crear Cuenta"
+                   FontSize="26"
+                   FontAttributes="Bold"
+                   TextColor="#d9a520"
+                   HorizontalOptions="Center" />
 
-            <Entry x:Name="entryNombreUsuario" 
-             Placeholder="Usuario" />
+            <!-- Usuario -->
+            <Frame BackgroundColor="#1f1f1f" CornerRadius="10" Padding="10" HasShadow="False">
+                <Entry x:Name="entryNombreUsuario"
+                       Placeholder="Nombre de Usuario"
+                       TextColor="White"
+                       PlaceholderColor="#999"
+                       BackgroundColor="Transparent" />
+            </Frame>
 
-            <Entry x:Name="entryCorreo" 
-             Placeholder="Correo electrónico" 
-             Keyboard="Email" />
+            <!-- Correo -->
+            <Frame BackgroundColor="#1f1f1f" CornerRadius="10" Padding="10" HasShadow="False">
+                <Entry x:Name="entryCorreo"
+                       Placeholder="Correo electrónico"
+                       Keyboard="Email"
+                       TextColor="White"
+                       PlaceholderColor="#999"
+                       BackgroundColor="Transparent" />
+            </Frame>
 
-            <Entry x:Name="entryContrasena" 
-             Placeholder="Contraseña" 
-             IsPassword="True" />
+            <!-- Contraseña -->
+            <Frame BackgroundColor="#1f1f1f" CornerRadius="10" Padding="10" HasShadow="False">
+                <Entry x:Name="entryContrasena"
+                       Placeholder="Contraseña"
+                       IsPassword="True"
+                       TextColor="White"
+                       PlaceholderColor="#999"
+                       BackgroundColor="Transparent" />
+            </Frame>
 
-            <Entry x:Name="entryConfirmarContrasena" 
-             Placeholder="Confirmar contraseña" 
-             IsPassword="True" />
+            <!-- Confirmar contraseña -->
+            <Frame BackgroundColor="#1f1f1f" CornerRadius="10" Padding="10" HasShadow="False">
+                <Entry x:Name="entryConfirmarContrasena"
+                       Placeholder="Confirmar contraseña"
+                       IsPassword="True"
+                       TextColor="White"
+                       PlaceholderColor="#999"
+                       BackgroundColor="Transparent" />
+            </Frame>
 
-            <Button Text="Registrar" 
-              Clicked="OnRegistrarClicked" />
+            <!-- Botón registrar -->
+            <Button Text="Registrar"
+                    Clicked="OnRegistrarClicked"
+                    BackgroundColor="#34c759"
+                    TextColor="White"
+                    CornerRadius="12"
+                    HeightRequest="50"
+                    FontAttributes="Bold" />
 
         </StackLayout>
     </ScrollView>

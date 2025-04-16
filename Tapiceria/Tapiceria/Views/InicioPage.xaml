@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Tapiceria.Views.InicioPage"
+             BackgroundColor="#121212"
+             Title="Inicio">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="25" VerticalOptions="CenterAndExpand">
+
+            <!-- Encabezado -->
+            <Label Text="¡Hola, bienvenido a TapizPro!"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="#d9a520"
+                   HorizontalTextAlignment="Center" />
+
+            <Label Text="¿Qué servicio deseas hoy?"
+                   FontSize="16"
+                   TextColor="#cccccc"
+                   HorizontalTextAlignment="Center" />
+
+            <!-- Servicios destacados con estilo -->
+            <Frame BackgroundColor="#1f1f1f" CornerRadius="15" Padding="15" HasShadow="True">
+                <VerticalStackLayout Spacing="15">
+
+                    <Label Text="Nuestros Servicios"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="#ffffff" />
+
+                    <Label Text="🪑 Tapizado profesional de asientos"
+                           FontSize="14"
+                           TextColor="#eaeaea" />
+                    <Label Text="🧼 Detallado interior completo"
+                           FontSize="14"
+                           TextColor="#eaeaea" />
+                    <Label Text="🔧 Restauración de volantes y paneles"
+                           FontSize="14"
+                           TextColor="#eaeaea" />
+                    <Label Text="🎨 Personalización de interiores"
+                           FontSize="14"
+                           TextColor="#eaeaea" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Botones de acción -->
+            <Button Text="Agendar Cita"
+                    BackgroundColor="#007aff"
+                    TextColor="White"
+                    CornerRadius="12"
+                    HeightRequest="50"
+                    FontAttributes="Bold" />
+
+            <Button Text="Ver Mis Servicios"
+                    BackgroundColor="#5e5ce6"
+                    TextColor="White"
+                    CornerRadius="12"
+                    HeightRequest="50"
+                    FontAttributes="Bold" />
+
+            <Button Text="Cerrar Sesión"
+                    BackgroundColor="#ff3b30"
+                    TextColor="White"
+                    CornerRadius="12"
+                    HeightRequest="50"
+                    FontAttributes="Bold"
+                    Clicked="OnCerrarSesionClicked" />
+
+            <!-- Footer -->
+            <Label Text="Calidad, elegancia y detalle en cada puntada."
+                   FontSize="12"
+                   TextColor="#888"
+                   HorizontalTextAlignment="Center"
+                   Margin="10,20,10,0" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

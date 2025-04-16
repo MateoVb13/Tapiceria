@@ -8,6 +8,6 @@ namespace Tapiceria.Config
 {
     public static class ApiConfig
     {
-        public static string BaseUrl = "https://0d79-2800-e2-c180-4c8-488e-e00b-7116-bb83.ngrok-free.app/";
+        public static string BaseUrl = "https://ba38-2800-e2-c180-4c8-488e-e00b-7116-bb83.ngrok-free.app/";
     }
 }

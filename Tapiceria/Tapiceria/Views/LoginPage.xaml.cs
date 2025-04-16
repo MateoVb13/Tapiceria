@@ -36,6 +36,7 @@ namespace Tapiceria.Views
                 {
                     await DisplayAlert("Éxito", "Sesión iniciada correctamente", "OK");
                     // Redirigir o limpiar campos aquí si deseas
+                    await Navigation.PushAsync(new InicioPage());
                 }
                 else
                 {

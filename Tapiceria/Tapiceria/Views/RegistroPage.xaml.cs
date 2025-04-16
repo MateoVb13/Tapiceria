@@ -39,6 +39,7 @@ namespace Tapiceria.Views
                 {
                     await DisplayAlert("Éxito", "Usuario registrado correctamente", "OK");
                     // Redirigir o limpiar campos aquí si deseas
+                    await Navigation.PushAsync(new InicioPage());
                 }
                 else
                 {
