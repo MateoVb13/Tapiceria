@@ -2,7 +2,6 @@
 using APITapiceria.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace APITapiceria.Controllers
@@ -12,23 +11,36 @@ namespace APITapiceria.Controllers
     public class CitasController : ControllerBase
     {
         private readonly TapiceriaContext _context;
+
         public CitasController(TapiceriaContext context)
         {
             _context = context;
         }
 
-        // GET: api/Citas
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Citas>>> GetCitas()
+        // Otros endpoints: GET, PUT, DELETE, etc.
+
+        // POST: api/Citas/agendar
+        [HttpPost("agendar")]
+        public async Task<IActionResult> AgendarCita([FromBody] Citas cita)
         {
-            return await _context.Cita
-                .Include(c => c.Cliente)
-                .Include(c => c.Servicio)
-                .Include(c => c.Empleado)
-                .ToListAsync();
+            if (cita == null)
+                return BadRequest("Datos de la cita son inválidos.");
+
+            // Validación básica: La fecha de inicio debe ser menor que la de fin
+            if (cita.FechaInicio >= cita.FechaFin)
+            {
+                return BadRequest("La fecha de inicio debe ser anterior a la fecha de fin.");
+            }
+
+            // Aquí se podrían agregar otras validaciones, como verificar que no haya citas conflictivas para el cliente o el servicio
+
+            _context.Cita.Add(cita);
+            await _context.SaveChangesAsync();
+
+            // Retornar el objeto creado y su URL para consultarlo (usando GetCita como referencia, el cual debe existir)
+            return CreatedAtAction(nameof(GetCita), new { id = cita.IdCita }, cita);
         }
 
-        // GET: api/Citas/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<Citas>> GetCita(int id)
         {
@@ -42,40 +54,6 @@ namespace APITapiceria.Controllers
                 return NotFound();
 
             return cita;
-        }
-
-        // POST: api/Citas
-        [HttpPost]
-        public async Task<ActionResult<Citas>> PostCita(Citas cita)
-        {
-            _context.Cita.Add(cita);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetCita), new { id = cita.IdCita }, cita);
-        }
-
-        // PUT: api/Citas/{id}
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutCita(int id, Citas cita)
-        {
-            if (id != cita.IdCita)
-                return BadRequest();
-
-            _context.Entry(cita).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-            return NoContent();
-        }
-
-        // DELETE: api/Citas/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCita(int id)
-        {
-            var cita = await _context.Cita.FindAsync(id);
-            if (cita == null)
-                return NotFound();
-
-            _context.Cita.Remove(cita);
-            await _context.SaveChangesAsync();
-            return NoContent();
         }
     }
 }

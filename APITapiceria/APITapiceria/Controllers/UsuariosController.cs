@@ -16,22 +16,34 @@ namespace APITapiceria.Controllers
             _context = context;
         }
 
-        // POST: api/Usuarios/registro
         [HttpPost("registro")]
         public async Task<IActionResult> RegistrarUsuario([FromBody] Usuarios usuario)
         {
-            if (usuario == null)
-                return BadRequest("Datos inválidos.");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            var existeUsuario = await _context.Usuarios.AnyAsync(u => u.NombreUsuario == usuario.NombreUsuario);
-            if (existeUsuario)
-                return Conflict("El nombre de usuario ya existe.");
+            // Validar que no exista el correo
+            var usuarioExistente = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == usuario.Correo);
+            if (usuarioExistente != null)
+                return BadRequest("Ya existe un usuario con ese correo.");
 
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetUsuario), new { id = usuario.IdUsuario }, usuario);
+            // Crear automáticamente un cliente relacionado
+            var cliente = new Clientes
+            {
+                IdUsuario = usuario.IdUsuario, // Usa la PK generada
+                NombreCompleto = usuario.NombreUsuario,
+                Contacto = usuario.Correo
+            };
+
+            _context.Clientes.Add(cliente);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { mensaje = "Usuario registrado y cliente creado correctamente", usuario.IdUsuario });
         }
+
 
         // POST: api/Usuarios/login
         [HttpPost("login")]

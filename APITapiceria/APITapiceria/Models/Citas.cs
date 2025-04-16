@@ -16,7 +16,7 @@ namespace APITapiceria.Models
         public int IdServicio { get; set; }
 
         public int? IdEmpleado { get; set; }
-
+    
         [Required]
         public DateTime FechaInicio { get; set; }
 
