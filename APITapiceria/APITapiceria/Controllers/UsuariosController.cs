@@ -35,12 +35,11 @@ namespace APITapiceria.Controllers
 
         // POST: api/Usuarios/login
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] Usuarios credenciales)
+        public async Task<IActionResult> Login([FromBody] LoginRequest credenciales)
         {
             if (credenciales == null)
                 return BadRequest("Datos inválidos.");
 
-            // Buscar usuario por nombre y contraseña (en producción: comparar contraseñas hasheadas)
             var usuario = await _context.Usuarios.FirstOrDefaultAsync(u =>
                 u.Correo == credenciales.Correo && u.Contrasena == credenciales.Contrasena);
 
@@ -61,6 +60,58 @@ namespace APITapiceria.Controllers
             return usuario;
         }
 
-        // Otros endpoints: login, actualizar, eliminar...
+        // PUT: api/Usuarios/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditarUsuario(int id, [FromBody] Usuarios usuarioActualizado)
+        {
+            if (id != usuarioActualizado.IdUsuario)
+                return BadRequest("El ID del usuario no coincide.");
+
+            var usuarioExistente = await _context.Usuarios.FindAsync(id);
+            if (usuarioExistente == null)
+                return NotFound("Usuario no encontrado.");
+
+            // Actualizar propiedades
+            usuarioExistente.NombreUsuario = usuarioActualizado.NombreUsuario;
+            usuarioExistente.Correo = usuarioActualizado.Correo;
+            usuarioExistente.Contrasena = usuarioActualizado.Contrasena;
+
+            _context.Entry(usuarioExistente).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!UsuarioExiste(id))
+                    return NotFound("Usuario ya no existe.");
+                else
+                    throw;
+            }
+
+            return Ok(usuarioExistente);
+        }
+
+        // DELETE: api/Usuarios/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> EliminarUsuario(int id)
+        {
+            var usuario = await _context.Usuarios.FindAsync(id);
+            if (usuario == null)
+                return NotFound("Usuario no encontrado.");
+
+            _context.Usuarios.Remove(usuario);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Mensaje = "Usuario eliminado correctamente." });
+        }
+
+        // Método auxiliar
+        private bool UsuarioExiste(int id)
+        {
+            return _context.Usuarios.Any(e => e.IdUsuario == id);
+        }
+
     }
 }
