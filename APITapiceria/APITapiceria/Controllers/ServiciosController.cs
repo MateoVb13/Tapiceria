@@ -1,9 +1,10 @@
-﻿using APITapiceria.Data;
+﻿// Archivo: APITapiceria.Controllers/ServiciosController.cs
+using APITapiceria.Data;
 using APITapiceria.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using MySqlConnector;
+using System.Data;
 
 namespace APITapiceria.Controllers
 {
@@ -11,61 +12,206 @@ namespace APITapiceria.Controllers
     [ApiController]
     public class ServiciosController : ControllerBase
     {
-        private readonly TapiceriaContext _context;
+        private readonly TapiceriaContext _context; // Necesario para GetDbConnection()
+
+        // Considera inyectar un servicio que contenga los métodos auxiliares de ejecución de SPs
+        // En este ejemplo, asumimos que los métodos Execute...Procedure están accesibles (ej: en una clase base)
+
         public ServiciosController(TapiceriaContext context)
         {
             _context = context;
         }
 
-        // GET: api/Servicios
+        // --- Aquí irían los métodos auxiliares o la inyección del servicio que los contenga ---
+        // Copiamos aquí una versión básica si no usas herencia/servicio:
+        private async Task<List<T>> ExecuteSelectProcedure<T>(string procedureName, Func<MySqlDataReader, T> mapFunction, params MySqlParameter[] parameters)
+        {
+            List<T> results = new List<T>();
+            var connection = _context.Database.GetDbConnection();
+            if (connection.State != ConnectionState.Open) await connection.OpenAsync();
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = procedureName;
+                command.CommandType = CommandType.StoredProcedure;
+                if (parameters != null) command.Parameters.AddRange(parameters);
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    // Cast DbDataReader to MySqlDataReader
+                    var mySqlReader = (MySqlDataReader)reader;
+                    while (await mySqlReader.ReadAsync())
+                    {
+                        results.Add(mapFunction(mySqlReader));
+                    }
+                }
+            }
+            return results;
+        }
+        private async Task<object?> ExecuteScalarProcedure(string procedureName, params MySqlParameter[] parameters)
+        {
+            var connection = _context.Database.GetDbConnection();
+            if (connection.State != ConnectionState.Open) await connection.OpenAsync();
+            using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteScalarAsync(); }
+        }
+        private async Task<int> ExecuteNonQueryProcedure(string procedureName, params MySqlParameter[] parameters)
+        {
+            var connection = _context.Database.GetDbConnection();
+            if (connection.State != ConnectionState.Open) await connection.OpenAsync();
+            using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteNonQueryAsync(); }
+        }
+        // --- Fin Métodos Auxiliares (Refactorizar en producción) ---
+
+
+        // =============================================
+        // ENDPOINTS PARA SERVICIOS - Llamando SPs
+        // =============================================
+
+        // GET: api/servicios
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Servicios>>> GetServicios()
+        public async Task<ActionResult<IEnumerable<ServiceDto>>> GetServicios()
         {
-            return await _context.Servicios.ToListAsync();
+            try
+            {
+                var servicios = await ExecuteSelectProcedure(
+                    "ObtenerServicios",
+                    reader => new ServiceDto // Función de mapeo a ServiceDto
+                    {
+                        IdServicio = reader.GetInt32("IdServicio"),
+                        Descripcion = reader.GetString("Descripcion"),
+                        DuracionEstimada = reader.GetInt32("DuracionEstimada"),
+                        Precio = reader.GetDecimal("Precio"),
+                        Categoria = reader.IsDBNull("Categoria") ? null : reader.GetString("Categoria")
+                    }
+                );
+                return Ok(servicios);
+            }
+            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener servicios."); }
         }
 
-        // GET: api/Servicios/{id}
+        // GET: api/servicios/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Servicios>> GetServicio(int id)
+        public async Task<ActionResult<ServiceDto>> GetServicio(int id)
         {
-            var servicio = await _context.Servicios.FindAsync(id);
-            if (servicio == null)
-                return NotFound();
-            return servicio;
+            try
+            {
+                var parameters = new MySqlParameter[] { new MySqlParameter("@p_IdServicio", id) };
+                var servicios = await ExecuteSelectProcedure(
+                    "ObtenerServicioPorId",
+                    reader => new ServiceDto // Función de mapeo a ServiceDto
+                    {
+                        IdServicio = reader.GetInt32("IdServicio"),
+                        Descripcion = reader.GetString("Descripcion"),
+                        DuracionEstimada = reader.GetInt32("DuracionEstimada"),
+                        Precio = reader.GetDecimal("Precio"),
+                        Categoria = reader.IsDBNull("Categoria") ? null : reader.GetString("Categoria")
+                    },
+                    parameters
+                );
+                var servicio = servicios.FirstOrDefault();
+
+                if (servicio == null) return NotFound();
+                return Ok(servicio);
+            }
+            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener servicio por ID."); }
         }
 
-        // POST: api/Servicios
+        // POST: api/servicios
         [HttpPost]
-        public async Task<ActionResult<Servicios>> PostServicio(Servicios servicio)
+        public async Task<ActionResult<ServiceDto>> PostServicio(Servicios servicio) // Usa el modelo Servicios como entrada
         {
-            _context.Servicios.Add(servicio);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetServicio), new { id = servicio.IdServicio }, servicio);
+            try
+            {
+                var parameters = new MySqlParameter[]
+                {
+                    new MySqlParameter("@p_Descripcion", servicio.Descripcion),
+                    new MySqlParameter("@p_DuracionEstimada", servicio.DuracionEstimada),
+                    new MySqlParameter("@p_Precio", servicio.Precio),
+                    new MySqlParameter("@p_Categoria", servicio.Categoria ?? (object)DBNull.Value)
+                };
+
+                object? result = await ExecuteScalarProcedure("InsertarServicio", parameters);
+
+                if (result != null && result != DBNull.Value)
+                {
+                    int nuevoIdServicio = Convert.ToInt32(result);
+                    // Obtener el servicio recién creado para devolverlo como DTO
+                    var newService = (await ExecuteSelectProcedure(
+                       "ObtenerServicioPorId",
+                        reader => new ServiceDto
+                        {
+                            IdServicio = reader.GetInt32("IdServicio"),
+                            Descripcion = reader.GetString("Descripcion"),
+                            DuracionEstimada = reader.GetInt32("DuracionEstimada"),
+                            Precio = reader.GetDecimal("Precio"),
+                            Categoria = reader.IsDBNull("Categoria") ? null : reader.GetString("Categoria")
+                        },
+                       new MySqlParameter("@p_IdServicio", nuevoIdServicio)
+                   )).FirstOrDefault();
+
+                    if (newService != null)
+                    {
+                        return CreatedAtAction(nameof(GetServicio), new { id = nuevoIdServicio }, newService);
+                    }
+                    else
+                    {
+                        return StatusCode(500, "Servicio creado, pero error al recuperar detalles.");
+                    }
+                }
+                else
+                {
+                    return StatusCode(500, "Error al crear el servicio a través del procedimiento almacenado.");
+                }
+            }
+            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al crear servicio."); }
         }
 
-        // PUT: api/Servicios/{id}
+        // PUT: api/servicios/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutServicio(int id, Servicios servicio)
+        public async Task<IActionResult> PutServicio(int id, Servicios servicio) // Usa el modelo Servicios como entrada
         {
-            if (id != servicio.IdServicio)
-                return BadRequest();
+            if (id != servicio.IdServicio) return BadRequest("El ID de la URL no coincide con el ID del servicio.");
 
-            _context.Entry(servicio).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-            return NoContent();
+            try
+            {
+                var parameters = new MySqlParameter[]
+                {
+                    new MySqlParameter("@p_IdServicio", id),
+                    new MySqlParameter("@p_Descripcion", servicio.Descripcion),
+                    new MySqlParameter("@p_DuracionEstimada", servicio.DuracionEstimada),
+                    new MySqlParameter("@p_Precio", servicio.Precio),
+                    new MySqlParameter("@p_Categoria", servicio.Categoria ?? (object)DBNull.Value)
+                };
+
+                int filasAfectadas = await ExecuteNonQueryProcedure("ActualizarServicio", parameters);
+
+                if (filasAfectadas == 0) return NotFound(); // Servicio no encontrado/actualizado
+
+                return NoContent(); // 204 No Content
+            }
+            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al actualizar servicio."); }
         }
 
-        // DELETE: api/Servicios/{id}
+        // DELETE: api/servicios/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteServicio(int id)
         {
-            var servicio = await _context.Servicios.FindAsync(id);
-            if (servicio == null)
-                return NotFound();
+            try
+            {
+                var parameters = new MySqlParameter[] { new MySqlParameter("@p_IdServicio", id) };
 
-            _context.Servicios.Remove(servicio);
-            await _context.SaveChangesAsync();
-            return NoContent();
+                int filasAfectadas = await ExecuteNonQueryProcedure("EliminarServicio", parameters);
+
+                if (filasAfectadas == 0) return NotFound(); // Servicio no encontrado/eliminado
+
+                return NoContent(); // 204 No Content
+            }
+            catch (MySqlException ex)
+            {
+                // Manejar errores de FK si existen citas vinculadas y no hay CASCADE/SET NULL
+                // Log ex
+                return StatusCode(500, $"Error de base de datos al eliminar: {ex.Message}. Verifique si hay citas vinculadas.");
+            }
+            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al eliminar servicio."); }
         }
     }
 }

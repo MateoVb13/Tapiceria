@@ -1,0 +1,869 @@
+-- MySQL Workbench Forward Engineering
+-- Script de Base de Datos para Tapiceria de Autos
+-- Autor: Gemini (basado en la interacción con el usuario)
+-- Fecha: 2025-05-01
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema tapiceria
+-- -----------------------------------------------------
+DROP SCHEMA IF EXISTS `tapiceria` ;
+CREATE SCHEMA IF NOT EXISTS `tapiceria` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci ;
+USE `tapiceria` ;
+
+-- -----------------------------------------------------
+-- Table `tapiceria`.`usuarios`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `tapiceria`.`usuarios` (
+`IdUsuario` INT NOT NULL AUTO_INCREMENT,
+`NombreUsuario` VARCHAR(100) NOT NULL,
+`Correo` VARCHAR(100) NOT NULL,
+`Contrasena` VARCHAR(255) NOT NULL, -- Almacena el HASH seguro de la contraseña
+PRIMARY KEY (`IdUsuario`),
+UNIQUE INDEX `Correo_UNIQUE` (`Correo` ASC) VISIBLE) -- Añadir índice UNIQUE al correo
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci; -- Usar la collación del esquema
+
+
+-- -----------------------------------------------------
+-- Table `tapiceria`.`clientes`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `tapiceria`.`clientes` (
+`IdCliente` INT NOT NULL AUTO_INCREMENT,
+`IdUsuario` INT NULL DEFAULT NULL, -- Puede ser NULL si un cliente no tiene cuenta de usuario
+`NombreCompleto` VARCHAR(100) NOT NULL,
+`Contacto` VARCHAR(100) NULL DEFAULT NULL,
+`Direccion` VARCHAR(200) NULL DEFAULT NULL,
+PRIMARY KEY (`IdCliente`),
+INDEX `fk_clientes_usuarios_idx` (`IdUsuario` ASC) VISIBLE,
+CONSTRAINT `fk_clientes_usuarios`
+FOREIGN KEY (`IdUsuario`)
+REFERENCES `tapiceria`.`usuarios` (`IdUsuario`)
+ON DELETE SET NULL -- Si se elimina el usuario, la FK en cliente se pone a NULL
+ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci; -- Usar la collación del esquema
+
+
+-- -----------------------------------------------------
+-- Table `tapiceria`.`servicios`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `tapiceria`.`servicios` (
+`IdServicio` INT NOT NULL AUTO_INCREMENT,
+`Descripcion` VARCHAR(150) NOT NULL,
+`DuracionEstimada` INT NOT NULL COMMENT 'Duración en minutos', -- Comentario útil
+`Precio` DECIMAL(10,2) NOT NULL,
+`Categoria` VARCHAR(50) NULL DEFAULT NULL,
+PRIMARY KEY (`IdServicio`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci; -- Usar la collación del esquema
+
+
+-- -----------------------------------------------------
+-- Table `tapiceria`.`empleados`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `tapiceria`.`empleados` (
+`IdEmpleado` INT NOT NULL AUTO_INCREMENT,
+`NombreCompleto` VARCHAR(100) NOT NULL,
+`Especialidad` VARCHAR(100) NULL DEFAULT NULL,
+`Contacto` VARCHAR(100) NULL DEFAULT NULL,
+PRIMARY KEY (`IdEmpleado`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci; -- Usar la collación del esquema
+
+
+-- -----------------------------------------------------
+-- Table `tapiceria`.`empleado_disponibilidad`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `tapiceria`.`empleado_disponibilidad` (
+  `IdEmpleadoDisponibilidad` INT NOT NULL AUTO_INCREMENT,
+  `IdEmpleado` INT NOT NULL, -- Clave foránea a la tabla empleados
+  `DiaSemana` INT NOT NULL COMMENT '1=Lunes, 7=Domingo', -- O podrías usar un ENUM o VARCHAR
+  `HoraInicio` TIME NOT NULL, -- Solo la hora (ej: '09:00:00')
+  `HoraFin` TIME NOT NULL, -- Solo la hora (ej: '17:00:00')
+  PRIMARY KEY (`IdEmpleadoDisponibilidad`),
+  INDEX `fk_empleado_disponibilidad_empleados1_idx` (`IdEmpleado` ASC) VISIBLE,
+  CONSTRAINT `fk_empleado_disponibilidad_empleados1`
+    FOREIGN KEY (`IdEmpleado`)
+    REFERENCES `tapiceria`.`empleados` (`IdEmpleado`)
+    ON DELETE CASCADE -- Si eliminas al empleado, elimina sus registros de disponibilidad
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci; -- Usar la collación del esquema
+
+
+-- -----------------------------------------------------
+-- Table `tapiceria`.`citas`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `tapiceria`.`citas` (
+`IdCita` INT NOT NULL AUTO_INCREMENT,
+`IdCliente` INT NOT NULL,
+`IdServicio` INT NOT NULL,
+`IdEmpleado` INT NULL DEFAULT NULL, -- Todavía permite asignar UN empleado. Para múltiples, necesitas tabla intermedia cita_empleado.
+`FechaInicio` DATETIME NOT NULL,
+`FechaFin` DATETIME NOT NULL,
+`Estado` VARCHAR(50) NOT NULL COMMENT 'Ej: Pendiente, Confirmada, Completada, Cancelada', -- Comentario útil
+`Notas` VARCHAR(300) NULL DEFAULT NULL,
+PRIMARY KEY (`IdCita`),
+INDEX `fk_citas_clientes1_idx` (`IdCliente` ASC) VISIBLE,
+INDEX `fk_citas_servicios1_idx` (`IdServicio` ASC) VISIBLE,
+INDEX `fk_citas_empleados1_idx` (`IdEmpleado` ASC) VISIBLE,
+CONSTRAINT `fk_citas_clientes1`
+FOREIGN KEY (`IdCliente`)
+REFERENCES `tapiceria`.`clientes` (`IdCliente`)
+ON DELETE NO ACTION -- O SET NULL/CASCADE si quieres que pase algo con las citas del cliente eliminado
+ON UPDATE NO ACTION,
+CONSTRAINT `fk_citas_servicios1`
+FOREIGN KEY (`IdServicio`)
+REFERENCES `tapiceria`.`servicios` (`IdServicio`)
+ON DELETE NO ACTION -- O SET NULL/CASCADE si quieres que pase algo con las citas del servicio eliminado
+ON UPDATE NO ACTION,
+CONSTRAINT `fk_citas_empleados1`
+FOREIGN KEY (`IdEmpleado`)
+REFERENCES `tapiceria`.`empleados` (`IdEmpleado`)
+ON DELETE SET NULL
+ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci; -- Usar la collación del esquema
+
+
+-- -----------------------------------------------------
+-- Table `tapiceria`.`pagos`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `tapiceria`.`pagos` (
+`IdPago` INT NOT NULL AUTO_INCREMENT,
+`IdCita` INT NOT NULL,
+`TipoPago` VARCHAR(50) NOT NULL COMMENT 'Ej: Efectivo, Tarjeta, Transferencia', -- Comentario útil
+`ValorPago` DECIMAL(10,2) NULL DEFAULT NULL, -- Añadimos ValorPago como sugerido en el diagrama
+PRIMARY KEY (`IdPago`),
+INDEX `fk_pagos_citas1_idx` (`IdCita` ASC) VISIBLE,
+CONSTRAINT `fk_pagos_citas1`
+FOREIGN KEY (`IdCita`)
+REFERENCES `tapiceria`.`citas` (`IdCita`)
+ON DELETE CASCADE -- Si se elimina la cita, elimina los pagos asociados
+ ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci; -- Usar la collación del esquema
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+-- =============================================
+-- INICIO DE PROCEDIMIENTOS ALMACENADOS
+-- =============================================
+
+-- Cambiamos delimitador
+DELIMITER $$
+
+-- =============================================
+-- PROCEDIMIENTOS PARA LA TABLA: usuarios
+-- =============================================
+
+-- 1. Obtener todos los usuarios (sin la contraseña por seguridad)
+DROP PROCEDURE IF EXISTS ObtenerUsuarios$$
+CREATE PROCEDURE ObtenerUsuarios()
+BEGIN
+    SELECT IdUsuario, NombreUsuario, Correo
+    FROM usuarios;
+END$$
+
+-- 2. Obtener un usuario por su Id (sin la contraseña por seguridad)
+DROP PROCEDURE IF EXISTS ObtenerUsuarioPorId$$
+CREATE PROCEDURE ObtenerUsuarioPorId(
+    IN p_IdUsuario INT
+)
+BEGIN
+    SELECT IdUsuario, NombreUsuario, Correo
+    FROM usuarios
+    WHERE IdUsuario = p_IdUsuario;
+END$$
+
+-- 3. Insertar un nuevo usuario
+DROP PROCEDURE IF EXISTS InsertarUsuario$$
+CREATE PROCEDURE InsertarUsuario(
+    IN p_NombreUsuario VARCHAR(100),
+    IN p_Correo VARCHAR(100),
+    IN p_Contrasena VARCHAR(255) -- Espera el HASH seguro
+)
+BEGIN
+    -- Considerar añadir manejo de errores si Correo o NombreUsuario ya existen (UNIQUE constraint ayuda)
+    INSERT INTO usuarios (NombreUsuario, Correo, Contrasena)
+    VALUES (p_NombreUsuario, p_Correo, p_Contrasena);
+
+    -- Devolver el Id generado
+    SELECT LAST_INSERT_ID() AS NuevoIdUsuario;
+END$$
+
+-- 4. Actualizar un usuario existente
+DROP PROCEDURE IF EXISTS ActualizarUsuario$$
+CREATE PROCEDURE ActualizarUsuario(
+    IN p_IdUsuario INT,
+    IN p_NombreUsuario VARCHAR(100),
+    IN p_Correo VARCHAR(100),
+    IN p_Contrasena VARCHAR(255) -- Espera el HASH seguro si se actualiza
+)
+BEGIN
+    UPDATE usuarios
+    SET
+        NombreUsuario = p_NombreUsuario,
+        Correo = p_Correo,
+        Contrasena = p_Contrasena
+    WHERE IdUsuario = p_IdUsuario;
+
+    -- Indicar cuántas filas se actualizaron
+    SELECT ROW_COUNT() AS FilasActualizadas;
+END$$
+
+-- 5. Eliminar un usuario por su Id
+DROP PROCEDURE IF EXISTS EliminarUsuario$$
+CREATE PROCEDURE EliminarUsuario(
+    IN p_IdUsuario INT
+)
+BEGIN
+    -- ON DELETE SET NULL/CASCADE en las FKs (clientes) maneja las dependencias
+    DELETE FROM usuarios
+    WHERE IdUsuario = p_IdUsuario;
+
+    -- Indicar si se eliminó algo
+    SELECT ROW_COUNT() AS FilasEliminadas;
+END$$
+
+-- 6. Procedimiento de Login (Validando Correo y Contraseña HASH)
+-- Valida que el correo y la contraseña (hash) coincidan
+-- NOTA DE SEGURIDAD: La API debe hashear la contraseña plana antes de llamar a este SP.
+DROP PROCEDURE IF EXISTS ValidarLogin$$
+CREATE PROCEDURE ValidarLogin(
+    IN p_Correo VARCHAR(100),
+    IN p_Contrasena VARCHAR(255) -- Espera el HASHED password from the API
+)
+BEGIN
+    SELECT
+        IdUsuario,
+        NombreUsuario,
+        Correo
+    FROM usuarios
+    WHERE Correo = p_Correo
+      AND Contrasena = p_Contrasena; -- Compara el hash de entrada con el hash almacenado
+END$$
+
+-- =============================================
+-- PROCEDIMIENTOS PARA LA TABLA: clientes
+-- =============================================
+
+-- 7. Obtener todos los clientes (con info básica del usuario asociado)
+DROP PROCEDURE IF EXISTS ObtenerClientes$$
+CREATE PROCEDURE ObtenerClientes()
+BEGIN
+    SELECT
+        c.IdCliente,
+        c.IdUsuario,
+        c.NombreCompleto,
+        c.Contacto,
+        c.Direccion,
+        u.NombreUsuario,
+        u.Correo
+    FROM clientes c
+    LEFT JOIN usuarios u ON c.IdUsuario = u.IdUsuario;
+END$$
+
+-- 8. Obtener un cliente por su Id (con info básica del usuario asociado)
+DROP PROCEDURE IF EXISTS ObtenerClientePorId$$
+CREATE PROCEDURE ObtenerClientePorId(
+    IN p_IdCliente INT
+)
+BEGIN
+    SELECT
+        c.IdCliente,
+        c.IdUsuario,
+        c.NombreCompleto,
+        c.Contacto,
+        c.Direccion,
+        u.NombreUsuario,
+        u.Correo
+    FROM clientes c
+    LEFT JOIN usuarios u ON c.IdUsuario = u.IdUsuario
+    WHERE c.IdCliente = p_IdCliente;
+END$$
+
+-- 9. Insertar un nuevo cliente
+DROP PROCEDURE IF EXISTS InsertarCliente$$
+CREATE PROCEDURE InsertarCliente(
+    IN p_IdUsuario INT, -- Puede ser NULL
+    IN p_NombreCompleto VARCHAR(100),
+    IN p_Contacto VARCHAR(100),
+    IN p_Direccion VARCHAR(200)
+)
+BEGIN
+    INSERT INTO clientes (IdUsuario, NombreCompleto, Contacto, Direccion)
+    VALUES (p_IdUsuario, p_NombreCompleto, p_Contacto, p_Direccion);
+
+    SELECT LAST_INSERT_ID() AS NuevoIdCliente;
+END$$
+
+-- 10. Actualizar un cliente existente
+DROP PROCEDURE IF EXISTS ActualizarCliente$$
+CREATE PROCEDURE ActualizarCliente(
+    IN p_IdCliente INT,
+    IN p_IdUsuario INT, -- Puede ser NULL
+    IN p_NombreCompleto VARCHAR(100),
+    IN p_Contacto VARCHAR(100),
+    IN p_Direccion VARCHAR(200)
+)
+BEGIN
+    UPDATE clientes
+    SET
+        IdUsuario = p_IdUsuario,
+        NombreCompleto = p_NombreCompleto,
+        Contacto = p_Contacto,
+        Direccion = p_Direccion
+    WHERE IdCliente = p_IdCliente;
+
+    SELECT ROW_COUNT() AS FilasActualizadas;
+END$$
+
+-- 11. Eliminar un cliente por su Id
+DROP PROCEDURE IF EXISTS EliminarCliente$$
+CREATE PROCEDURE EliminarCliente(
+    IN p_IdCliente INT
+)
+BEGIN
+    -- Considerar ON DELETE en FKs (citas) o añadir DELETEs aquí si no se usa CASCADE
+    DELETE FROM clientes
+    WHERE IdCliente = p_IdCliente;
+
+    SELECT ROW_COUNT() AS FilasEliminadas;
+END$$
+
+-- =============================================
+-- PROCEDIMIENTOS PARA LA TABLA: servicios
+-- =============================================
+
+-- 12. Obtener todos los servicios
+DROP PROCEDURE IF EXISTS ObtenerServicios$$
+CREATE PROCEDURE ObtenerServicios()
+BEGIN
+    SELECT IdServicio, Descripcion, DuracionEstimada, Precio, Categoria
+    FROM servicios;
+END$$
+
+-- 13. Obtener un servicio por su Id
+DROP PROCEDURE IF EXISTS ObtenerServicioPorId$$
+CREATE PROCEDURE ObtenerServicioPorId(
+    IN p_IdServicio INT
+)
+BEGIN
+    SELECT IdServicio, Descripcion, DuracionEstimada, Precio, Categoria
+    FROM servicios
+    WHERE IdServicio = p_IdServicio;
+END$$
+
+-- 14. Insertar un nuevo servicio
+DROP PROCEDURE IF EXISTS InsertarServicio$$
+CREATE PROCEDURE InsertarServicio(
+    IN p_Descripcion VARCHAR(150),
+    IN p_DuracionEstimada INT,
+    IN p_Precio DECIMAL(10,2),
+    IN p_Categoria VARCHAR(50)
+)
+BEGIN
+    INSERT INTO servicios (Descripcion, DuracionEstimada, Precio, Categoria)
+    VALUES (p_Descripcion, p_DuracionEstimada, p_Precio, p_Categoria);
+
+    SELECT LAST_INSERT_ID() AS NuevoIdServicio;
+END$$
+
+-- 15. Actualizar un servicio existente
+DROP PROCEDURE IF EXISTS ActualizarServicio$$
+CREATE PROCEDURE ActualizarServicio(
+    IN p_IdServicio INT,
+    IN p_Descripcion VARCHAR(150),
+    IN p_DuracionEstimada INT,
+    IN p_Precio DECIMAL(10,2),
+    IN p_Categoria VARCHAR(50)
+)
+BEGIN
+    UPDATE servicios
+    SET
+        Descripcion = p_Descripcion,
+        DuracionEstimada = p_DuracionEstimada,
+        Precio = p_Precio,
+        Categoria = p_Categoria
+    WHERE IdServicio = p_IdServicio;
+
+    SELECT ROW_COUNT() AS FilasActualizadas;
+END$$
+
+-- 16. Eliminar un servicio por su Id
+DROP PROCEDURE IF EXISTS EliminarServicio$$
+CREATE PROCEDURE EliminarServicio(
+    IN p_IdServicio INT
+)
+BEGIN
+    -- Considerar ON DELETE en FKs (citas) o añadir DELETEs aquí si no se usa CASCADE
+    DELETE FROM servicios
+    WHERE IdServicio = p_IdServicio;
+
+    SELECT ROW_COUNT() AS FilasEliminadas;
+END$$
+
+-- =============================================
+-- PROCEDIMIENTOS PARA LA TABLA: empleados
+-- =============================================
+-- NOTA: Procedimientos actualizados ya que se eliminó la columna IdUsuario
+
+-- 17. Obtener todos los empleados
+DROP PROCEDURE IF EXISTS ObtenerEmpleados$$
+CREATE PROCEDURE ObtenerEmpleados()
+BEGIN
+    SELECT
+        IdEmpleado,
+        NombreCompleto,
+        Especialidad,
+        Contacto
+        -- HorarioDisponible eliminado del esquema
+    FROM empleados;
+END$$
+
+-- 18. Obtener un empleado por su Id
+DROP PROCEDURE IF EXISTS ObtenerEmpleadoPorId$$
+CREATE PROCEDURE ObtenerEmpleadoPorId(
+    IN p_IdEmpleado INT
+)
+BEGIN
+    SELECT
+        IdEmpleado,
+        NombreCompleto,
+        Especialidad,
+        Contacto
+        -- HorarioDisponible eliminado del esquema
+    FROM empleados
+    WHERE IdEmpleado = p_IdEmpleado;
+END$$
+
+-- 19. Insertar un nuevo empleado
+DROP PROCEDURE IF EXISTS InsertarEmpleado$$
+CREATE PROCEDURE InsertarEmpleado(
+    IN p_NombreCompleto VARCHAR(100),
+    IN p_Especialidad VARCHAR(100),
+    IN p_Contacto VARCHAR(100)
+    -- p_HorarioDisponible eliminado del esquema y por tanto del SP
+)
+BEGIN
+    INSERT INTO empleados (NombreCompleto, Especialidad, Contacto)
+    VALUES (p_NombreCompleto, p_Especialidad, p_Contacto);
+
+    SELECT LAST_INSERT_ID() AS NuevoIdEmpleado;
+END$$
+
+-- 20. Actualizar un empleado existente
+DROP PROCEDURE IF EXISTS ActualizarEmpleado$$
+CREATE PROCEDURE ActualizarEmpleado(
+    IN p_IdEmpleado INT,
+    IN p_NombreCompleto VARCHAR(100),
+    IN p_Especialidad VARCHAR(100),
+    IN p_Contacto VARCHAR(100)
+    -- p_HorarioDisponible eliminado del esquema y por tanto del SP
+)
+BEGIN
+    UPDATE empleados
+    SET
+        NombreCompleto = p_NombreCompleto,
+        Especialidad = p_Especialidad,
+        Contacto = p_Contacto
+        -- HorarioDisponible eliminado de la actualización
+    WHERE IdEmpleado = p_IdEmpleado;
+
+    SELECT ROW_COUNT() AS FilasActualizadas;
+END$$
+
+-- 21. Eliminar un empleado por su Id
+DROP PROCEDURE IF EXISTS EliminarEmpleado$$
+CREATE PROCEDURE EliminarEmpleado(
+    IN p_IdEmpleado INT
+)
+BEGIN
+    -- ON DELETE SET NULL en FKs (citas) y ON DELETE CASCADE en (empleado_disponibilidad) manejan dependencias
+    DELETE FROM empleados
+    WHERE IdEmpleado = p_IdEmpleado;
+
+    SELECT ROW_COUNT() AS FilasEliminadas;
+END$$
+
+-- =============================================
+-- PROCEDIMIENTOS PARA LA TABLA: empleado_disponibilidad
+-- =============================================
+
+-- 22. Obtener disponibilidad de un empleado por su Id
+DROP PROCEDURE IF EXISTS ObtenerDisponibilidadEmpleado$$
+CREATE PROCEDURE ObtenerDisponibilidadEmpleado(
+    IN p_IdEmpleado INT
+)
+BEGIN
+    SELECT
+        IdEmpleadoDisponibilidad,
+        IdEmpleado,
+        DiaSemana,
+        HoraInicio,
+        HoraFin
+    FROM empleado_disponibilidad
+    WHERE IdEmpleado = p_IdEmpleado
+    ORDER BY DiaSemana, HoraInicio;
+END$$
+
+-- 23. Insertar un bloque de disponibilidad para un empleado
+DROP PROCEDURE IF EXISTS InsertarDisponibilidadEmpleado$$
+CREATE PROCEDURE InsertarDisponibilidadEmpleado(
+    IN p_IdEmpleado INT,
+    IN p_DiaSemana INT,
+    IN p_HoraInicio TIME,
+    IN p_HoraFin TIME
+)
+BEGIN
+    INSERT INTO empleado_disponibilidad (IdEmpleado, DiaSemana, HoraInicio, HoraFin)
+    VALUES (p_IdEmpleado, p_DiaSemana, p_HoraInicio, p_HoraFin);
+
+    SELECT LAST_INSERT_ID() AS NuevoIdDisponibilidad;
+END$$
+
+-- 24. Actualizar un bloque de disponibilidad existente
+DROP PROCEDURE IF EXISTS ActualizarDisponibilidadEmpleado$$
+CREATE PROCEDURE ActualizarDisponibilidadEmpleado(
+    IN p_IdEmpleadoDisponibilidad INT,
+    IN p_IdEmpleado INT,
+    IN p_DiaSemana INT,
+    IN p_HoraInicio TIME,
+    IN p_HoraFin TIME
+)
+BEGIN
+    UPDATE empleado_disponibilidad
+    SET
+        IdEmpleado = p_IdEmpleado,
+        DiaSemana = p_DiaSemana,
+        HoraInicio = p_HoraInicio,
+        HoraFin = p_HoraFin
+    WHERE IdEmpleadoDisponibilidad = p_IdEmpleadoDisponibilidad;
+
+    SELECT ROW_COUNT() AS FilasActualizadas;
+END$$
+
+-- 25. Eliminar un bloque de disponibilidad por su Id
+DROP PROCEDURE IF EXISTS EliminarDisponibilidadEmpleado$$
+CREATE PROCEDURE EliminarDisponibilidadEmpleado(
+    IN p_IdEmpleadoDisponibilidad INT
+)
+BEGIN
+    DELETE FROM empleado_disponibilidad
+    WHERE IdEmpleadoDisponibilidad = p_IdEmpleadoDisponibilidad;
+
+    SELECT ROW_COUNT() AS FilasEliminadas;
+END$$
+
+
+-- =============================================
+-- PROCEDIMIENTOS PARA LA TABLA: citas
+-- =============================================
+
+-- 26. Obtener todas las citas (con detalles de cliente, servicio y empleado)
+DROP PROCEDURE IF EXISTS ObtenerCitas$$
+CREATE PROCEDURE ObtenerCitas()
+BEGIN
+    SELECT
+        c.IdCita,
+        c.IdCliente,
+        cl.NombreCompleto AS NombreCliente,
+        c.IdServicio,
+        s.Descripcion AS NombreServicio,
+        s.DuracionEstimada,
+        s.Precio,
+        c.IdEmpleado,
+        e.NombreCompleto AS NombreEmpleado, -- LEFT JOIN porque IdEmpleado puede ser NULL
+        c.FechaInicio,
+        c.FechaFin,
+        c.Estado,
+        c.Notas
+    FROM citas c
+    INNER JOIN clientes cl ON c.IdCliente = cl.IdCliente
+    INNER JOIN servicios s ON c.IdServicio = s.IdServicio
+    LEFT JOIN empleados e ON c.IdEmpleado = e.IdEmpleado;
+END$$
+
+-- 27. Obtener una cita por su Id (con detalles de cliente, servicio y empleado)
+DROP PROCEDURE IF EXISTS ObtenerCitaPorId$$
+CREATE PROCEDURE ObtenerCitaPorId(
+    IN p_IdCita INT
+)
+BEGIN
+    SELECT
+        c.IdCita,
+        c.IdCliente,
+        cl.NombreCompleto AS NombreCliente,
+        c.IdServicio,
+        s.Descripcion AS NombreServicio,
+        s.DuracionEstimada,
+        s.Precio,
+        c.IdEmpleado,
+        e.NombreCompleto AS NombreEmpleado,
+        c.FechaInicio,
+        c.FechaFin,
+        c.Estado,
+        c.Notas
+    FROM citas c
+    INNER JOIN clientes cl ON c.IdCliente = cl.IdCliente
+    INNER JOIN servicios s ON c.IdServicio = s.IdServicio
+    LEFT JOIN empleados e ON c.IdEmpleado = e.IdEmpleado
+    WHERE c.IdCita = p_IdCita;
+END$$
+
+-- 28. Obtener citas por Id de Cliente (con detalles de servicio y empleado)
+DROP PROCEDURE IF EXISTS ObtenerCitasPorCliente$$
+CREATE PROCEDURE ObtenerCitasPorCliente(
+    IN p_IdCliente INT
+)
+BEGIN
+    SELECT
+        c.IdCita,
+        c.IdCliente,
+        cl.NombreCompleto AS NombreCliente,
+        c.IdServicio,
+        s.Descripcion AS NombreServicio,
+        s.DuracionEstimada,
+        s.Precio,
+        c.IdEmpleado,
+        e.NombreCompleto AS NombreEmpleado,
+        c.FechaInicio,
+        c.FechaFin,
+        c.Estado,
+        c.Notas
+    FROM citas c
+    INNER JOIN clientes cl ON c.IdCliente = cl.IdCliente
+    INNER JOIN servicios s ON c.IdServicio = s.IdServicio
+    LEFT JOIN empleados e ON c.IdEmpleado = e.IdEmpleado
+    WHERE c.IdCliente = p_IdCliente
+    ORDER BY c.FechaInicio;
+END$$
+
+-- 29. Obtener citas por Id de Empleado (con detalles de cliente y servicio)
+-- Nota: Solo devolverá citas donde el empleado NO sea NULL
+DROP PROCEDURE IF EXISTS ObtenerCitasPorEmpleado$$
+CREATE PROCEDURE ObtenerCitasPorEmpleado(
+    IN p_IdEmpleado INT
+)
+BEGIN
+    SELECT
+        c.IdCita,
+        c.IdCliente,
+        cl.NombreCompleto AS NombreCliente,
+        c.IdServicio,
+        s.Descripcion AS NombreServicio,
+        s.DuracionEstimada,
+        s.Precio,
+        c.IdEmpleado,
+        e.NombreCompleto AS NombreEmpleado,
+        c.FechaInicio,
+        c.FechaFin,
+        c.Estado,
+        c.Notas
+    FROM citas c
+    INNER JOIN clientes cl ON c.IdCliente = cl.IdCliente
+    INNER JOIN servicios s ON c.IdServicio = s.IdServicio
+    INNER JOIN empleados e ON c.IdEmpleado = e.IdEmpleado -- INNER JOIN porque filtramos por IdEmpleado
+    WHERE c.IdEmpleado = p_IdEmpleado
+    ORDER BY c.FechaInicio;
+END$$
+
+-- 30. Insertar una nueva cita
+-- Nota: IdEmpleado es opcional (NULL). La verificación de disponibilidad va en la API.
+DROP PROCEDURE IF EXISTS InsertarCita$$
+CREATE PROCEDURE InsertarCita(
+    IN p_IdCliente INT,
+    IN p_IdServicio INT,
+    IN p_IdEmpleado INT, -- Puede ser NULL
+    IN p_FechaInicio DATETIME,
+    IN p_FechaFin DATETIME,
+    IN p_Estado VARCHAR(50),
+    IN p_Notas VARCHAR(300)
+)
+BEGIN
+    INSERT INTO citas (IdCliente, IdServicio, IdEmpleado, FechaInicio, FechaFin, Estado, Notas)
+    VALUES (p_IdCliente, p_IdServicio, p_IdEmpleado, p_FechaInicio, p_FechaFin, p_Estado, p_Notas);
+
+    SELECT LAST_INSERT_ID() AS NuevoIdCita;
+END$$
+
+-- 31. Actualizar una cita existente
+DROP PROCEDURE IF EXISTS ActualizarCita$$
+CREATE PROCEDURE ActualizarCita(
+    IN p_IdCita INT,
+    IN p_IdCliente INT,
+    IN p_IdServicio INT,
+    IN p_IdEmpleado INT, -- Puede ser NULL
+    IN p_FechaInicio DATETIME,
+    IN p_FechaFin DATETIME,
+    IN p_Estado VARCHAR(50),
+    IN p_Notas VARCHAR(300)
+)
+BEGIN
+    UPDATE citas
+    SET
+        IdCliente = p_IdCliente,
+        IdServicio = p_IdServicio,
+        IdEmpleado = p_IdEmpleado,
+        FechaInicio = p_FechaInicio,
+        FechaFin = p_FechaFin,
+        Estado = p_Estado,
+        Notas = p_Notas
+    WHERE IdCita = p_IdCita;
+
+    SELECT ROW_COUNT() AS FilasActualizadas;
+END$$
+
+-- 32. Eliminar una cita por su Id
+DROP PROCEDURE IF EXISTS EliminarCita$$
+CREATE PROCEDURE EliminarCita(
+    IN p_IdCita INT
+)
+BEGIN
+    -- ON DELETE CASCADE en FKs (pagos) maneja dependencias
+    DELETE FROM citas
+    WHERE IdCita = p_IdCita;
+
+    SELECT ROW_COUNT() AS FilasEliminadas;
+END$$
+
+-- 33. Procedimiento para verificar si un empleado está ocupado en un rango de tiempo
+-- Devuelve el número de citas existentes para un empleado que se solapan con el rango dado.
+-- Un resultado > 0 significa que el empleado está ocupado.
+DROP PROCEDURE IF EXISTS CheckEmpleadoOcupadoEnRango$$
+CREATE PROCEDURE CheckEmpleadoOcupadoEnRango(
+    IN p_IdEmpleado INT,
+    IN p_FechaInicio DATETIME, -- Rango de la nueva cita a verificar
+    IN p_FechaFin DATETIME     -- Rango de la nueva cita a verificar
+)
+BEGIN
+    SELECT COUNT(*) AS CitasSolapadas
+    FROM citas
+    WHERE IdEmpleado = p_IdEmpleado
+      AND FechaInicio < p_FechaFin     -- La cita existente empezó antes de que termine la nueva
+      AND FechaFin > p_FechaInicio;    -- Y la cita existente terminó después de que empiece la nueva
+END$$
+
+
+-- =============================================
+-- PROCEDIMIENTOS PARA LA TABLA: pagos
+-- =============================================
+
+-- 34. Obtener todos los pagos (con detalles de la cita asociada)
+DROP PROCEDURE IF EXISTS ObtenerPagos$$
+CREATE PROCEDURE ObtenerPagos()
+BEGIN
+    SELECT
+        p.IdPago,
+        p.IdCita,
+        p.TipoPago,
+        p.ValorPago, -- Incluimos ValorPago
+        c.FechaInicio AS FechaCita,
+        c.Estado AS EstadoCita
+    FROM pagos p
+    INNER JOIN citas c ON p.IdCita = c.IdCita;
+END$$
+
+-- 35. Obtener un pago por su Id (con detalles de la cita asociada)
+DROP PROCEDURE IF EXISTS ObtenerPagoPorId$$
+CREATE PROCEDURE ObtenerPagoPorId(
+    IN p_IdPago INT
+)
+BEGIN
+    SELECT
+        p.IdPago,
+        p.IdCita,
+        p.TipoPago,
+        p.ValorPago, -- Incluimos ValorPago
+        c.FechaInicio AS FechaCita,
+        c.Estado AS EstadoCita
+    FROM pagos p
+    INNER JOIN citas c ON p.IdCita = c.IdCita
+    WHERE p.IdPago = p_IdPago;
+END$$
+
+-- 36. Obtener pagos por Id de Cita (con detalles de la cita asociada)
+DROP PROCEDURE IF EXISTS ObtenerPagosPorCita$$
+CREATE PROCEDURE ObtenerPagosPorCita(
+    IN p_IdCita INT
+)
+BEGIN
+    SELECT
+        p.IdPago,
+        p.IdCita,
+        p.TipoPago,
+        p.ValorPago, -- Incluimos ValorPago
+        c.FechaInicio AS FechaCita,
+        c.Estado AS EstadoCita
+    FROM pagos p
+    INNER JOIN citas c ON p.IdCita = c.IdCita
+    WHERE p.IdCita = p_IdCita;
+END$$
+
+-- 37. Insertar un nuevo pago
+DROP PROCEDURE IF EXISTS InsertarPago$$
+CREATE PROCEDURE InsertarPago(
+    IN p_IdCita INT,
+    IN p_TipoPago VARCHAR(50),
+    IN p_ValorPago DECIMAL(10,2) -- Incluimos ValorPago
+)
+BEGIN
+    INSERT INTO pagos (IdCita, TipoPago, ValorPago)
+    VALUES (p_IdCita, p_TipoPago, p_ValorPago);
+
+    SELECT LAST_INSERT_ID() AS NuevoIdPago;
+END$$
+
+-- 38. Actualizar un pago existente
+DROP PROCEDURE IF EXISTS ActualizarPago$$
+CREATE PROCEDURE ActualizarPago(
+    IN p_IdPago INT,
+    IN p_IdCita INT,
+    IN p_TipoPago VARCHAR(50),
+    IN p_ValorPago DECIMAL(10,2) -- Incluimos ValorPago
+)
+BEGIN
+    UPDATE pagos
+    SET
+        IdCita = p_IdCita,
+        TipoPago = p_TipoPago,
+        ValorPago = p_ValorPago
+    WHERE IdPago = p_IdPago;
+
+    SELECT ROW_COUNT() AS FilasActualizadas;
+END$$
+
+-- 39. Eliminar un pago por su Id
+DROP PROCEDURE IF EXISTS EliminarPago$$
+CREATE PROCEDURE EliminarPago(
+    IN p_IdPago INT
+)
+BEGIN
+    DELETE FROM pagos
+    WHERE IdPago = p_IdPago;
+
+    SELECT ROW_COUNT() AS FilasEliminadas;
+END$$
+
+
+-- Volvemos el delimitador a ;
+DELIMITER ;
+
+-- =============================================
+-- FIN DE PROCEDIMIENTOS ALMACENADOS
+-- =============================================

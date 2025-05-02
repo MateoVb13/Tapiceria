@@ -8,18 +8,22 @@ namespace APITapiceria.Models
         [Key]
         public int IdEmpleado { get; set; }
 
-        public int? IdUsuario { get; set; }
-
         [Required]
         public string NombreCompleto { get; set; }
 
-        public string Especialidad { get; set; }
+        public string? Especialidad { get; set; } // Nullable en BD
 
-        public string Contacto { get; set; }
+        public string? Contacto { get; set; } // Nullable en BD
 
-        public string HorarioDisponible { get; set; }
+        public DateTime? HorarioDisponible { get; set; }
+    }
 
-        [ForeignKey("IdUsuario")]
-        public virtual Usuarios Usuario { get; set; }
+    public class EmployeeDto // DTO para representar Empleado (sin info de Usuario que ya no tiene FK)
+    {
+        public int IdEmpleado { get; set; }
+        public string NombreCompleto { get; set; }
+        public string? Especialidad { get; set; } // Nullable
+        public string? Contacto { get; set; } // Nullable
+        // HorarioDisponible ya no está en la tabla principal, se obtiene de EmpleadoDisponibilidad
     }
 }
