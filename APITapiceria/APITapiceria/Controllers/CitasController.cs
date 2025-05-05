@@ -1,6 +1,4 @@
-﻿// Archivo: APITapiceria.Controllers/CitasController.cs
-// Este ya lo dimos, pero aquí está completo llamando a SPs y usando DTOs
-using APITapiceria.Data; // Tu namespace para el DbContext
+﻿using APITapiceria.Data; // Tu namespace para el DbContext
 using APITapiceria.Models; // Tu namespace para los modelos y DTOs
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore; // Necesario para GetDbConnection()
@@ -15,16 +13,11 @@ namespace APITapiceria.Controllers
     {
         private readonly TapiceriaContext _context; // Necesario para GetDbConnection()
 
-        // Considera inyectar un servicio que contenga los métodos auxiliares de ejecución de SPs
-        // En este ejemplo, asumimos que los métodos Execute...Procedure están accesibles (ej: en una clase base)
-
         public CitasController(TapiceriaContext context)
         {
             _context = context;
         }
 
-        // --- Aquí irían los métodos auxiliares o la inyección del servicio que los contenga ---
-        // Copiamos aquí una versión básica si no usas herencia/servicio:
         private async Task<List<T>> ExecuteSelectProcedure<T>(string procedureName, Func<MySqlDataReader, T> mapFunction, params MySqlParameter[] parameters)
         {
             List<T> results = new List<T>();
@@ -67,14 +60,7 @@ namespace APITapiceria.Controllers
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
             using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteNonQueryAsync(); }
         }
-        // --- Fin Métodos Auxiliares (Refactorizar en producción) ---
 
-
-        // =============================================
-        // ENDPOINTS PARA CITAS - Llamando SPs
-        // =============================================
-
-        // GET: api/citas
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CitaDto>>> GetCitas()
         {
@@ -239,16 +225,11 @@ namespace APITapiceria.Controllers
                     return BadRequest("El empleado seleccionado ya está ocupado en el horario solicitado.");
                 }
 
-                // NOTA: Si quieres verificar la disponibilidad basada en la tabla `empleado_disponibilidad`,
-                // esa lógica también debe ir aquí, consultando esa tabla.
+
             }
 
             // 4. Validaciones adicionales de fechas, estado, etc.
             if (citaDto.FechaFin <= citaDto.FechaInicio) return BadRequest("La FechaFin debe ser posterior a la FechaInicio.");
-            // Puedes añadir validaciones sobre el estado si solo permites ciertos valores iniciales
-
-            // --- Fin Lógica de Negocio Crítica ---
-
 
             try
             {
@@ -314,9 +295,6 @@ namespace APITapiceria.Controllers
             catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al crear cita."); }
         }
 
-        // PUT: api/citas/{id}
-        // Usa el modelo Citas como entrada (puede validar con atributos)
-        // NOTA: Si permites cambiar el empleado o el horario, ¡necesitas RE-VALIDAR DISPONIBILIDAD aquí!
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCita(int id, Citas cita) // Usa el modelo Citas como entrada
         {
@@ -339,26 +317,6 @@ namespace APITapiceria.Controllers
             {
                 bool empleadoExiste = await _context.Empleados.AnyAsync(e => e.IdEmpleado == cita.IdEmpleado.Value);
                 if (!empleadoExiste) return BadRequest("El IdEmpleado especificado no existe.");
-
-                // Aquí la verificación de disponibilidad es más compleja:
-                // Debes verificar solapamientos para este empleado en el nuevo horario,
-                // PERO excluyendo la cita que estás actualizando a sí misma.
-                // Tu SP CheckEmpleadoOcupadoEnRango actual NO EXCLUYE la cita que se está actualizando.
-                // Necesitarías modificar el SP o hacer una consulta con EF Core que excluya la cita actual.
-                // Opcional: Llamar al SP con un parámetro adicional @p_ExcludeCitaId = id
-                /*
-                var availabilityParams = new MySqlParameter[]
-                {
-                    new MySqlParameter("@p_IdEmpleado", cita.IdEmpleado.Value),
-                    new MySqlParameter("@p_FechaInicio", cita.FechaInicio),
-                    new MySqlParameter("@p_FechaFin", cita.FechaFin)
-                    // , new MySqlParameter("@p_ExcludeCitaId", id) // Si modificas el SP
-                };
-                // ... llamar al SP modificado y verificar citas solapadas ...
-                */
-
-                // Si el empleado está ocupado en el nuevo horario (excluyendo la cita actual)
-                // return BadRequest("El empleado seleccionado no está disponible en el nuevo horario.");
             }
             // Validaciones adicionales de fechas, estado, etc.
             if (cita.FechaFin <= cita.FechaInicio) return BadRequest("La FechaFin debe ser posterior a la FechaInicio.");
@@ -384,8 +342,6 @@ namespace APITapiceria.Controllers
 
                 if (filasAfectadas == 0)
                 {
-                    // Esto no debería pasar si ya verificaste que la cita existe,
-                    // a menos que haya un problema de concurrencia o el SP falle por otra razón.
                     return NotFound(); // Ocurre si la cita no fue encontrada/actualizada por el SP
                 }
 
@@ -420,12 +376,10 @@ namespace APITapiceria.Controllers
                     return NotFound(); // La cita no fue encontrada/eliminada por el SP
                 }
 
-                return NoContent(); // 204 No Content
+                return NoContent();
             }
             catch (MySqlException ex)
             {
-                // Manejar errores de FK si hay pagos vinculados y no hay CASCADE en la FK de pagos
-                // Log ex
                 return StatusCode(500, $"Error de base de datos al eliminar: {ex.Message}. Verifique si hay pagos vinculados.");
             }
             catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al eliminar cita."); }

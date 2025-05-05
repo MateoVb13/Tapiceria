@@ -14,16 +14,11 @@ namespace APITapiceria.Controllers
     {
         private readonly TapiceriaContext _context; // Necesario para GetDbConnection()
 
-        // Considera inyectar un servicio que contenga los métodos auxiliares de ejecución de SPs
-        // En este ejemplo, asumimos que los métodos Execute...Procedure están accesibles (ej: en una clase base)
-
         public PagosController(TapiceriaContext context)
         {
             _context = context;
         }
 
-        // --- Aquí irían los métodos auxiliares o la inyección del servicio que los contenga ---
-        // Copiamos aquí una versión básica si no usas herencia/servicio:
         private async Task<List<T>> ExecuteSelectProcedure<T>(string procedureName, Func<MySqlDataReader, T> mapFunction, params MySqlParameter[] parameters)
         {
             List<T> results = new List<T>();
@@ -58,14 +53,7 @@ namespace APITapiceria.Controllers
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
             using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteNonQueryAsync(); }
         }
-        // --- Fin Métodos Auxiliares (Refactorizar en producción) ---
 
-
-        // =============================================
-        // ENDPOINTS PARA PAGOS - Llamando SPs
-        // =============================================
-
-        // GET: api/pagos
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PaymentDto>>> GetPagos()
         {

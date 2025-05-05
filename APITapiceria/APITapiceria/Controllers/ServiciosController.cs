@@ -14,16 +14,11 @@ namespace APITapiceria.Controllers
     {
         private readonly TapiceriaContext _context; // Necesario para GetDbConnection()
 
-        // Considera inyectar un servicio que contenga los métodos auxiliares de ejecución de SPs
-        // En este ejemplo, asumimos que los métodos Execute...Procedure están accesibles (ej: en una clase base)
-
         public ServiciosController(TapiceriaContext context)
         {
             _context = context;
         }
 
-        // --- Aquí irían los métodos auxiliares o la inyección del servicio que los contenga ---
-        // Copiamos aquí una versión básica si no usas herencia/servicio:
         private async Task<List<T>> ExecuteSelectProcedure<T>(string procedureName, Func<MySqlDataReader, T> mapFunction, params MySqlParameter[] parameters)
         {
             List<T> results = new List<T>();
@@ -59,14 +54,7 @@ namespace APITapiceria.Controllers
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
             using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteNonQueryAsync(); }
         }
-        // --- Fin Métodos Auxiliares (Refactorizar en producción) ---
 
-
-        // =============================================
-        // ENDPOINTS PARA SERVICIOS - Llamando SPs
-        // =============================================
-
-        // GET: api/servicios
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ServiceDto>>> GetServicios()
         {
@@ -88,7 +76,6 @@ namespace APITapiceria.Controllers
             catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener servicios."); }
         }
 
-        // GET: api/servicios/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<ServiceDto>> GetServicio(int id)
         {
@@ -115,7 +102,6 @@ namespace APITapiceria.Controllers
             catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener servicio por ID."); }
         }
 
-        // POST: api/servicios
         [HttpPost]
         public async Task<ActionResult<ServiceDto>> PostServicio(Servicios servicio) // Usa el modelo Servicios como entrada
         {
@@ -207,8 +193,7 @@ namespace APITapiceria.Controllers
             }
             catch (MySqlException ex)
             {
-                // Manejar errores de FK si existen citas vinculadas y no hay CASCADE/SET NULL
-                // Log ex
+
                 return StatusCode(500, $"Error de base de datos al eliminar: {ex.Message}. Verifique si hay citas vinculadas.");
             }
             catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al eliminar servicio."); }

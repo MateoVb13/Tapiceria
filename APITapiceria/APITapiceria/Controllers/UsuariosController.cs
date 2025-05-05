@@ -19,7 +19,6 @@ namespace APITapiceria.Controllers
             _context = context;
         }
 
-        // Auxiliar para ejecutar SPs SELECT que devuelven un conjunto de resultados
         private async Task<List<T>> ExecuteSelectProcedure<T>(string procedureName, Func<MySqlDataReader, T> mapFunction, params MySqlParameter[] parameters)
         {
             List<T> results = new List<T>();
@@ -50,7 +49,6 @@ namespace APITapiceria.Controllers
             return results;
         }
 
-        // Auxiliar para ejecutar SPs de acción (INSERT, UPDATE, DELETE) que devuelven un valor escalar (ej: LAST_INSERT_ID)
         private async Task<object?> ExecuteScalarProcedure(string procedureName, params MySqlParameter[] parameters)
         {
             var connection = _context.Database.GetDbConnection();
@@ -67,7 +65,6 @@ namespace APITapiceria.Controllers
             // La conexión se gestiona por el ciclo de vida del DbContext
         }
 
-        // Auxiliar para ejecutar SPs de acción (UPDATE, DELETE) que devuelven el número de filas afectadas (ExecuteNonQuery)
         private async Task<int> ExecuteNonQueryProcedure(string procedureName, params MySqlParameter[] parameters)
         {
             var connection = _context.Database.GetDbConnection();
@@ -84,11 +81,6 @@ namespace APITapiceria.Controllers
             // La conexión se gestiona por el ciclo de vida del DbContext
         }
 
-        // =============================================
-        // ENDPOINTS PARA USUARIOS - Llamando SPs
-        // =============================================
-
-        // GET: api/usuarios
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsuarios()
         {
@@ -134,56 +126,52 @@ namespace APITapiceria.Controllers
         }
 
         // POST: api/usuarios
-        [HttpPost]
-        public async Task<ActionResult<UserDto>> PostUsuario(Usuarios usuario) // Usa el modelo Usuarios como entrada (puede validar con atributos)
+[HttpPost("registro")]
+        public async Task<IActionResult> Registrar([FromBody] Usuarios usuario)
         {
-            // **NOTA DE SEGURIDAD:** Aquí DEBES hashear la contraseña de usuario.Contrasena
-            // antes de pasársela al procedimiento almacenado InsertarUsuario.
-            // El código para hashear la contraseña va aquí.
-            // string hashedPassword = TuHelperDeHashing.HashPassword(usuario.Contrasena);
-
             try
             {
-                var parameters = new MySqlParameter[]
+                // 1. Insertar el usuario
+                await _context.Database.ExecuteSqlInterpolatedAsync(
+                    $"CALL InsertarUsuario({usuario.NombreUsuario}, {usuario.Correo}, {usuario.Contrasena})");
+
+                // 2. Buscar al usuario recién insertado por correo (lectura manual)
+                Usuarios usuarioInsertado = null;
+
+                var conn = _context.Database.GetDbConnection();
+                await conn.OpenAsync();
+
+                using (var command = conn.CreateCommand())
                 {
-                    new MySqlParameter("@p_NombreUsuario", usuario.NombreUsuario),
-                    new MySqlParameter("@p_Correo", usuario.Correo),
-                    new MySqlParameter("@p_Contrasena", usuario.Contrasena) // <-- Pasa el HASHED password
-                };
+                    command.CommandText = "CALL ObtenerUsuarioPorCorreo(@correo)";
+                    command.CommandType = System.Data.CommandType.Text;
 
-                // El SP devuelve el nuevo ID como escalar
-                object? result = await ExecuteScalarProcedure("InsertarUsuario", parameters);
+                    var correoParam = command.CreateParameter();
+                    correoParam.ParameterName = "@correo";
+                    correoParam.Value = usuario.Correo;
+                    command.Parameters.Add(correoParam);
 
-                if (result != null && result != DBNull.Value)
-                {
-                    int nuevoIdUsuario = Convert.ToInt32(result);
-                    // Opcional: Obtener el usuario recién creado para devolverlo (sin contraseña)
-                    var newUser = (await ExecuteSelectProcedure(
-                       "ObtenerUsuarioPorId",
-                       reader => new UserDto
-                       {
-                           IdUsuario = reader.GetInt32("IdUsuario"),
-                           NombreUsuario = reader.GetString("NombreUsuario"),
-                           Correo = reader.GetString("Correo")
-                       },
-                       new MySqlParameter("@p_IdUsuario", nuevoIdUsuario)
-                   )).FirstOrDefault();
+                    using var reader = await command.ExecuteReaderAsync();
 
-                    if (newUser != null)
+                    if (await reader.ReadAsync())
                     {
-                        return CreatedAtAction(nameof(GetUsuario), new { id = nuevoIdUsuario }, newUser);
+                        usuarioInsertado = new Usuarios
+                        {
+                            IdUsuario = Convert.ToInt32(reader["IdUsuario"]),
+                            NombreUsuario = reader["NombreUsuario"].ToString(),
+                            Correo = reader["Correo"].ToString()
+                        };
                     }
-                    else
-                    {
-                        return StatusCode(500, "Usuario creado, pero error al recuperar detalles.");
-                    }
-
-                }
-                else
-                {
-                    return StatusCode(500, "Error al crear el usuario a través del procedimiento almacenado.");
                 }
 
+                if (usuarioInsertado == null)
+                    return StatusCode(500, new { mensaje = "No se pudo recuperar el usuario recién insertado" });
+
+                // 3. Insertar cliente automáticamente
+                await _context.Database.ExecuteSqlInterpolatedAsync(
+                    $"CALL InsertarCliente({usuarioInsertado.IdUsuario}, {usuario.NombreUsuario}, '', '')");
+
+                return Ok(new { mensaje = "Usuario registrado correctamente", usuario = usuarioInsertado });
             }
             catch (MySqlException ex)
             {
@@ -203,9 +191,6 @@ namespace APITapiceria.Controllers
         public async Task<IActionResult> PutUsuario(int id, Usuarios usuario) // Usa el modelo Usuarios como entrada
         {
             if (id != usuario.IdUsuario) return BadRequest("El ID de la URL no coincide con el ID del usuario.");
-
-            // **NOTA DE SEGURIDAD:** Si la contraseña se envía en el PUT, también DEBES hashearla aquí.
-            // Considera si PUT debería permitir cambiar la contraseña o tener un endpoint aparte para eso.
 
             try
             {
@@ -260,8 +245,7 @@ namespace APITapiceria.Controllers
             }
             catch (MySqlException ex)
             {
-                // Manejar errores si hay FKs que impiden la eliminación (si no usas ON DELETE CASCADE/SET NULL)
-                // Log ex
+
                 return StatusCode(500, $"Error de base de datos al eliminar: {ex.Message}");
             }
             catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al eliminar usuario."); }
@@ -272,10 +256,6 @@ namespace APITapiceria.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            // **NOTA DE SEGURIDAD:** Aquí DEBES hashear la contraseña de request.Contrasena
-            // antes de pasársela al procedimiento almacenado ValidarLogin.
-            // El código para hashear la contraseña va aquí.
-            // string hashedPassword = TuHelperDeHashing.HashPassword(request.Contrasena);
 
             try
             {

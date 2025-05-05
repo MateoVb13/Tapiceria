@@ -14,16 +14,11 @@ namespace APITapiceria.Controllers
     {
         private readonly TapiceriaContext _context; // Necesario para GetDbConnection()
 
-        // Considera inyectar un servicio que contenga los métodos auxiliares de ejecución de SPs
-        // En este ejemplo, asumimos que los métodos Execute...Procedure están accesibles (ej: en una clase base)
-
         public EmpleadosController(TapiceriaContext context)
         {
             _context = context;
         }
 
-        // --- Aquí irían los métodos auxiliares o la inyección del servicio que los contenga ---
-        // Copiamos aquí una versión básica si no usas herencia/servicio:
         private async Task<List<T>> ExecuteSelectProcedure<T>(string procedureName, Func<MySqlDataReader, T> mapFunction, params MySqlParameter[] parameters)
         {
             List<T> results = new List<T>();
@@ -58,14 +53,7 @@ namespace APITapiceria.Controllers
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
             using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteNonQueryAsync(); }
         }
-        // --- Fin Métodos Auxiliares (Refactorizar en producción) ---
 
-
-        // =============================================
-        // ENDPOINTS PARA EMPLEADOS - Llamando SPs
-        // =============================================
-
-        // GET: api/empleados
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetEmpleados()
         {
@@ -113,8 +101,7 @@ namespace APITapiceria.Controllers
             catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener empleado por ID."); }
         }
 
-        // POST: api/empleados
-        // Usa el modelo Empleados como entrada (sin IdUsuario, sin HorarioDisponible)
+
         [HttpPost]
         public async Task<ActionResult<EmployeeDto>> PostEmpleado(Empleados empleado)
         {
@@ -162,8 +149,6 @@ namespace APITapiceria.Controllers
             catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al crear empleado."); }
         }
 
-        // PUT: api/empleados/{id}
-        // Usa el modelo Empleados como entrada
         [HttpPut("{id}")]
         public async Task<IActionResult> PutEmpleado(int id, Empleados empleado)
         {
@@ -204,8 +189,6 @@ namespace APITapiceria.Controllers
             }
             catch (MySqlException ex)
             {
-                // Manejar errores de FK si existen citas o disponibilidad vinculadas y no hay CASCADE/SET NULL
-                // Log ex
                 return StatusCode(500, $"Error de base de datos al eliminar: {ex.Message}. Verifique si hay citas o disponibilidad vinculadas.");
             }
             catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al eliminar empleado."); }

@@ -6,7 +6,7 @@
              Title="Inicio">
 
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="25" VerticalOptions="CenterAndExpand">
+        <VerticalStackLayout Padding="20" Spacing="25">
 
             <!-- Encabezado -->
             <Label Text="¡Hola, bienvenido a TapizPro!"
@@ -50,7 +50,8 @@
                     TextColor="White"
                     CornerRadius="12"
                     HeightRequest="50"
-                    FontAttributes="Bold" />
+                    FontAttributes="Bold" 
+                    Clicked="OnAgendarCitaClicked"/>
 
             <Button Text="Ver Mis Servicios"
                     BackgroundColor="#5e5ce6"
@@ -58,6 +59,12 @@
                     CornerRadius="12"
                     HeightRequest="50"
                     FontAttributes="Bold" />
+
+            <Button Text="Ver Mis Citas"
+            Clicked="OnVerMisCitasClicked"
+            HorizontalOptions="Center"
+            Margin="0,10,0,0"/>
+
 
             <Button Text="Cerrar Sesión"
                     BackgroundColor="#ff3b30"

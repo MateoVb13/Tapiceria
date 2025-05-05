@@ -1,5 +1,4 @@
-﻿// Archivo: APITapiceria.Controllers/EmpleadoDisponibilidadController.cs
-using APITapiceria.Data;
+﻿using APITapiceria.Data;
 using APITapiceria.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,16 +13,12 @@ namespace APITapiceria.Controllers
     {
         private readonly TapiceriaContext _context; // Necesario para GetDbConnection()
 
-        // Considera inyectar un servicio que contenga los métodos auxiliares de ejecución de SPs
-        // En este ejemplo, asumimos que los métodos Execute...Procedure están accesibles (ej: en una clase base)
-
         public EmpleadoDisponibilidadController(TapiceriaContext context)
         {
             _context = context;
         }
 
-        // --- Aquí irían los métodos auxiliares o la inyección del servicio que los contenga ---
-        // Copiamos aquí una versión básica si no usas herencia/servicio:
+
         private async Task<List<T>> ExecuteSelectProcedure<T>(string procedureName, Func<MySqlDataReader, T> mapFunction, params MySqlParameter[] parameters)
         {
             List<T> results = new List<T>();
@@ -59,14 +54,7 @@ namespace APITapiceria.Controllers
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
             using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteNonQueryAsync(); }
         }
-        // --- Fin Métodos Auxiliares (Refactorizar en producción) ---
 
-
-        // =============================================
-        // ENDPOINTS PARA EMPLEADO_DISPONIBILIDAD - Llamando SPs
-        // =============================================
-
-        // GET: api/empleadodisponibilidad/empleado/{employeeId}
         [HttpGet("empleado/{employeeId}")]
         public async Task<ActionResult<IEnumerable<EmployeeAvailabilityDto>>> GetDisponibilidadEmpleado(int employeeId)
         {
@@ -94,7 +82,7 @@ namespace APITapiceria.Controllers
         [HttpPost]
         public async Task<ActionResult<EmployeeAvailabilityDto>> PostDisponibilidadEmpleado(EmpleadoDisponibilidad disponibilidad) // Usa el modelo como entrada
         {
-            // Opcional: Validar que IdEmpleado exista en la tabla Empleados
+
             bool empleadoExiste = await _context.Empleados.AnyAsync(e => e.IdEmpleado == disponibilidad.IdEmpleado);
             if (!empleadoExiste) return BadRequest("El IdEmpleado especificado no existe.");
 
@@ -130,9 +118,7 @@ namespace APITapiceria.Controllers
 
                     if (newBlock != null)
                     {
-                        // Necesitarías un método GetDisponibilidadEmpleadoById para CreatedAtAction
-                        // return CreatedAtAction(nameof(GetDisponibilidadEmpleado), new { id = nuevoIdDisponibilidad }, newBlock);
-                        return StatusCode(201, newBlock); // Retorna 201 con el objeto creado
+                       return StatusCode(201, newBlock); // Retorna 201 con el objeto creado
                     }
                     else
                     {
@@ -147,9 +133,7 @@ namespace APITapiceria.Controllers
             catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al crear disponibilidad."); }
         }
 
-        // PUT: api/empleadodisponibilidad/{id}
-        // Usa el modelo EmpleadoDisponibilidad como entrada
-        [HttpPut("{id}")]
+     [HttpPut("{id}")]
         public async Task<IActionResult> PutDisponibilidadEmpleado(int id, EmpleadoDisponibilidad disponibilidad)
         {
             if (id != disponibilidad.IdEmpleadoDisponibilidad) return BadRequest("El ID de la URL no coincide con el ID de la disponibilidad.");

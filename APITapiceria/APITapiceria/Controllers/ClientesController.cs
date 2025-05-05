@@ -1,5 +1,4 @@
-﻿// Archivo: APITapiceria.Controllers/ClientesController.cs
-using APITapiceria.Data;
+﻿using APITapiceria.Data;
 using APITapiceria.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,21 +13,11 @@ namespace APITapiceria.Controllers
     {
         private readonly TapiceriaContext _context; // Necesario para GetDbConnection()
 
-        // Considera inyectar un servicio que contenga los métodos auxiliares de ejecución de SPs
-        // En este ejemplo, asumimos que los métodos Execute...Procedure están accesibles (ej: en una clase base)
-
         public ClientesController(TapiceriaContext context)
         {
             _context = context;
         }
 
-        // Métodos auxiliares para ejecutar SPs (Ej: heredados de un BaseController)
-        // private async Task<List<T>> ExecuteSelectProcedure<T>(...) { ... }
-        // private async Task<object?> ExecuteScalarProcedure(...) { ... }
-        // private async Task<int> ExecuteNonQueryProcedure(...) { ... }
-
-        // --- Aquí irían los métodos auxiliares o la inyección del servicio que los contenga ---
-        // Por simplicidad, copiamos aquí una versión básica si no usas herencia/servicio:
         private async Task<List<T>> ExecuteSelectProcedure<T>(string procedureName, Func<MySqlDataReader, T> mapFunction, params MySqlParameter[] parameters)
         {
             List<T> results = new List<T>();
@@ -63,14 +52,7 @@ namespace APITapiceria.Controllers
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
             using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteNonQueryAsync(); }
         }
-        // --- Fin Métodos Auxiliares (Refactorizar en producción) ---
-
-
-        // =============================================
-        // ENDPOINTS PARA CLIENTES - Llamando SPs
-        // =============================================
-
-        // GET: api/clientes
+ 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ClientDto>>> GetClientes()
         {
@@ -121,6 +103,45 @@ namespace APITapiceria.Controllers
                 return Ok(cliente);
             }
             catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener cliente por ID."); }
+        }
+
+        // Dentro de la clase ClientesController en tu proyecto de API
+
+        [HttpGet("PorUsuario/{userId}")] // Esta ruta coincide con lo que la app espera
+        public async Task<ActionResult<ClientDto>> GetClientePorUsuario(int userId)
+        {
+
+            try
+            {
+                var parameters = new MySqlParameter[] { new MySqlParameter("@p_IdUsuario", userId) };
+                var clientes = await ExecuteSelectProcedure(
+                    "ObtenerClientePorUsuarioId",
+                    reader => new ClientDto 
+                    {
+                        IdCliente = reader.GetInt32("IdCliente"),
+                        IdUsuario = reader.GetInt32("IdUsuario"),
+                        NombreCompleto = reader.GetString("NombreCompleto"),
+                        Contacto = reader.IsDBNull("Contacto") ? null : reader.GetString("Contacto"),
+                        Direccion = reader.IsDBNull("Direccion") ? null : reader.GetString("Direccion"),
+                        NombreUsuario = reader.IsDBNull("NombreUsuario") ? null : reader.GetString("NombreUsuario"),
+                        CorreoUsuario = reader.IsDBNull("Correo") ? null : reader.GetString("Correo")
+                    },
+                    parameters
+                );
+                var cliente = clientes.FirstOrDefault();
+
+                if (cliente == null)
+                {
+                    // Si no se encuentra un cliente para ese IdUsuario, retorna 404
+                    return NotFound("No se encontró un cliente asociado a este usuario.");
+                }
+                return Ok(cliente); // Retorna 200 OK con el DTO del cliente
+            }
+            catch (Exception ex)
+            {
+                // Log ex (considera loggear el error real en el servidor)
+                return StatusCode(500, "Error interno del servidor al obtener cliente por ID de usuario.");
+            }
         }
 
         // POST: api/clientes
@@ -231,8 +252,7 @@ namespace APITapiceria.Controllers
             }
             catch (MySqlException ex)
             {
-                // Manejar errores de FK si existen citas vinculadas y no hay CASCADE/SET NULL
-                // Log ex
+
                 return StatusCode(500, $"Error de base de datos al eliminar: {ex.Message}. Verifique si hay citas vinculadas.");
             }
             catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al eliminar cliente."); }
