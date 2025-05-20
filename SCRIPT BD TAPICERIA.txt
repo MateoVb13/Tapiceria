@@ -1,15 +1,4 @@
--- MySQL Workbench Forward Engineering
--- Script de Base de Datos para Tapiceria de Autos
--- Autor: Gemini (basado en la interacción con el usuario)
--- Fecha: 2025-05-01
 
-SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
-SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
-SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
-
--- -----------------------------------------------------
--- Schema tapiceria
--- -----------------------------------------------------
 DROP SCHEMA IF EXISTS `tapiceria` ;
 CREATE SCHEMA IF NOT EXISTS `tapiceria` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci ;
 USE `tapiceria` ;
@@ -155,6 +144,27 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci; -- Usar la collación del esquema
 
+DROP TABLE IF EXISTS `horarios_base_agendamiento`;
+
+-- Creamos la tabla mejorada
+CREATE TABLE IF NOT EXISTS `horarios_base_agendamiento` (
+  `IdHorarioBase` INT NOT NULL AUTO_INCREMENT,
+  `DiaSemana` INT NOT NULL COMMENT 'Día de la semana (1=Lunes, 7=Domingo)',
+  `HoraInicio` TIME NOT NULL COMMENT 'Hora de inicio del intervalo',
+  `DuracionMinutos` INT NOT NULL COMMENT 'Duración estándar de este intervalo en minutos',
+  `IdServicio` INT NULL COMMENT 'Servicio específico al que aplica este horario, NULL para todos',
+  `TipoDia` VARCHAR(50) NULL COMMENT 'Ej: "Lunes-Viernes", "Sábado", "Domingo" - Opcional, si prefieres texto',
+  `Activo` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Indica si este horario base está activo para agendar',
+  PRIMARY KEY (`IdHorarioBase`),
+  UNIQUE INDEX `UK_DiaHoraServicio` (`DiaSemana` ASC, `HoraInicio` ASC, `IdServicio` ASC) VISIBLE, -- Asegura que no haya horarios base duplicados
+  INDEX `fk_horarios_base_servicios1_idx` (`IdServicio` ASC) VISIBLE,
+  CONSTRAINT `fk_horarios_base_servicios1`
+    FOREIGN KEY (`IdServicio`)
+    REFERENCES `tapiceria`.`servicios` (`IdServicio`)
+    ON DELETE SET NULL -- Si se elimina el servicio, el horario sigue aplicándose a todos los servicios
+    ON UPDATE NO ACTION
+) ENGINE = InnoDB;
+
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
@@ -170,26 +180,30 @@ DELIMITER $$
 -- =============================================
 -- PROCEDIMIENTOS PARA LA TABLA: usuarios
 -- =============================================
-
+Delimiter $$
 -- 1. Obtener todos los usuarios (sin la contraseña por seguridad)
 DROP PROCEDURE IF EXISTS ObtenerUsuarios$$
 CREATE PROCEDURE ObtenerUsuarios()
 BEGIN
-    SELECT IdUsuario, NombreUsuario, Correo
+    SELECT IdUsuario, NombreUsuario, Correo, Contrasena
     FROM usuarios;
 END$$
 
+
+Delimiter $$
 -- 2. Obtener un usuario por su Id (sin la contraseña por seguridad)
-DROP PROCEDURE IF EXISTS ObtenerUsuarioPorId$$
-CREATE PROCEDURE ObtenerUsuarioPorId(
-    IN p_IdUsuario INT
+DROP PROCEDURE IF EXISTS ObtenerUsuarioPorCorreo$$
+CREATE PROCEDURE ObtenerUsuarioPorCorreo(
+    IN p_Correo VARCHAR(100)
 )
 BEGIN
     SELECT IdUsuario, NombreUsuario, Correo
     FROM usuarios
-    WHERE IdUsuario = p_IdUsuario;
+    WHERE Correo = p_Correo;
 END$$
 
+
+Delimiter $$
 -- 3. Insertar un nuevo usuario
 DROP PROCEDURE IF EXISTS InsertarUsuario$$
 CREATE PROCEDURE InsertarUsuario(
@@ -205,7 +219,7 @@ BEGIN
     -- Devolver el Id generado
     SELECT LAST_INSERT_ID() AS NuevoIdUsuario;
 END$$
-
+Delimiter $$
 -- 4. Actualizar un usuario existente
 DROP PROCEDURE IF EXISTS ActualizarUsuario$$
 CREATE PROCEDURE ActualizarUsuario(
@@ -225,7 +239,7 @@ BEGIN
     -- Indicar cuántas filas se actualizaron
     SELECT ROW_COUNT() AS FilasActualizadas;
 END$$
-
+Delimiter $$
 -- 5. Eliminar un usuario por su Id
 DROP PROCEDURE IF EXISTS EliminarUsuario$$
 CREATE PROCEDURE EliminarUsuario(
@@ -240,6 +254,8 @@ BEGIN
     SELECT ROW_COUNT() AS FilasEliminadas;
 END$$
 
+
+Delimiter $$
 -- 6. Procedimiento de Login (Validando Correo y Contraseña HASH)
 -- Valida que el correo y la contraseña (hash) coincidan
 -- NOTA DE SEGURIDAD: La API debe hashear la contraseña plana antes de llamar a este SP.
@@ -252,7 +268,8 @@ BEGIN
     SELECT
         IdUsuario,
         NombreUsuario,
-        Correo
+        Correo,
+        Contrasena
     FROM usuarios
     WHERE Correo = p_Correo
       AND Contrasena = p_Contrasena; -- Compara el hash de entrada con el hash almacenado
@@ -261,7 +278,7 @@ END$$
 -- =============================================
 -- PROCEDIMIENTOS PARA LA TABLA: clientes
 -- =============================================
-
+Delimiter $$
 -- 7. Obtener todos los clientes (con info básica del usuario asociado)
 DROP PROCEDURE IF EXISTS ObtenerClientes$$
 CREATE PROCEDURE ObtenerClientes()
@@ -277,7 +294,7 @@ BEGIN
     FROM clientes c
     LEFT JOIN usuarios u ON c.IdUsuario = u.IdUsuario;
 END$$
-
+Delimiter $$
 -- 8. Obtener un cliente por su Id (con info básica del usuario asociado)
 DROP PROCEDURE IF EXISTS ObtenerClientePorId$$
 CREATE PROCEDURE ObtenerClientePorId(
@@ -296,7 +313,7 @@ BEGIN
     LEFT JOIN usuarios u ON c.IdUsuario = u.IdUsuario
     WHERE c.IdCliente = p_IdCliente;
 END$$
-
+Delimiter $$
 -- 9. Insertar un nuevo cliente
 DROP PROCEDURE IF EXISTS InsertarCliente$$
 CREATE PROCEDURE InsertarCliente(
@@ -311,7 +328,7 @@ BEGIN
 
     SELECT LAST_INSERT_ID() AS NuevoIdCliente;
 END$$
-
+Delimiter $$
 -- 10. Actualizar un cliente existente
 DROP PROCEDURE IF EXISTS ActualizarCliente$$
 CREATE PROCEDURE ActualizarCliente(
@@ -332,7 +349,7 @@ BEGIN
 
     SELECT ROW_COUNT() AS FilasActualizadas;
 END$$
-
+Delimiter $$
 -- 11. Eliminar un cliente por su Id
 DROP PROCEDURE IF EXISTS EliminarCliente$$
 CREATE PROCEDURE EliminarCliente(
@@ -349,7 +366,7 @@ END$$
 -- =============================================
 -- PROCEDIMIENTOS PARA LA TABLA: servicios
 -- =============================================
-
+Delimiter $$
 -- 12. Obtener todos los servicios
 DROP PROCEDURE IF EXISTS ObtenerServicios$$
 CREATE PROCEDURE ObtenerServicios()
@@ -357,7 +374,7 @@ BEGIN
     SELECT IdServicio, Descripcion, DuracionEstimada, Precio, Categoria
     FROM servicios;
 END$$
-
+Delimiter $$
 -- 13. Obtener un servicio por su Id
 DROP PROCEDURE IF EXISTS ObtenerServicioPorId$$
 CREATE PROCEDURE ObtenerServicioPorId(
@@ -368,7 +385,7 @@ BEGIN
     FROM servicios
     WHERE IdServicio = p_IdServicio;
 END$$
-
+Delimiter $$
 -- 14. Insertar un nuevo servicio
 DROP PROCEDURE IF EXISTS InsertarServicio$$
 CREATE PROCEDURE InsertarServicio(
@@ -383,7 +400,7 @@ BEGIN
 
     SELECT LAST_INSERT_ID() AS NuevoIdServicio;
 END$$
-
+Delimiter $$
 -- 15. Actualizar un servicio existente
 DROP PROCEDURE IF EXISTS ActualizarServicio$$
 CREATE PROCEDURE ActualizarServicio(
@@ -404,7 +421,7 @@ BEGIN
 
     SELECT ROW_COUNT() AS FilasActualizadas;
 END$$
-
+Delimiter $$
 -- 16. Eliminar un servicio por su Id
 DROP PROCEDURE IF EXISTS EliminarServicio$$
 CREATE PROCEDURE EliminarServicio(
@@ -422,7 +439,7 @@ END$$
 -- PROCEDIMIENTOS PARA LA TABLA: empleados
 -- =============================================
 -- NOTA: Procedimientos actualizados ya que se eliminó la columna IdUsuario
-
+Delimiter $$
 -- 17. Obtener todos los empleados
 DROP PROCEDURE IF EXISTS ObtenerEmpleados$$
 CREATE PROCEDURE ObtenerEmpleados()
@@ -435,7 +452,7 @@ BEGIN
         -- HorarioDisponible eliminado del esquema
     FROM empleados;
 END$$
-
+Delimiter $$
 -- 18. Obtener un empleado por su Id
 DROP PROCEDURE IF EXISTS ObtenerEmpleadoPorId$$
 CREATE PROCEDURE ObtenerEmpleadoPorId(
@@ -451,7 +468,7 @@ BEGIN
     FROM empleados
     WHERE IdEmpleado = p_IdEmpleado;
 END$$
-
+Delimiter $$
 -- 19. Insertar un nuevo empleado
 DROP PROCEDURE IF EXISTS InsertarEmpleado$$
 CREATE PROCEDURE InsertarEmpleado(
@@ -466,7 +483,7 @@ BEGIN
 
     SELECT LAST_INSERT_ID() AS NuevoIdEmpleado;
 END$$
-
+Delimiter $$
 -- 20. Actualizar un empleado existente
 DROP PROCEDURE IF EXISTS ActualizarEmpleado$$
 CREATE PROCEDURE ActualizarEmpleado(
@@ -487,7 +504,7 @@ BEGIN
 
     SELECT ROW_COUNT() AS FilasActualizadas;
 END$$
-
+Delimiter $$
 -- 21. Eliminar un empleado por su Id
 DROP PROCEDURE IF EXISTS EliminarEmpleado$$
 CREATE PROCEDURE EliminarEmpleado(
@@ -500,11 +517,11 @@ BEGIN
 
     SELECT ROW_COUNT() AS FilasEliminadas;
 END$$
-
+Delimiter $$
 -- =============================================
 -- PROCEDIMIENTOS PARA LA TABLA: empleado_disponibilidad
 -- =============================================
-
+Delimiter $$
 -- 22. Obtener disponibilidad de un empleado por su Id
 DROP PROCEDURE IF EXISTS ObtenerDisponibilidadEmpleado$$
 CREATE PROCEDURE ObtenerDisponibilidadEmpleado(
@@ -521,7 +538,7 @@ BEGIN
     WHERE IdEmpleado = p_IdEmpleado
     ORDER BY DiaSemana, HoraInicio;
 END$$
-
+Delimiter $$
 -- 23. Insertar un bloque de disponibilidad para un empleado
 DROP PROCEDURE IF EXISTS InsertarDisponibilidadEmpleado$$
 CREATE PROCEDURE InsertarDisponibilidadEmpleado(
@@ -536,7 +553,7 @@ BEGIN
 
     SELECT LAST_INSERT_ID() AS NuevoIdDisponibilidad;
 END$$
-
+Delimiter $$
 -- 24. Actualizar un bloque de disponibilidad existente
 DROP PROCEDURE IF EXISTS ActualizarDisponibilidadEmpleado$$
 CREATE PROCEDURE ActualizarDisponibilidadEmpleado(
@@ -557,7 +574,7 @@ BEGIN
 
     SELECT ROW_COUNT() AS FilasActualizadas;
 END$$
-
+Delimiter $$
 -- 25. Eliminar un bloque de disponibilidad por su Id
 DROP PROCEDURE IF EXISTS EliminarDisponibilidadEmpleado$$
 CREATE PROCEDURE EliminarDisponibilidadEmpleado(
@@ -574,7 +591,7 @@ END$$
 -- =============================================
 -- PROCEDIMIENTOS PARA LA TABLA: citas
 -- =============================================
-
+Delimiter $$
 -- 26. Obtener todas las citas (con detalles de cliente, servicio y empleado)
 DROP PROCEDURE IF EXISTS ObtenerCitas$$
 CREATE PROCEDURE ObtenerCitas()
@@ -598,7 +615,7 @@ BEGIN
     INNER JOIN servicios s ON c.IdServicio = s.IdServicio
     LEFT JOIN empleados e ON c.IdEmpleado = e.IdEmpleado;
 END$$
-
+Delimiter $$
 -- 27. Obtener una cita por su Id (con detalles de cliente, servicio y empleado)
 DROP PROCEDURE IF EXISTS ObtenerCitaPorId$$
 CREATE PROCEDURE ObtenerCitaPorId(
@@ -625,7 +642,7 @@ BEGIN
     LEFT JOIN empleados e ON c.IdEmpleado = e.IdEmpleado
     WHERE c.IdCita = p_IdCita;
 END$$
-
+Delimiter $$
 -- 28. Obtener citas por Id de Cliente (con detalles de servicio y empleado)
 DROP PROCEDURE IF EXISTS ObtenerCitasPorCliente$$
 CREATE PROCEDURE ObtenerCitasPorCliente(
@@ -653,7 +670,7 @@ BEGIN
     WHERE c.IdCliente = p_IdCliente
     ORDER BY c.FechaInicio;
 END$$
-
+Delimiter $$
 -- 29. Obtener citas por Id de Empleado (con detalles de cliente y servicio)
 -- Nota: Solo devolverá citas donde el empleado NO sea NULL
 DROP PROCEDURE IF EXISTS ObtenerCitasPorEmpleado$$
@@ -682,7 +699,7 @@ BEGIN
     WHERE c.IdEmpleado = p_IdEmpleado
     ORDER BY c.FechaInicio;
 END$$
-
+Delimiter $$
 -- 30. Insertar una nueva cita
 -- Nota: IdEmpleado es opcional (NULL). La verificación de disponibilidad va en la API.
 DROP PROCEDURE IF EXISTS InsertarCita$$
@@ -701,7 +718,7 @@ BEGIN
 
     SELECT LAST_INSERT_ID() AS NuevoIdCita;
 END$$
-
+Delimiter $$
 -- 31. Actualizar una cita existente
 DROP PROCEDURE IF EXISTS ActualizarCita$$
 CREATE PROCEDURE ActualizarCita(
@@ -728,7 +745,7 @@ BEGIN
 
     SELECT ROW_COUNT() AS FilasActualizadas;
 END$$
-
+Delimiter $$
 -- 32. Eliminar una cita por su Id
 DROP PROCEDURE IF EXISTS EliminarCita$$
 CREATE PROCEDURE EliminarCita(
@@ -741,7 +758,7 @@ BEGIN
 
     SELECT ROW_COUNT() AS FilasEliminadas;
 END$$
-
+Delimiter $$
 -- 33. Procedimiento para verificar si un empleado está ocupado en un rango de tiempo
 -- Devuelve el número de citas existentes para un empleado que se solapan con el rango dado.
 -- Un resultado > 0 significa que el empleado está ocupado.
@@ -763,7 +780,7 @@ END$$
 -- =============================================
 -- PROCEDIMIENTOS PARA LA TABLA: pagos
 -- =============================================
-
+Delimiter $$
 -- 34. Obtener todos los pagos (con detalles de la cita asociada)
 DROP PROCEDURE IF EXISTS ObtenerPagos$$
 CREATE PROCEDURE ObtenerPagos()
@@ -778,7 +795,7 @@ BEGIN
     FROM pagos p
     INNER JOIN citas c ON p.IdCita = c.IdCita;
 END$$
-
+Delimiter $$
 -- 35. Obtener un pago por su Id (con detalles de la cita asociada)
 DROP PROCEDURE IF EXISTS ObtenerPagoPorId$$
 CREATE PROCEDURE ObtenerPagoPorId(
@@ -796,7 +813,7 @@ BEGIN
     INNER JOIN citas c ON p.IdCita = c.IdCita
     WHERE p.IdPago = p_IdPago;
 END$$
-
+Delimiter $$
 -- 36. Obtener pagos por Id de Cita (con detalles de la cita asociada)
 DROP PROCEDURE IF EXISTS ObtenerPagosPorCita$$
 CREATE PROCEDURE ObtenerPagosPorCita(
@@ -814,7 +831,7 @@ BEGIN
     INNER JOIN citas c ON p.IdCita = c.IdCita
     WHERE p.IdCita = p_IdCita;
 END$$
-
+Delimiter $$
 -- 37. Insertar un nuevo pago
 DROP PROCEDURE IF EXISTS InsertarPago$$
 CREATE PROCEDURE InsertarPago(
@@ -828,7 +845,7 @@ BEGIN
 
     SELECT LAST_INSERT_ID() AS NuevoIdPago;
 END$$
-
+Delimiter $$
 -- 38. Actualizar un pago existente
 DROP PROCEDURE IF EXISTS ActualizarPago$$
 CREATE PROCEDURE ActualizarPago(
@@ -847,7 +864,7 @@ BEGIN
 
     SELECT ROW_COUNT() AS FilasActualizadas;
 END$$
-
+Delimiter $$
 -- 39. Eliminar un pago por su Id
 DROP PROCEDURE IF EXISTS EliminarPago$$
 CREATE PROCEDURE EliminarPago(
@@ -861,7 +878,220 @@ BEGIN
 END$$
 
 
--- Volvemos el delimitador a ;
+Delimiter $$
+-- 12. Obtener un cliente por su IdUsuario
+DROP PROCEDURE IF EXISTS ObtenerClientePorUsuarioId$$
+CREATE PROCEDURE ObtenerClientePorUsuarioId(
+    IN p_IdUsuario INT
+)
+BEGIN
+    SELECT
+        c.IdCliente,
+        c.IdUsuario,
+        c.NombreCompleto,
+        c.Contacto,
+        c.Direccion,
+        u.NombreUsuario, -- Incluir nombre de usuario
+        u.Correo        -- Incluir correo de usuario
+    FROM clientes c
+    INNER JOIN usuarios u ON c.IdUsuario = u.IdUsuario
+    WHERE c.IdUsuario = p_IdUsuario;
+END$$
+
+DELIMITER $$
+
+DELIMITER $$
+
+-- Obtener horarios base disponibles para un servicio en un día específico
+DROP PROCEDURE IF EXISTS ObtenerHorariosBaseDisponiblesPorServicio$$
+CREATE PROCEDURE ObtenerHorariosBaseDisponiblesPorServicio(
+    IN p_IdServicio INT,
+    IN p_DiaSemana INT,
+    IN p_SoloActivos BOOLEAN
+)
+BEGIN
+    SELECT
+        hb.IdHorarioBase,
+        hb.DiaSemana,
+        hb.HoraInicio,
+        hb.DuracionMinutos,
+        hb.IdServicio,
+        hb.TipoDia,
+        hb.Activo
+    FROM horarios_base_agendamiento hb
+    WHERE (hb.IdServicio = p_IdServicio OR hb.IdServicio IS NULL) -- Aplica para este servicio o para todos
+      AND hb.DiaSemana = p_DiaSemana
+      AND (p_SoloActivos = FALSE OR hb.Activo = TRUE)
+    ORDER BY hb.HoraInicio;
+END$$
+
+-- Verificar la disponibilidad real para un horario base
+DROP PROCEDURE IF EXISTS VerificarDisponibilidadHorarioBase$$
+CREATE PROCEDURE VerificarDisponibilidadHorarioBase(
+    IN p_IdHorarioBase INT,
+    IN p_Fecha DATE -- Fecha específica a verificar
+)
+BEGIN
+    DECLARE v_DiaSemana INT;
+    DECLARE v_HoraInicio TIME;
+    DECLARE v_DuracionMinutos INT;
+    DECLARE v_FechaInicio DATETIME;
+    DECLARE v_FechaFin DATETIME;
+    
+    -- Obtener información del horario base
+    SELECT 
+        DiaSemana, 
+        HoraInicio,
+        DuracionMinutos
+    INTO 
+        v_DiaSemana, 
+        v_HoraInicio,
+        v_DuracionMinutos
+    FROM horarios_base_agendamiento
+    WHERE IdHorarioBase = p_IdHorarioBase;
+    
+    -- Calcular fecha y hora completas
+    SET v_FechaInicio = TIMESTAMP(p_Fecha, v_HoraInicio);
+    SET v_FechaFin = v_FechaInicio + INTERVAL v_DuracionMinutos MINUTE;
+    
+    -- Devolver empleados disponibles para este horario
+    SELECT
+        e.IdEmpleado,
+        e.NombreCompleto,
+        v_FechaInicio AS FechaInicio,
+        v_FechaFin AS FechaFin
+    FROM empleados e
+    -- Unir con la disponibilidad del empleado para ese día de la semana
+    INNER JOIN empleado_disponibilidad ed ON e.IdEmpleado = ed.IdEmpleado
+    WHERE ed.DiaSemana = v_DiaSemana
+      AND ed.HoraInicio <= v_HoraInicio
+      AND ed.HoraFin >= ADDTIME(v_HoraInicio, SEC_TO_TIME(v_DuracionMinutos * 60))
+      -- Y no tiene citas en ese horario
+      AND NOT EXISTS (
+          SELECT 1
+          FROM citas c
+          WHERE c.IdEmpleado = e.IdEmpleado
+            AND c.FechaInicio < v_FechaFin
+            AND c.FechaFin > v_FechaInicio
+      );
+END$$
+
+-- Obtener disponibilidad completa (combinando horarios base y empleados)
+DROP PROCEDURE IF EXISTS ObtenerDisponibilidadCompleta$$
+CREATE PROCEDURE ObtenerDisponibilidadCompleta(
+    IN p_IdServicio INT,
+    IN p_Fecha DATE
+)
+BEGIN
+    DECLARE v_DiaSemana INT;
+    
+    -- Calcular el día de la semana
+    SET v_DiaSemana = WEEKDAY(p_Fecha) + 1; -- Convertir de 0-6 a 1-7
+    
+    -- Obtener todos los horarios base disponibles para este servicio en este día
+    CREATE TEMPORARY TABLE temp_horarios_disponibles AS
+    SELECT
+        hb.IdHorarioBase,
+        hb.HoraInicio,
+        hb.DuracionMinutos,
+        TIMESTAMP(p_Fecha, hb.HoraInicio) AS FechaHoraInicio,
+        TIMESTAMP(p_Fecha, hb.HoraInicio) + INTERVAL hb.DuracionMinutos MINUTE AS FechaHoraFin
+    FROM horarios_base_agendamiento hb
+    WHERE (hb.IdServicio = p_IdServicio OR hb.IdServicio IS NULL)
+      AND hb.DiaSemana = v_DiaSemana
+      AND hb.Activo = TRUE;
+    
+    -- Para cada horario, encontrar empleados disponibles
+    SELECT
+        h.FechaHoraInicio AS FechaInicio,
+        h.FechaHoraFin AS FechaFin,
+        e.IdEmpleado,
+        e.NombreCompleto AS NombreEmpleado
+    FROM temp_horarios_disponibles h
+    CROSS JOIN empleados e
+    -- Verificar disponibilidad del empleado en ese día y hora
+    INNER JOIN empleado_disponibilidad ed ON e.IdEmpleado = ed.IdEmpleado
+    WHERE ed.DiaSemana = v_DiaSemana
+      AND ed.HoraInicio <= h.HoraInicio
+      AND ed.HoraFin >= ADDTIME(h.HoraInicio, SEC_TO_TIME(h.DuracionMinutos * 60))
+      -- Y no tiene citas en ese horario
+      AND NOT EXISTS (
+          SELECT 1
+          FROM citas c
+          WHERE c.IdEmpleado = e.IdEmpleado
+            AND c.FechaInicio < h.FechaHoraFin
+            AND c.FechaFin > h.FechaHoraInicio
+      )
+    ORDER BY h.FechaHoraInicio, e.NombreCompleto;
+    
+    -- Eliminar tabla temporal
+    DROP TEMPORARY TABLE IF EXISTS temp_horarios_disponibles;
+END$$
+
+-- Funcionalidad para crear múltiples horarios base para un rango de tiempo
+DROP PROCEDURE IF EXISTS CrearHorariosBaseRango$$
+CREATE PROCEDURE CrearHorariosBaseRango(
+    IN p_DiaSemana INT, -- 1-7 para el día específico
+    IN p_HoraInicio TIME, -- Hora de inicio del rango
+    IN p_HoraFin TIME, -- Hora de fin del rango
+    IN p_DuracionSlotMinutos INT, -- Duración de cada slot
+    IN p_IdServicio INT, -- NULL para todos los servicios
+    IN p_TipoDia VARCHAR(50), -- Descripción opcional
+    IN p_Activo BOOLEAN -- TRUE/FALSE
+)
+BEGIN
+    DECLARE v_HoraActual TIME;
+    DECLARE v_MensajeResultado VARCHAR(100);
+    DECLARE v_ContadorCreados INT DEFAULT 0;
+    
+    SET v_HoraActual = p_HoraInicio;
+    
+    -- Crear slots de tiempo mientras estemos dentro del rango
+    WHILE v_HoraActual < p_HoraFin DO
+        -- Intentar insertar el horario base
+        INSERT IGNORE INTO horarios_base_agendamiento (
+            DiaSemana, 
+            HoraInicio, 
+            DuracionMinutos, 
+            IdServicio, 
+            TipoDia, 
+            Activo
+        )
+        VALUES (
+            p_DiaSemana,
+            v_HoraActual,
+            p_DuracionSlotMinutos,
+            p_IdServicio,
+            p_TipoDia,
+            p_Activo
+        );
+        
+        -- Actualizar contador
+        SET v_ContadorCreados = v_ContadorCreados + ROW_COUNT();
+        
+        -- Avanzar al siguiente slot
+        SET v_HoraActual = ADDTIME(v_HoraActual, SEC_TO_TIME(p_DuracionSlotMinutos * 60));
+    END WHILE;
+    
+    -- Devolver resultado
+    SELECT 
+        CONCAT('Se crearon ', v_ContadorCreados, ' horarios base para el día ', p_DiaSemana) AS Resultado;
+END$$
+
+DELIMITER ;
+
+-- Crear algunos horarios base de ejemplo para días laborables (lunes a viernes)
+-- Para cada día laborable (1-5)
+CALL CrearHorariosBaseRango(1, '09:00:00', '17:00:00', 60, NULL, 'Lunes', TRUE);
+CALL CrearHorariosBaseRango(2, '09:00:00', '17:00:00', 60, NULL, 'Martes', TRUE);
+CALL CrearHorariosBaseRango(3, '09:00:00', '17:00:00', 60, NULL, 'Miércoles', TRUE);
+CALL CrearHorariosBaseRango(4, '09:00:00', '17:00:00', 60, NULL, 'Jueves', TRUE);
+CALL CrearHorariosBaseRango(5, '09:00:00', '15:00:00', 60, NULL, 'Viernes', TRUE);
+
+-- Crear algunos horarios base para sábados con menos horas
+CALL CrearHorariosBaseRango(6, '10:00:00', '14:00:00', 60, NULL, 'Sábado', TRUE);
+
+
 DELIMITER ;
 
 -- =============================================

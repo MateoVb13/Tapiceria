@@ -2,41 +2,126 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Tapiceria.Views.MisCitasPage"
+             BackgroundColor="#121212"
              Title="Mis Citas">
 
-    <VerticalStackLayout Padding="20" Spacing="15">
-        <Label Text="Mis Citas Programadas"
-               FontSize="Large"
-               HorizontalOptions="Center" />
+    <Grid RowDefinitions="Auto,*" Padding="20">
+        <!-- Cabecera -->
+        <StackLayout Grid.Row="0" Spacing="10" Margin="0,0,0,20">
+            <Label Text="Mis Citas Programadas"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="#d9a520"
+                   HorizontalOptions="Center" />
 
-        <ActivityIndicator x:Name="activityIndicator"
-                           IsRunning="False"
-                           Color="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource Secondary}}"
-                           HorizontalOptions="Center" />
+            <Label Text="Aquí puedes ver todas tus citas agendadas"
+                   FontSize="16"
+                   TextColor="#cccccc"
+                   HorizontalTextAlignment="Center" />
+        </StackLayout>
 
-        <CollectionView x:Name="citasCollectionView">
-            <CollectionView.EmptyView>
-                <ContentView>
-                    <Label Text="No tienes citas programadas."
-                           HorizontalOptions="Center"
-                           VerticalOptions="Center" />
-                </ContentView>
-            </CollectionView.EmptyView>
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Frame Padding="10" Margin="5" CornerRadius="5">
-                        <StackLayout Orientation="Vertical" Spacing="5">
-                            <Label Text="{Binding Fecha}" FontAttributes="Bold" FontSize="Medium"/>
-                            <Label Text="{Binding Horario}" FontAttributes="Bold" FontSize="Medium"/>
-                            <Label Text="{Binding NombreServicio}" FontSize="Small" TextColor="Gray"/>
-                            <Label Text="{Binding NombreEmpleado}" FontSize="Small" TextColor="Gray"/>
-                            <Label Text="{Binding Estado}" FontSize="Small" TextColor="Blue"/>
-                            <Label Text="{Binding Notas}" FontSize="Small" FontAttributes="Italic" IsVisible="{Binding Notas, Converter={StaticResource IsNotNullOrEmptyConverter}}"/>
-                        </StackLayout>
-                    </Frame>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+        <!-- Contenido principal -->
+        <Grid Grid.Row="1" RowDefinitions="Auto,*">
+            <!-- Indicador de carga -->
+            <ActivityIndicator Grid.Row="0" 
+                               x:Name="activityIndicator"
+                               IsRunning="False"
+                               Color="#d9a520"
+                               HorizontalOptions="Center" 
+                               VerticalOptions="Center"
+                               HeightRequest="50" 
+                               WidthRequest="50" />
 
-    </VerticalStackLayout>
+            <!-- Lista de citas -->
+            <RefreshView Grid.Row="1" 
+                         x:Name="refreshView" 
+                         IsRefreshing="{Binding IsRefreshing}"
+                         Command="{Binding RefreshCommand}">
+                <CollectionView x:Name="citasCollectionView"
+                                EmptyView="No tienes citas programadas. Toca el botón Agendar Cita para crear una nueva."
+                                SelectionMode="None">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="15" />
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame BackgroundColor="#1f1f1f" 
+                                   CornerRadius="12" 
+                                   Padding="15" 
+                                   HasShadow="True">
+                                <Grid RowDefinitions="Auto,Auto,Auto,Auto" 
+                                      ColumnDefinitions="*,Auto"
+                                      RowSpacing="8">
+
+                                    <!-- Fecha y horario -->
+                                    <Label Grid.Row="0" Grid.Column="0"
+                                           Text="{Binding Fecha}"
+                                           FontAttributes="Bold"
+                                           FontSize="18"
+                                           TextColor="#ffffff" />
+
+                                    <Frame Grid.Row="0" Grid.Column="1"
+                                           BackgroundColor="{Binding Estado, Converter={StaticResource EstadoColorConverter}}"
+                                           CornerRadius="8"
+                                           Padding="8,3">
+                                        <Label Text="{Binding Estado}"
+                                               FontSize="12"
+                                               TextColor="White"
+                                               FontAttributes="Bold"/>
+                                    </Frame>
+
+                                    <!-- Hora -->
+                                    <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                           Text="{Binding Horario}"
+                                           FontSize="16"
+                                           TextColor="#eaeaea" />
+
+                                    <!-- Servicio y Empleado -->
+                                    <StackLayout Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                                 Orientation="Vertical" 
+                                                 Spacing="4">
+
+                                        <Label Text="{Binding NombreServicio}"
+                                               FontSize="16"
+                                               TextColor="#d9a520" />
+
+                                        <Label Text="{Binding NombreEmpleado, StringFormat='Tapicero: {0}'}"
+                                               FontSize="14"
+                                               TextColor="#cccccc"
+                                               IsVisible="{Binding NombreEmpleado, Converter={StaticResource IsNotNullOrEmptyConverter}}"/>
+                                    </StackLayout>
+
+                                    <!-- Notas (si existen) -->
+                                    <Frame Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
+                                           IsVisible="{Binding Notas, Converter={StaticResource IsNotNullOrEmptyConverter}}"
+                                           BackgroundColor="#2d2d2d"
+                                           CornerRadius="6"
+                                           Padding="10,5">
+                                        <Label Text="{Binding Notas}"
+                                               FontSize="14"
+                                               TextColor="#cccccc"
+                                               FontAttributes="Italic"/>
+                                    </Frame>
+                                </Grid>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </RefreshView>
+
+            <!-- Botón flotante para agendar nueva cita -->
+            <Button Grid.Row="1"
+                    Text="+ Agendar Nueva Cita"
+                    BackgroundColor="#d9a520"
+                    TextColor="White"
+                    CornerRadius="25"
+                    FontAttributes="Bold"
+                    HeightRequest="50"
+                    WidthRequest="200"
+                    Clicked="OnNuevaCitaClicked"
+                    VerticalOptions="End"
+                    HorizontalOptions="Center"
+                    Margin="0,0,0,20"/>
+        </Grid>
+    </Grid>
 </ContentPage>

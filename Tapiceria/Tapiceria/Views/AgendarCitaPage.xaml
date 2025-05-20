@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Tapiceria.Views.AgendarCitaPage"
+             BackgroundColor="#121212"
+             Title="Agendar Cita">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+
+            <!-- Cabecera -->
+            <StackLayout Orientation="Vertical" Spacing="8">
+                <Label Text="Agendar Nueva Cita"
+                       FontSize="28"
+                       FontAttributes="Bold"
+                       TextColor="#d9a520"
+                       HorizontalOptions="Center" />
+
+                <Label Text="Selecciona el servicio, fecha y horario para tu cita"
+                       FontSize="16"
+                       TextColor="#cccccc"
+                       HorizontalTextAlignment="Center" />
+            </StackLayout>
+
+            <!-- Paso 1: Selección de servicio -->
+            <Frame BackgroundColor="#1f1f1f" CornerRadius="15" Padding="15" HasShadow="True">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="1. Selecciona el Servicio"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="#ffffff" />
+
+                    <Picker x:Name="servicePicker"
+                            Title="-- Selecciona un servicio --"
+                            TextColor="White"
+                            BackgroundColor="#2d2d2d"
+                            ItemDisplayBinding="{Binding Descripcion}"
+                            SelectedIndexChanged="OnServiceSelected" />
+
+                    <Label Text="Duración estimada:" TextColor="#cccccc" FontSize="14" />
+                    <Label x:Name="lblDuracion" Text="--" TextColor="White" FontSize="16" FontAttributes="Bold" />
+
+                    <Label Text="Precio:" TextColor="#cccccc" FontSize="14" />
+                    <Label x:Name="lblPrecio" Text="--" TextColor="#34c759" FontSize="18" FontAttributes="Bold" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Paso 2: Selección de fecha -->
+            <Frame BackgroundColor="#1f1f1f" CornerRadius="15" Padding="15" HasShadow="True">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="2. Selecciona la Fecha"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="#ffffff" />
+
+                    <DatePicker x:Name="datePicker"
+                                MinimumDate="{Binding MinDate}"
+                                Format="D"
+                                TextColor="White"
+                                DateSelected="OnDateSelected" />
+
+                    <Label Text="Solo se muestran fechas disponibles para los próximos 30 días."
+                           TextColor="#cccccc"
+                           FontSize="12"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Paso 3: Selección de horario -->
+            <Frame BackgroundColor="#1f1f1f" CornerRadius="15" Padding="15" HasShadow="True">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="3. Selecciona el Horario"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="#ffffff" />
+
+                    <ActivityIndicator x:Name="activityIndicator"
+                                       IsRunning="False"
+                                       Color="#d9a520"
+                                       HorizontalOptions="Center" />
+
+                    <Label x:Name="lblNoHorarios" 
+                           Text="No hay horarios disponibles para la fecha seleccionada."
+                           TextColor="#ff3b30"
+                           HorizontalOptions="Center"
+                           IsVisible="False" />
+
+                    <!-- Grid de horarios disponibles -->
+                    <Grid x:Name="gridHorarios" 
+                          ColumnDefinitions="*,*" 
+                          RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                          ColumnSpacing="10"
+                          RowSpacing="10">
+                        <!-- Los horarios se agregarán dinámicamente aquí -->
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Paso 4: Detalles de la cita seleccionada -->
+            <Frame x:Name="frameCitaSeleccionada" 
+                   BackgroundColor="#1f1f1f" 
+                   CornerRadius="15" 
+                   Padding="15" 
+                   HasShadow="True"
+                   IsVisible="False">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Detalles de la Cita"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="#ffffff" />
+
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                        <Label Grid.Row="0" Grid.Column="0" Text="Servicio:" TextColor="#cccccc" />
+                        <Label Grid.Row="0" Grid.Column="1" x:Name="lblServicioSeleccionado" TextColor="White" />
+
+                        <Label Grid.Row="1" Grid.Column="0" Text="Fecha:" TextColor="#cccccc" />
+                        <Label Grid.Row="1" Grid.Column="1" x:Name="lblFechaSeleccionada" TextColor="White" />
+
+                        <Label Grid.Row="2" Grid.Column="0" Text="Hora:" TextColor="#cccccc" />
+                        <Label Grid.Row="2" Grid.Column="1" x:Name="lblHoraSeleccionada" TextColor="White" />
+
+                        <Label Grid.Row="3" Grid.Column="0" Text="Tapicero:" TextColor="#cccccc" />
+                        <Label Grid.Row="3" Grid.Column="1" x:Name="lblEmpleadoSeleccionado" TextColor="White" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Paso 5: Notas adicionales -->
+            <Frame BackgroundColor="#1f1f1f" CornerRadius="15" Padding="15" HasShadow="True">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="5. Notas Adicionales (Opcional)"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="#ffffff" />
+
+                    <Editor x:Name="notasEditor"
+                            Placeholder="Añade cualquier información adicional para tu cita..."
+                            HeightRequest="100"
+                            TextColor="White"
+                            PlaceholderColor="#999"
+                            BackgroundColor="#2d2d2d"
+                            AutoSize="TextChanges" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Botón de confirmación -->
+            <Button x:Name="btnConfirmar"
+                    Text="Confirmar Cita"
+                    BackgroundColor="#d9a520"
+                    TextColor="White"
+                    CornerRadius="12"
+                    HeightRequest="50"
+                    FontAttributes="Bold"
+                    IsEnabled="False"
+                    Clicked="OnConfirmarClicked" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

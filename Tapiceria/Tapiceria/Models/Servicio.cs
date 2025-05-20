@@ -5,21 +5,20 @@ namespace Tapiceria.Models
 {
     public class Servicio
     {
-        [JsonProperty("idServicio")] // Mapea si la API usa camelCase
+        [JsonProperty("idServicio")]
         public int IdServicio { get; set; }
 
-        [JsonProperty("descripcion")] // Coincide con el nombre en la API y BD
-        public string Descripcion { get; set; }
+        [JsonProperty("descripcion")]
+        public string Descripcion { get; set; } = string.Empty;
 
-        // CORREGIDO: Coincide con el tipo de dato que la API envía (INT para minutos)
-        [JsonProperty("duracionEstimada")] // Mapea si la API usa camelCase
+        [JsonProperty("duracionEstimada")]
         public int DuracionEstimada { get; set; }
 
-        [JsonProperty("precio")] // Mapea si la API usa camelCase
+        [JsonProperty("precio")]
         public decimal Precio { get; set; }
 
-        [JsonProperty("categoria")] // Mapea si la API usa camelCase
-        public string Categoria { get; set; }
+        [JsonProperty("categoria")]
+        public string Categoria { get; set; } = string.Empty;
 
         // Propiedad adicional para usar en el Picker, mapeando desde Descripcion
         public string NombreServicio => Descripcion;

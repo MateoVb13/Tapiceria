@@ -384,5 +384,46 @@ namespace APITapiceria.Controllers
             }
             catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al eliminar cita."); }
         }
+        // GET: api/Citas/AvailableSlotsForService?idServicio={idServicio}&fecha={fecha}
+        [HttpGet("AvailableSlotsForService")]
+        public async Task<ActionResult<IEnumerable<TimeSpan>>> GetAvailableSlotsForService(
+            [FromQuery] int idServicio,
+            [FromQuery] DateTime fecha
+        )
+        {
+            // Validar que los parámetros sean razonables (ej. idServicio > 0, fecha no muy en el pasado)
+            if (idServicio <= 0)
+            {
+                return BadRequest("El ID del servicio no es válido.");
+            }
+   
+
+            try
+            {
+                var parameters = new MySqlParameter[]
+                {
+                    new MySqlParameter("@p_IdServicio", idServicio),
+                    new MySqlParameter("@p_Fecha", fecha)
+                };
+
+                var horariosDisponibles = await ExecuteSelectProcedure(
+                    "ObtenerHorariosDisponiblesPorServicioYFecha", 
+                    reader => reader.GetTimeSpan("HoraInicio"),
+                    parameters
+                );
+
+                return Ok(horariosDisponibles);
+            }
+            catch (MySqlException mySqlEx)
+            {
+
+                return StatusCode(500, $"Error de base de datos al calcular disponibilidad: {mySqlEx.Message}");
+            }
+            catch (Exception ex)
+            {
+                // Log ex
+                return StatusCode(500, "Error interno del servidor al calcular horarios disponibles.");
+            }
+        }
     }
 }

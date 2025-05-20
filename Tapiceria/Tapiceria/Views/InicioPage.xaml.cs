@@ -1,4 +1,4 @@
-using Microsoft.Maui.Controls;
+using System;
 using Tapiceria.Views;
 
 namespace Tapiceria.Views
@@ -10,24 +10,32 @@ namespace Tapiceria.Views
             InitializeComponent();
         }
 
-        private async void OnCerrarSesionClicked(object sender, EventArgs e)
-        {
-            Application.Current.MainPage = new NavigationPage(new MainPage());
-            // Limpiar datos de sesión (ej. UserID, ClienteID, Token)
-            Microsoft.Maui.Storage.Preferences.Remove("LoggedInUserId");
-            // Puedes limpiar más si es necesario
-        }
-
-        // Navega a la página central de agendamiento
         private async void OnAgendarCitaClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new AgendarCitaSimplePage());
+            // Navegar a la nueva página de agendamiento de citas
+            await Navigation.PushAsync(new AgendarCitaPage());
         }
 
-        // Navega a la página de mis citas
         private async void OnVerMisCitasClicked(object sender, EventArgs e)
         {
+            // Navegar a la página mejorada de mis citas
             await Navigation.PushAsync(new MisCitasPage());
+        }
+
+        private async void OnCerrarSesionClicked(object sender, EventArgs e)
+        {
+            bool logout = await DisplayAlert("Cerrar Sesión", "¿Estás seguro que deseas cerrar sesión?", "Sí", "No");
+
+            if (logout)
+            {
+                // Limpiar datos de sesión
+                Preferences.Remove("ClienteId");
+                Preferences.Remove("UserId");
+                Preferences.Remove("Username");
+
+                // Navegar al inicio/login
+                Application.Current.MainPage = new NavigationPage(new MainPage());
+            }
         }
     }
 }

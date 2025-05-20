@@ -1,149 +1,147 @@
 using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Windows.Input;
 using Tapiceria.Models;
-using Tapiceria.Config;
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Storage; // Para Preferences
+using Tapiceria.Services;
 
 namespace Tapiceria.Views
 {
-    public partial class MisCitasPage : ContentPage
+    public partial class MisCitasPage : ContentPage, INotifyPropertyChanged
     {
-        private int _loggedInUserId;
-        private int _loggedInClientId;
+        private readonly CitasService _citasService;
+        private int _clienteId;
+        private bool _isRefreshing;
+        private ObservableCollection<CitaListItemDto> _citas;
 
+        // Propiedad para controlar el estado de recarga
+        public bool IsRefreshing
+        {
+            get => _isRefreshing;
+            set
+            {
+                if (_isRefreshing != value)
+                {
+                    _isRefreshing = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        // Colección observable de citas
+        public ObservableCollection<CitaListItemDto> Citas
+        {
+            get => _citas;
+            set
+            {
+                if (_citas != value)
+                {
+                    _citas = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        // Comando para refrescar la lista
+        public ICommand RefreshCommand { get; }
+
+        // Constructor
         public MisCitasPage()
         {
             InitializeComponent();
 
-            // Obtener el ID del usuario logueado (ajusta según cómo lo almacenes)
-            int userId = Preferences.Get("LoggedInUserId", 0); // Ejemplo usando Preferencias
-            _loggedInUserId = userId;
+            // Inicializar servicio y colección
+            _citasService = new CitasService();
+            _citas = new ObservableCollection<CitaListItemDto>();
 
-            // Al cargar la página, obtener el ID del cliente y luego cargar las citas
-            _ = LoadClientIdAndCitasAsync();
+            // Configurar comando de refresco
+            RefreshCommand = new Command(async () =>
+            {
+                IsRefreshing = true;
+                await LoadCitas();
+                IsRefreshing = false;
+            });
+
+            // Enlazar la colección y contexto
+            citasCollectionView.ItemsSource = _citas;
+            this.BindingContext = this;
+
+            // Obtener ID de cliente desde preferencias
+            _clienteId = Preferences.Get("ClienteId", 0);
+
+            // Si no hay ID de cliente, intentar obtenerlo del ID de usuario
+            if (_clienteId <= 0)
+            {
+                int userId = Preferences.Get("UserId", 0);
+                if (userId > 0)
+                {
+                    // Necesitaríamos implementar un método para obtener el cliente por ID de usuario
+                    // Por ahora, solo mostramos una alerta
+                    DisplayAlert("Información", "Necesitas iniciar sesión para ver tus citas", "OK");
+                }
+            }
         }
 
-        // Método para obtener el ID del cliente y luego cargar las citas
-        private async Task LoadClientIdAndCitasAsync()
+        protected override async void OnAppearing()
         {
-            if (_loggedInUserId <= 0)
+            base.OnAppearing();
+
+            // Cargar las citas cada vez que la página se muestra
+            await LoadCitas();
+        }
+
+        private async Task LoadCitas()
+        {
+            if (_clienteId <= 0)
             {
-                await DisplayAlert("Error de Sesión", "No se pudo identificar al usuario logueado.", "OK");
+                await DisplayAlert("Error", "No se pudo identificar al cliente. Por favor inicia sesión nuevamente.", "OK");
                 return;
             }
 
-            activityIndicator.IsRunning = true;
-            activityIndicator.IsVisible = true;
-
             try
             {
-                using var client = new HttpClient();
-                // Endpoint GET en tu API: /api/Clientes/PorUsuario/{idUsuario}
-                var urlCliente = $"{ApiConfig.BaseUrl}api/Clientes/PorUsuario/{_loggedInUserId}";
+                // Mostrar indicador de carga
+                activityIndicator.IsRunning = true;
 
-                var responseCliente = await client.GetAsync(urlCliente);
+                // Limpiar lista actual
+                _citas.Clear();
 
-                if (responseCliente.IsSuccessStatusCode)
+                // Cargar citas desde la API
+                var citasCliente = await _citasService.GetCitasByClienteIdAsync(_clienteId);
+
+                if (citasCliente != null)
                 {
-                    var jsonCliente = await responseCliente.Content.ReadAsStringAsync();
-                    var cliente = JsonConvert.DeserializeObject<Cliente>(jsonCliente);
-
-                    if (cliente != null && cliente.IdCliente > 0)
+                    // Agregar citas a la colección observable
+                    foreach (var cita in citasCliente.OrderBy(c => c.FechaInicio))
                     {
-                        _loggedInClientId = cliente.IdCliente;
-                        Console.WriteLine($"ID de Cliente logueado: {_loggedInClientId}");
-
-                        // Ahora que tenemos el IdCliente, cargar las citas
-                        await LoadCitasAsync(_loggedInClientId);
-                    }
-                    else
-                    {
-                        await DisplayAlert("Error de Cliente", "No se encontró información de cliente para el usuario logueado.", "OK");
-                        citasCollectionView.ItemsSource = new List<CitaListItemDto>();
+                        _citas.Add(cita);
                     }
                 }
-                else
-                {
-                    var errorCliente = await responseCliente.Content.ReadAsStringAsync();
-                    await DisplayAlert("Error API Cliente", $"Error al obtener ID de cliente: {responseCliente.StatusCode}", "OK");
-                    citasCollectionView.ItemsSource = new List<CitaListItemDto>();
-                }
-            }
-            catch (HttpRequestException httpEx)
-            {
-                await DisplayAlert("Error de Conexión", $"No se pudo conectar al servidor al obtener cliente. Detalles: {httpEx.Message}", "OK");
-                citasCollectionView.ItemsSource = new List<CitaListItemDto>();
-            }
-            catch (JsonException jsonEx)
-            {
-                await DisplayAlert("Error de Datos", $"Error al procesar los datos del cliente. Detalles: {jsonEx.Message}", "OK");
-                citasCollectionView.ItemsSource = new List<CitaListItemDto>();
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error Inesperado", $"Ocurrió un error al obtener el cliente: {ex.Message}", "OK");
-                citasCollectionView.ItemsSource = new List<CitaListItemDto>();
+                await DisplayAlert("Error", $"No se pudieron cargar las citas: {ex.Message}", "OK");
             }
             finally
             {
+                // Ocultar indicador de carga
                 activityIndicator.IsRunning = false;
-                activityIndicator.IsVisible = false;
             }
         }
 
-        private async Task LoadCitasAsync(int clientId)
+        private async void OnNuevaCitaClicked(object sender, EventArgs e)
         {
-            if (clientId <= 0) return;
+            // Navegar a la página de agendar cita
+            await Navigation.PushAsync(new AgendarCitaPage());
+        }
 
-            activityIndicator.IsRunning = true;
-            activityIndicator.IsVisible = true;
+        // Implementación de INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
 
-            try
-            {
-                using var client = new HttpClient();
-                // Endpoint GET en tu API: /api/Citas/PorCliente/{id}
-                // Debe retornar una lista de CitaListItemDto (o un formato compatible)
-                var urlCitas = $"{ApiConfig.BaseUrl}api/Citas/PorCliente/{clientId}";
-
-                var responseCitas = await client.GetAsync(urlCitas);
-
-                if (responseCitas.IsSuccessStatusCode)
-                {
-                    var jsonCitas = await responseCitas.Content.ReadAsStringAsync();
-                    var citasList = JsonConvert.DeserializeObject<List<CitaListItemDto>>(jsonCitas);
-                    citasCollectionView.ItemsSource = citasList;
-                }
-                else
-                {
-                    var errorCitas = await responseCitas.Content.ReadAsStringAsync();
-                    await DisplayAlert("Error API Citas", $"Error al cargar citas: {responseCitas.StatusCode}", "OK");
-                    citasCollectionView.ItemsSource = new List<CitaListItemDto>();
-                }
-            }
-            catch (HttpRequestException httpEx)
-            {
-                await DisplayAlert("Error de Conexión", $"No se pudo conectar al servidor al cargar citas. Detalles: {httpEx.Message}", "OK");
-                citasCollectionView.ItemsSource = new List<CitaListItemDto>();
-            }
-            catch (JsonException jsonEx)
-            {
-                await DisplayAlert("Error de Datos", $"Error al procesar los datos de citas. Detalles: {jsonEx.Message}", "OK");
-                citasCollectionView.ItemsSource = new List<CitaListItemDto>();
-            }
-            catch (Exception ex)
-            {
-                await DisplayAlert("Error Inesperado", $"Ocurrió un error al cargar citas: {ex.Message}", "OK");
-                citasCollectionView.ItemsSource = new List<CitaListItemDto>();
-            }
-            finally
-            {
-                activityIndicator.IsRunning = false;
-                activityIndicator.IsVisible = false;
-            }
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

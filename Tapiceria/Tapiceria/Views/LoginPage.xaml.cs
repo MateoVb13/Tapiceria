@@ -15,77 +15,88 @@ namespace Tapiceria.Views
             InitializeComponent();
         }
 
+        // Método para manejar el inicio de sesión en LoginPage.xaml.cs
+
+        // Método para manejar el inicio de sesión en LoginPage.xaml.cs
+
         private async void OnLoginClicked(object sender, EventArgs e)
         {
-
-            var request = new LoginRequest // Usa el DTO de Request, no el modelo completo Usuarios
+            if (string.IsNullOrEmpty(entryCorreo.Text) || string.IsNullOrEmpty(entryContrasena.Text))
             {
-                Correo = entryCorreo.Text,
-                Contrasena = entryContrasena.Text
-            };
+                await DisplayAlert("Error", "Por favor ingresa tu correo y contraseña", "OK");
+                return;
+            }
 
             try
             {
-                using var client = new HttpClient();
-                var url = $"{ApiConfig.BaseUrl}api/Usuarios/login"; // Endpoint de login en tu API
+                // Mostrar indicador de carga si lo tienes
+                // activityIndicator.IsRunning = true;
 
-                var jsonRequest = JsonConvert.SerializeObject(request);
-                var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+                // Crear la solicitud de login
+                var loginRequest = new LoginRequest
+                {
+                    Correo = entryCorreo.Text,
+                    Contrasena = entryContrasena.Text
+                };
 
-                var response = await client.PostAsync(url, content);
+                // Llamar al servicio de autenticación (necesitarías implementar esto)
+                var client = new HttpClient();
+                var content = new StringContent(
+                    Newtonsoft.Json.JsonConvert.SerializeObject(loginRequest),
+                    System.Text.Encoding.UTF8,
+                    "application/json");
+
+                var response = await client.PostAsync($"{ApiConfig.BaseUrl}api/usuarios/login", content);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var jsonResponse = await response.Content.ReadAsStringAsync();
-                    // Tu API de login retorna un objeto con Message y User (que es un UserDto)
-                    var loginResult = JsonConvert.DeserializeObject<LoginResponse>(jsonResponse);
+                    // Deserializar la respuesta
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var loginResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<LoginResponse>(responseContent);
 
-                    if (loginResult != null && loginResult.Usuario != null)
+                    if (loginResponse != null && loginResponse.Usuario != null)
                     {
-                        // *** GUARDAR EL ID DEL USUARIO LOGUEADO EN PREFERENCES ***
-                        Preferences.Set("LoggedInUserId", loginResult.Usuario.IdUsuario);
-                        Debug.WriteLine($"Usuario logueado: {loginResult.Usuario.IdUsuario}"); // Para depuración
+                        // Guardar datos del usuario en las preferencias
+                        Preferences.Set("UserId", loginResponse.Usuario.IdUsuario);
+                        Preferences.Set("Username", loginResponse.Usuario.NombreUsuario);
 
-                        await DisplayAlert("Éxito", loginResult.Mensaje, "OK");
+                        // Obtener el cliente asociado al usuario
+                        var clientResponse = await client.GetAsync($"{ApiConfig.BaseUrl}api/clientes/PorUsuario/{loginResponse.Usuario.IdUsuario}");
 
-                        // Navegar a la página de inicio (InicioPage)
+                        if (clientResponse.IsSuccessStatusCode)
+                        {
+                            var clienteContent = await clientResponse.Content.ReadAsStringAsync();
+                            var cliente = Newtonsoft.Json.JsonConvert.DeserializeObject<Cliente>(clienteContent);
+
+                            if (cliente != null)
+                            {
+                                // Guardar el ID del cliente para usarlo en las citas
+                                Preferences.Set("ClienteId", cliente.IdCliente);
+                            }
+                        }
+
+                        // Navegar a la página de inicio
                         await Navigation.PushAsync(new InicioPage());
-
-                        // Opcional: Limpiar campos de login después de navegar
-                        entryCorreo.Text = string.Empty;
-                        entryContrasena.Text = string.Empty;
                     }
                     else
                     {
-                        // Esto podría pasar si la API retorna 200 OK pero con un cuerpo inesperado
-                        await DisplayAlert("Error", "Respuesta de API inesperada.", "OK");
+                        await DisplayAlert("Error", "No se pudieron obtener los datos del usuario", "OK");
                     }
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                {
-                    // Manejar credenciales inválidas (si tu API retorna 401 Unauthorized)
-                    await DisplayAlert("Error de Login", "Correo o contraseña inválidos.", "OK");
                 }
                 else
                 {
-                    // Manejar otros errores de la API
-                    var error = await response.Content.ReadAsStringAsync();
-                    await DisplayAlert("Error en la API", $"Error al iniciar sesión: {response.StatusCode} - {error}", "OK");
+                    await DisplayAlert("Error", "Credenciales incorrectas", "OK");
                 }
-            }
-            catch (HttpRequestException httpEx)
-            {
-                await DisplayAlert("Error de Conexión", $"No se pudo conectar al servidor. Verifica la URL de la API. Detalles: {httpEx.Message}", "OK");
-            }
-            catch (JsonException jsonEx)
-            {
-                await DisplayAlert("Error de Datos", $"Error al procesar la respuesta del servidor. Detalles: {jsonEx.Message}", "OK");
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error Inesperado", $"Ocurrió un error durante el login: {ex.Message}", "OK");
+                await DisplayAlert("Error", $"Ocurrió un error: {ex.Message}", "OK");
             }
-
+            finally
+            {
+                // Ocultar indicador de carga
+                // activityIndicator.IsRunning = false;
+            }
         }
 
 
