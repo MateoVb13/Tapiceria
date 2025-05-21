@@ -2,9 +2,9 @@ using Newtonsoft.Json;
 using System.Text;
 using Tapiceria.Models;
 using Tapiceria.Config;
-using Microsoft.Maui.Storage; // Necesario para usar Preferences
+using Microsoft.Maui.Storage;
 using Microsoft.Maui.Controls;
-using System.Diagnostics; // Para Debug.WriteLine
+using System.Diagnostics;
 
 namespace Tapiceria.Views
 {
@@ -14,10 +14,6 @@ namespace Tapiceria.Views
         {
             InitializeComponent();
         }
-
-        // Método para manejar el inicio de sesión en LoginPage.xaml.cs
-
-        // Método para manejar el inicio de sesión en LoginPage.xaml.cs
 
         private async void OnLoginClicked(object sender, EventArgs e)
         {
@@ -39,11 +35,11 @@ namespace Tapiceria.Views
                     Contrasena = entryContrasena.Text
                 };
 
-                // Llamar al servicio de autenticación (necesitarías implementar esto)
+                // Llamar al servicio de autenticación
                 var client = new HttpClient();
                 var content = new StringContent(
-                    Newtonsoft.Json.JsonConvert.SerializeObject(loginRequest),
-                    System.Text.Encoding.UTF8,
+                    JsonConvert.SerializeObject(loginRequest),
+                    Encoding.UTF8,
                     "application/json");
 
                 var response = await client.PostAsync($"{ApiConfig.BaseUrl}api/usuarios/login", content);
@@ -52,13 +48,20 @@ namespace Tapiceria.Views
                 {
                     // Deserializar la respuesta
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var loginResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<LoginResponse>(responseContent);
+                    var loginResponse = JsonConvert.DeserializeObject<LoginResponse>(responseContent);
 
                     if (loginResponse != null && loginResponse.Usuario != null)
                     {
-                        // Guardar datos del usuario en las preferencias
+                        // IMPORTANTE: Guardar el objeto usuario completo serializado
+                        var usuarioJson = JsonConvert.SerializeObject(loginResponse.Usuario);
+                        Preferences.Set("usuario_actual", usuarioJson);
+
+                        // También guardar los campos individuales para compatibilidad
                         Preferences.Set("UserId", loginResponse.Usuario.IdUsuario);
                         Preferences.Set("Username", loginResponse.Usuario.NombreUsuario);
+
+                        // Imprimir para depuración
+                        Debug.WriteLine($"Usuario guardado: {usuarioJson}");
 
                         // Obtener el cliente asociado al usuario
                         var clientResponse = await client.GetAsync($"{ApiConfig.BaseUrl}api/clientes/PorUsuario/{loginResponse.Usuario.IdUsuario}");
@@ -66,12 +69,17 @@ namespace Tapiceria.Views
                         if (clientResponse.IsSuccessStatusCode)
                         {
                             var clienteContent = await clientResponse.Content.ReadAsStringAsync();
-                            var cliente = Newtonsoft.Json.JsonConvert.DeserializeObject<Cliente>(clienteContent);
+                            var cliente = JsonConvert.DeserializeObject<Cliente>(clienteContent);
 
                             if (cliente != null)
                             {
                                 // Guardar el ID del cliente para usarlo en las citas
                                 Preferences.Set("ClienteId", cliente.IdCliente);
+
+                                // Verificar si los datos de contacto y dirección están completos
+                                bool datosCompletos = !string.IsNullOrWhiteSpace(cliente.Contacto) &&
+                                                     !string.IsNullOrWhiteSpace(cliente.Direccion);
+                                Preferences.Set("datos_cliente_completos", datosCompletos);
                             }
                         }
 
@@ -98,7 +106,5 @@ namespace Tapiceria.Views
                 // activityIndicator.IsRunning = false;
             }
         }
-
-
     }
 }

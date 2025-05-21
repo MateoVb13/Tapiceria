@@ -203,13 +203,12 @@ namespace APITapiceria.Controllers
             catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al crear cliente."); }
         }
 
-        // PUT: api/clientes/{id}
+        // PUT: api/clientes/{id} - Versión temporal para depuración
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCliente(int id, Clientes cliente) // Usa el modelo Clientes como entrada
+        public async Task<IActionResult> PutCliente(int id, Clientes cliente)
         {
             if (id != cliente.IdCliente) return BadRequest("El ID de la URL no coincide con el ID del cliente.");
 
-            // Opcional: Validar que IdUsuario (si no es null) exista en la tabla Usuarios
             if (cliente.IdUsuario.HasValue)
             {
                 bool usuarioExiste = await _context.Usuarios.AnyAsync(u => u.IdUsuario == cliente.IdUsuario.Value);
@@ -220,20 +219,25 @@ namespace APITapiceria.Controllers
             {
                 var parameters = new MySqlParameter[]
                 {
-                    new MySqlParameter("@p_IdCliente", id),
-                    new MySqlParameter("@p_IdUsuario", cliente.IdUsuario ?? (object)DBNull.Value),
-                    new MySqlParameter("@p_NombreCompleto", cliente.NombreCompleto),
-                    new MySqlParameter("@p_Contacto", cliente.Contacto ?? (object)DBNull.Value),
-                    new MySqlParameter("@p_Direccion", cliente.Direccion ?? (object)DBNull.Value)
+            new MySqlParameter("@p_IdCliente", id),
+            new MySqlParameter("@p_IdUsuario", cliente.IdUsuario ?? (object)DBNull.Value),
+            new MySqlParameter("@p_NombreCompleto", cliente.NombreCompleto),
+            new MySqlParameter("@p_Contacto", cliente.Contacto ?? (object)DBNull.Value),
+            new MySqlParameter("@p_Direccion", cliente.Direccion ?? (object)DBNull.Value)
                 };
 
                 int filasAfectadas = await ExecuteNonQueryProcedure("ActualizarCliente", parameters);
 
-                if (filasAfectadas == 0) return NotFound(); // Cliente no encontrado/actualizado
+                if (filasAfectadas == 0) return NotFound();
 
-                return NoContent(); // 204 No Content
+                // Temporalmente devolver Ok() en lugar de NoContent() para depuración
+                return Ok(new { mensaje = "Cliente actualizado correctamente", filasAfectadas = filasAfectadas });
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al actualizar cliente."); }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en PutCliente: {ex.Message}");
+                return StatusCode(500, "Error al actualizar cliente: " + ex.Message);
+            }
         }
 
         // DELETE: api/clientes/{id}

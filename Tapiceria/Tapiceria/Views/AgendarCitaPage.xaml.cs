@@ -1,12 +1,14 @@
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Controls;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Tapiceria.Models;
 using Tapiceria.Services;
-using Microsoft.Maui.Controls;
-using System.Linq;
-using System.Globalization;
-using Microsoft.Maui.ApplicationModel;
 
 namespace Tapiceria.Views
 {
@@ -17,6 +19,9 @@ namespace Tapiceria.Views
         private DisponibilidadHoraria _horarioSeleccionado;
         private int _clienteId;
         private List<Button> _horariosButtons = new List<Button>();
+        private PerfilService _perfilService = new PerfilService();
+        private Cliente _clienteActual;
+        private bool _datosClienteCompletos = false;
 
         // Propiedad para la fecha mínima (hoy)
         public DateTime MinDate => DateTime.Today;
@@ -37,11 +42,165 @@ namespace Tapiceria.Views
 
             // Cargar el ID del cliente desde Preferences
             _clienteId = Preferences.Get("ClienteId", 0);
-
-            // Cargar los servicios disponibles al iniciar
-            LoadServicios();
         }
 
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+
+            // Verificar si el cliente tiene datos completos
+            await VerificarDatosCliente();
+
+            // Solo cargar servicios si los datos del cliente están completos
+            if (_datosClienteCompletos)
+            {
+                LoadServicios();
+            }
+        }
+
+        private async Task VerificarDatosCliente()
+        {
+            try
+            {
+                // Intentar múltiples métodos para obtener la información del usuario
+                string userJson = Preferences.Get("usuario_actual", string.Empty);
+                int userId = Preferences.Get("UserId", 0);
+                int clienteId = Preferences.Get("ClienteId", 0);
+
+                System.Diagnostics.Debug.WriteLine($"Verificando datos cliente:");
+                System.Diagnostics.Debug.WriteLine($"   - JSON Usuario: {(!string.IsNullOrEmpty(userJson) ? "Presente" : "Ausente")}");
+                System.Diagnostics.Debug.WriteLine($"   - UserId: {userId}");
+                System.Diagnostics.Debug.WriteLine($"   - ClienteId: {clienteId}");
+
+                UserDto usuario = null;
+
+                // Intentar obtener usuario del JSON primero
+                if (!string.IsNullOrEmpty(userJson))
+                {
+                    try
+                    {
+                        usuario = JsonConvert.DeserializeObject<UserDto>(userJson);
+                        System.Diagnostics.Debug.WriteLine($"Usuario deserializado: ID={usuario?.IdUsuario}");
+                    }
+                    catch (Exception jsonEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error deserializando JSON: {jsonEx.Message}");
+                    }
+                }
+
+                // Si no tenemos usuario del JSON, crear con datos individuales
+                if (usuario == null && userId > 0)
+                {
+                    usuario = new UserDto { IdUsuario = userId };
+                    System.Diagnostics.Debug.WriteLine($"Usuario creado con UserId: {userId}");
+                }
+
+                if (usuario == null || usuario.IdUsuario <= 0)
+                {
+                    await DisplayAlert("Sesión inválida", "No se pudo obtener la información del usuario. Por favor, inicia sesión nuevamente.", "Aceptar");
+                    await Navigation.PopAsync();
+                    return;
+                }
+
+                // Intentar obtener cliente por múltiples métodos
+                Cliente cliente = null;
+
+                // Método 1: Por ClienteId si está disponible
+                if (clienteId > 0)
+                {
+                    try
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Intentando obtener cliente por ID: {clienteId}");
+                        cliente = await _perfilService.GetClienteByIdAsync(clienteId);
+                        if (cliente != null)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Cliente obtenido por ID");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error obteniendo cliente por ID: {ex.Message}");
+                    }
+                }
+
+                // Método 2: Por IdUsuario si el método anterior falló
+                if (cliente == null)
+                {
+                    try
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Intentando obtener cliente por IdUsuario: {usuario.IdUsuario}");
+                        cliente = await _perfilService.GetClienteByUsuarioIdAsync(usuario.IdUsuario);
+                        if (cliente != null)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Cliente obtenido por IdUsuario");
+                            // Guardar el ClienteId para futuras consultas
+                            Preferences.Set("ClienteId", cliente.IdCliente);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error obteniendo cliente por IdUsuario: {ex.Message}");
+                    }
+                }
+
+                if (cliente == null)
+                {
+                    await DisplayAlert("Perfil incompleto",
+                        "No se encontró tu perfil de cliente. Por favor, ve a 'Mi Perfil' para completar tu información.",
+                        "Aceptar");
+                    await Navigation.PopAsync();
+                    return;
+                }
+
+                // Guardar referencia al cliente actual
+                _clienteActual = cliente;
+                _clienteId = cliente.IdCliente;
+
+                // Verificar si los datos están completos (contacto y dirección no vacíos)
+                _datosClienteCompletos = !string.IsNullOrWhiteSpace(cliente.Contacto) &&
+                                        !string.IsNullOrWhiteSpace(cliente.Direccion);
+
+                System.Diagnostics.Debug.WriteLine($"Estado de los datos:");
+                System.Diagnostics.Debug.WriteLine($"   - Cliente ID: {cliente.IdCliente}");
+                System.Diagnostics.Debug.WriteLine($"   - Contacto: '{cliente.Contacto}'");
+                System.Diagnostics.Debug.WriteLine($"   - Dirección: '{cliente.Direccion}'");
+                System.Diagnostics.Debug.WriteLine($"   - Datos completos: {_datosClienteCompletos}");
+
+                // Si los datos no están completos, mostrar alerta y ofrecer completar perfil
+                if (!_datosClienteCompletos)
+                {
+                    bool irAPerfil = await DisplayAlert(
+                        "Información incompleta",
+                        "Para agendar una cita, debes completar tu información de contacto y dirección en tu perfil.",
+                        "Completar ahora", "Cancelar");
+
+                    if (irAPerfil)
+                    {
+                        // Navegar a la página de perfil
+                        await Navigation.PushAsync(new PerfilPage());
+                    }
+                    else
+                    {
+                        // Volver a la página anterior
+                        await Navigation.PopAsync();
+                    }
+                }
+                else
+                {
+                    // Actualizar preferencias con estado completo
+                    Preferences.Set("datos_cliente_completos", true);
+                    Preferences.Set("ClienteId", cliente.IdCliente);
+
+                    System.Diagnostics.Debug.WriteLine("Datos del cliente verificados correctamente");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error en VerificarDatosCliente: {ex.Message}");
+                await DisplayAlert("Error", $"No se pudo verificar la información: {ex.Message}", "Aceptar");
+                await Navigation.PopAsync();
+            }
+        }
         private async void LoadServicios()
         {
             try
@@ -325,6 +484,21 @@ namespace Tapiceria.Views
 
         private async void OnConfirmarClicked(object sender, EventArgs e)
         {
+            // Verificar nuevamente que los datos del cliente estén completos antes de confirmar
+            if (!_datosClienteCompletos)
+            {
+                bool irAPerfil = await DisplayAlert(
+                    "Información incompleta",
+                    "Debes completar tu información de contacto y dirección antes de agendar una cita.",
+                    "Completar ahora", "Cancelar");
+
+                if (irAPerfil)
+                {
+                    await Navigation.PushAsync(new PerfilPage());
+                }
+                return;
+            }
+
             if (_servicioSeleccionado == null || _horarioSeleccionado == null)
             {
                 await DisplayAlert("Información incompleta", "Por favor selecciona un servicio y un horario disponible.", "OK");

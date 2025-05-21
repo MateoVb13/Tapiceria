@@ -37,5 +37,9 @@ namespace Tapiceria.Views
                 Application.Current.MainPage = new NavigationPage(new MainPage());
             }
         }
+        private async void OnVerPerfilClicked(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new PerfilPage());
+        }
     }
 }

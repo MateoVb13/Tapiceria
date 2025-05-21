@@ -13,7 +13,7 @@ namespace Tapiceria.Models
         public string Contacto { get; set; }
         public string Direccion { get; set; }
 
-        public int IdUsuario { get; set; } // Relación con el usuario logueado
+        public int? IdUsuario { get; set; } // Relación con el usuario logueado
 
     }
 }

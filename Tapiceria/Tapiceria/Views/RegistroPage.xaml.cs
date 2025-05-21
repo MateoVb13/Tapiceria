@@ -25,6 +25,11 @@ namespace Tapiceria.Views
                 await DisplayAlert("Error", "Por favor, completa todos los campos.", "OK");
                 return;
             }
+            if (entryConfirmarContrasena.Text != entryContrasena.Text)
+            {
+                await DisplayAlert("Error", "Las contraseñas no coinciden.", "OK");
+                return;
+            }
 
             // Creamos un objeto Usuarios según lo que espera la API para el registro
             var usuario = new Usuarios

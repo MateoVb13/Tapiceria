@@ -22,5 +22,6 @@ namespace Tapiceria.Models
 
         [JsonProperty("correo")] // Mapea "correo" del JSON
         public string Correo { get; set; }
+
     }
 }
