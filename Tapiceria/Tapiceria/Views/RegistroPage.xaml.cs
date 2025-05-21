@@ -53,7 +53,7 @@ namespace Tapiceria.Views
 
                     await DisplayAlert("Éxito", "Usuario registrado correctamente", "OK");
 
-                    Application.Current.MainPage = new NavigationPage(new InicioPage()); // O new NavigationPage(new LoginPage());
+                    Application.Current.MainPage = new NavigationPage(new LoginPage()); // O new NavigationPage(new LoginPage());
                 }
                 else
                 {

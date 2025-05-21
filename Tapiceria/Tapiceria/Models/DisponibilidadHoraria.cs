@@ -1,32 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace Tapiceria.Models
 {
     public class DisponibilidadHoraria
     {
-        [JsonProperty("idEmpleado")]
+        public DateTime FechaInicio { get; set; }
+        public DateTime FechaFin { get; set; }
         public int IdEmpleado { get; set; }
-
-        [JsonProperty("nombreEmpleado")]
         public string NombreEmpleado { get; set; }
 
-        [JsonProperty("fechaInicio")]
-        public DateTime FechaInicio { get; set; }
-
-        [JsonProperty("fechaFin")]
-        public DateTime FechaFin { get; set; }
-
-        // Propiedades derivadas para fácil visualización
+        // Propiedades auxiliares para la UI
         public string HoraInicioString => FechaInicio.ToString("hh:mm tt");
         public string HoraFinString => FechaFin.ToString("hh:mm tt");
-        public string HorarioCompleto => $"{HoraInicioString} - {HoraFinString}";
-
-        // Para mostrar en la lista de selección
-        public string DisplayText => $"{HoraInicioString} con {NombreEmpleado}";
+        public string DuracionString 
+        {
+            get
+            {
+                var duracion = FechaFin - FechaInicio;
+                return duracion.TotalMinutes switch
+                {
+                    < 60 => $"{duracion.TotalMinutes:0} min",
+                    _ => $"{duracion.TotalHours:0.#} horas"
+                };
+            }
+        }
     }
 }

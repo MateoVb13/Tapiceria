@@ -6,6 +6,7 @@ using Tapiceria.Services;
 using Microsoft.Maui.Controls;
 using System.Linq;
 using System.Globalization;
+using Microsoft.Maui.ApplicationModel;
 
 namespace Tapiceria.Views
 {
@@ -47,16 +48,22 @@ namespace Tapiceria.Views
             {
                 activityIndicator.IsRunning = true;
 
-                var servicios = await _citasService.GetServiciosAsync();
+                // Cargar servicios en un hilo secundario
+                List<Servicio> servicios = null;
+                await Task.Run(async () => {
+                    servicios = await _citasService.GetServiciosAsync();
+                });
 
-                if (servicios != null && servicios.Any())
-                {
-                    servicePicker.ItemsSource = servicios;
-                }
-                else
-                {
-                    await DisplayAlert("Sin servicios", "No se encontraron servicios disponibles", "OK");
-                }
+                MainThread.BeginInvokeOnMainThread(() => {
+                    if (servicios != null && servicios.Any())
+                    {
+                        servicePicker.ItemsSource = servicios;
+                    }
+                    else
+                    {
+                        DisplayAlert("Sin servicios", "No se encontraron servicios disponibles", "OK");
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -83,6 +90,8 @@ namespace Tapiceria.Views
                 // Si ya hay una fecha seleccionada, cargar los horarios
                 if (datePicker.Date != null)
                 {
+                    // Usar un pequeño retraso para evitar bloqueos de UI
+                    await Task.Delay(100);
                     await LoadHorariosDisponibles();
                 }
             }
@@ -105,6 +114,8 @@ namespace Tapiceria.Views
             // Si ya hay un servicio seleccionado, cargar los horarios
             if (_servicioSeleccionado != null)
             {
+                // Usar un pequeño retraso para evitar bloqueos de UI
+                await Task.Delay(100);
                 await LoadHorariosDisponibles();
             }
 
@@ -125,21 +136,26 @@ namespace Tapiceria.Views
                 ClearHorarioSelection();
                 ClearHorarios();
 
-                // Obtener horarios disponibles de la API
-                var horarios = await _citasService.GetHorariosDisponiblesAsync(
-                    _servicioSeleccionado.IdServicio,
-                    datePicker.Date);
+                // Obtener horarios disponibles de la API de forma asíncrona y en segundo plano
+                List<DisponibilidadHoraria> horarios = null;
+                await Task.Run(async () => {
+                    horarios = await _citasService.GetHorariosDisponiblesAsync(
+                        _servicioSeleccionado.IdServicio,
+                        datePicker.Date);
+                });
 
-                // Actualizar la visualización de horarios
-                if (horarios != null && horarios.Any())
-                {
-                    lblNoHorarios.IsVisible = false;
-                    MostrarHorariosDisponibles(horarios);
-                }
-                else
-                {
-                    lblNoHorarios.IsVisible = true;
-                }
+                // Actualizar la visualización de horarios en el hilo de UI
+                MainThread.BeginInvokeOnMainThread(() => {
+                    if (horarios != null && horarios.Any())
+                    {
+                        lblNoHorarios.IsVisible = false;
+                        MostrarHorariosDisponibles(horarios);
+                    }
+                    else
+                    {
+                        lblNoHorarios.IsVisible = true;
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -155,77 +171,82 @@ namespace Tapiceria.Views
 
         private void MostrarHorariosDisponibles(List<DisponibilidadHoraria> horarios)
         {
-            // Limpiamos los botones de horarios actuales
-            ClearHorarios();
+            // Ejecutar en el hilo de UI para evitar bloqueos
+            MainThread.BeginInvokeOnMainThread(() => {
+                // Limpiamos los botones de horarios actuales
+                ClearHorarios();
 
-            // Agrupamos horarios por hora
-            var horariosAgrupados = horarios
-                .OrderBy(h => h.FechaInicio.TimeOfDay)
-                .GroupBy(h => h.FechaInicio.TimeOfDay)
-                .ToList();
+                // Agrupamos horarios por hora
+                var horariosAgrupados = horarios
+                    .OrderBy(h => h.FechaInicio.TimeOfDay)
+                    .GroupBy(h => h.FechaInicio.TimeOfDay)
+                    .ToList();
 
-            int row = 0;
-            int column = 0;
+                int row = 0;
+                int column = 0;
 
-            // Limitamos a 5 filas para evitar un grid demasiado largo
-            int maxRows = 5;
+                // Limitamos a 5 filas para evitar un grid demasiado largo
+                int maxRows = 5;
 
-            foreach (var grupo in horariosAgrupados.Take(maxRows * 2)) // Máximo 10 horarios (5 filas x 2 columnas)
-            {
-                // Tomamos el primer horario disponible del grupo
-                var horario = grupo.First();
-
-                // Creamos un botón para este horario
-                var button = new Button
+                // Procesar en lotes pequeños para evitar bloqueos en la UI
+                var horariosVisibles = horariosAgrupados.Take(maxRows * 2).ToList(); // Máximo 10 horarios (5 filas x 2 columnas)
+                foreach (var grupo in horariosVisibles)
                 {
-                    Text = horario.FechaInicio.ToString("hh:mm tt"),
-                    BackgroundColor = Color.FromArgb("#2d2d2d"),
-                    TextColor = Colors.White,
-                    CornerRadius = 8,
-                    HorizontalOptions = LayoutOptions.Fill
-                };
+                    // Tomamos el primer horario disponible del grupo
+                    var horario = grupo.First();
 
-                // Guardamos la referencia al horario en el CommandParameter
-                button.CommandParameter = horario;
+                    // Creamos un botón para este horario
+                    var button = new Button
+                    {
+                        Text = horario.FechaInicio.ToString("hh:mm tt"),
+                        BackgroundColor = Color.FromArgb("#2d2d2d"),
+                        TextColor = Colors.White,
+                        CornerRadius = 8,
+                        HorizontalOptions = LayoutOptions.Fill
+                    };
 
-                // Agregamos el evento click
-                button.Clicked += OnHorarioButtonClicked;
+                    // Guardamos la referencia al horario en el CommandParameter
+                    button.CommandParameter = horario;
 
-                // Agregamos al grid en la posición correspondiente
-                gridHorarios.Add(button, column, row);
+                    // Agregamos el evento click
+                    button.Clicked += OnHorarioButtonClicked;
 
-                // Agregamos el botón a nuestra lista de control
-                _horariosButtons.Add(button);
+                    // Agregamos al grid en la posición correspondiente
+                    gridHorarios.Add(button, column, row);
 
-                // Pasamos a la siguiente columna/fila
-                column++;
-                if (column > 1)
-                {
-                    column = 0;
-                    row++;
-                }
-            }
+                    // Agregamos el botón a nuestra lista de control
+                    _horariosButtons.Add(button);
 
-            // Si hay más horarios de los que podemos mostrar, indicarlo
-            if (horariosAgrupados.Count > maxRows * 2)
-            {
-                var masHorariosLabel = new Label
-                {
-                    Text = $"Y {horariosAgrupados.Count - (maxRows * 2)} horarios más disponibles",
-                    TextColor = Color.FromArgb("#cccccc"),
-                    HorizontalOptions = LayoutOptions.Center,
-                    Margin = new Thickness(0, 10, 0, 0)
-                };
-
-                // Agregamos al grid en una nueva fila
-                if (row >= maxRows)
-                {
-                    // Si ya llegamos al máximo de filas, añadimos una nueva
-                    gridHorarios.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                    // Pasamos a la siguiente columna/fila
+                    column++;
+                    if (column > 1)
+                    {
+                        column = 0;
+                        row++;
+                    }
                 }
 
-                gridHorarios.Add(masHorariosLabel, 0, row, 2, 1); // Span de 2 columnas
-            }
+                // Si hay más horarios de los que podemos mostrar, indicarlo
+                if (horariosAgrupados.Count > maxRows * 2)
+                {
+                    var masHorariosLabel = new Label
+                    {
+                        Text = $"Y {horariosAgrupados.Count - (maxRows * 2)} horarios más disponibles",
+                        TextColor = Color.FromArgb("#cccccc"),
+                        HorizontalOptions = LayoutOptions.Center,
+                        Margin = new Thickness(0, 10, 0, 0)
+                    };
+
+                    // Agregamos al grid en una nueva fila
+                    if (row >= maxRows)
+                    {
+                        // Si ya llegamos al máximo de filas, añadimos una nueva
+                        gridHorarios.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                    }
+
+                    gridHorarios.Add(masHorariosLabel, 0, row, 2, 1); // Span de 2 columnas
+                }
+            });
         }
 
         private void OnHorarioButtonClicked(object sender, EventArgs e)
@@ -258,21 +279,24 @@ namespace Tapiceria.Views
 
         private void ClearHorarios()
         {
-            // Limpiar botones anteriores
-            foreach (var button in _horariosButtons)
-            {
-                gridHorarios.Remove(button);
-                button.Clicked -= OnHorarioButtonClicked;
-            }
+            // Ejecutar en el hilo principal para evitar problemas
+            MainThread.BeginInvokeOnMainThread(() => {
+                // Limpiar botones anteriores
+                foreach (var button in _horariosButtons)
+                {
+                    gridHorarios.Remove(button);
+                    button.Clicked -= OnHorarioButtonClicked;
+                }
 
-            // Limpiar la colección
-            _horariosButtons.Clear();
+                // Limpiar la colección
+                _horariosButtons.Clear();
 
-            // Limpiar otros elementos
-            foreach (var child in gridHorarios.Children.ToList())
-            {
-                gridHorarios.Remove(child);
-            }
+                // Limpiar otros elementos
+                foreach (var child in gridHorarios.Children.ToList())
+                {
+                    gridHorarios.Remove(child);
+                }
+            });
         }
 
         private void UpdateDetallesCita()
@@ -282,7 +306,7 @@ namespace Tapiceria.Views
             {
                 lblServicioSeleccionado.Text = _servicioSeleccionado.Descripcion;
                 lblFechaSeleccionada.Text = datePicker.Date.ToString("D");
-                lblHoraSeleccionada.Text = _horarioSeleccionado.HoraInicioString;
+                lblHoraSeleccionada.Text = _horarioSeleccionado.FechaInicio.ToString("hh:mm tt");
                 lblEmpleadoSeleccionado.Text = _horarioSeleccionado.NombreEmpleado;
 
                 frameCitaSeleccionada.IsVisible = true;
@@ -309,7 +333,7 @@ namespace Tapiceria.Views
 
             // Mostrar confirmación
             bool confirmar = await DisplayAlert("Confirmar cita",
-                $"¿Deseas confirmar tu cita para {_servicioSeleccionado.Descripcion} el {datePicker.Date.ToString("D")} a las {_horarioSeleccionado.HoraInicioString}?",
+                $"¿Deseas confirmar tu cita para {_servicioSeleccionado.Descripcion} el {datePicker.Date.ToString("D")} a las {_horarioSeleccionado.FechaInicio.ToString("hh:mm tt")}?",
                 "Confirmar", "Cancelar");
 
             if (!confirmar) return;
@@ -331,16 +355,19 @@ namespace Tapiceria.Views
                     Notas = string.IsNullOrWhiteSpace(notasEditor.Text) ? null : notasEditor.Text
                 };
 
-                // Enviar la cita a la API
-                var citaCreada = await _citasService.CreateCitaAsync(nuevaCita);
+                // Enviar la cita a la API en segundo plano
+                var citaCreada = false;
+                await Task.Run(async () => {
+                    citaCreada = await _citasService.CreateCitaAsync(nuevaCita) != null;
+                });
 
-                if (citaCreada != null)
+                if (citaCreada)
                 {
                     await DisplayAlert("¡Cita Agendada!",
                         "Tu cita ha sido agendada exitosamente. Recibirás una confirmación pronto.\n\n" +
                         $"Servicio: {_servicioSeleccionado.Descripcion}\n" +
                         $"Fecha: {datePicker.Date.ToString("D")}\n" +
-                        $"Hora: {_horarioSeleccionado.HoraInicioString}\n" +
+                        $"Hora: {_horarioSeleccionado.FechaInicio.ToString("hh:mm tt")}\n" +
                         $"Tapicero: {_horarioSeleccionado.NombreEmpleado}",
                         "OK");
 
@@ -357,6 +384,29 @@ namespace Tapiceria.Views
                 activityIndicator.IsRunning = false;
                 btnConfirmar.IsEnabled = true;
             }
+        }
+
+        // Método que maneja la carga de datos pesados con mejor desempeño
+        private async Task<List<T>> ExecuteWithoutBlockingUI<T>(Func<Task<List<T>>> asyncOperation)
+        {
+            List<T> result = null;
+
+            // Usar Task.Run para mover la operación a un hilo secundario
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    result = await asyncOperation();
+                }
+                catch (Exception ex)
+                {
+                    // Capturar excepciones para manejarlas después
+                    Console.WriteLine($"Error en operación asíncrona: {ex.Message}");
+                    result = new List<T>();
+                }
+            });
+
+            return result;
         }
     }
 }
