@@ -559,28 +559,5 @@ namespace Tapiceria.Views
                 btnConfirmar.IsEnabled = true;
             }
         }
-
-        // Método que maneja la carga de datos pesados con mejor desempeño
-        private async Task<List<T>> ExecuteWithoutBlockingUI<T>(Func<Task<List<T>>> asyncOperation)
-        {
-            List<T> result = null;
-
-            // Usar Task.Run para mover la operación a un hilo secundario
-            await Task.Run(async () =>
-            {
-                try
-                {
-                    result = await asyncOperation();
-                }
-                catch (Exception ex)
-                {
-                    // Capturar excepciones para manejarlas después
-                    Console.WriteLine($"Error en operación asíncrona: {ex.Message}");
-                    result = new List<T>();
-                }
-            });
-
-            return result;
-        }
     }
 }

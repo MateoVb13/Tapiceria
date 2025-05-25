@@ -41,5 +41,9 @@ namespace Tapiceria.Views
         {
             await Navigation.PushAsync(new PerfilPage());
         }
+        private async void OnPagosClicked(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new PagosPage());
+        }
     }
 }

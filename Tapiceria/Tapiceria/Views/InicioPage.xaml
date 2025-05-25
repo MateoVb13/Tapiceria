@@ -53,21 +53,26 @@
                     FontAttributes="Bold" 
                     Clicked="OnAgendarCitaClicked"/>
 
-            <Button Text="Ver Mis Servicios"
+            <Button Text="Ver Mis Citas"
                     BackgroundColor="#5e5ce6"
                     TextColor="White"
                     CornerRadius="12"
                     HeightRequest="50"
-                    FontAttributes="Bold" />
-
-            <Button Text="Ver Mis Citas"
-            Clicked="OnVerMisCitasClicked"
-            HorizontalOptions="Center"
-            Margin="0,10,0,0"/>
+                    FontAttributes="Bold" 
+                    Clicked="OnVerMisCitasClicked"/>
 
             <Button Text="Mi Perfil"
             Clicked="OnVerPerfilClicked"
             BackgroundColor="#34c759"
+            TextColor="White"
+            CornerRadius="12"
+            HeightRequest="50"
+            FontAttributes="Bold" 
+            Margin="0,10,0,0"/>
+
+            <Button Text="Mis Pagos"
+                Clicked="OnPagosClicked"
+            BackgroundColor="#ff9500"
             TextColor="White"
             CornerRadius="12"
             HeightRequest="50"

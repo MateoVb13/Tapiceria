@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Tapiceria.Views.PagosPage"
+             BackgroundColor="#121212"
+             Title="Pagos">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+
+            <!-- Cabecera -->
+            <StackLayout Orientation="Vertical" Spacing="8">
+                <Label Text="Gestión de Pagos"
+                       FontSize="28"
+                       FontAttributes="Bold"
+                       TextColor="#d9a520"
+                       HorizontalOptions="Center" />
+
+                <Label Text="Administra los pagos de tus servicios completados"
+                       FontSize="16"
+                       TextColor="#cccccc"
+                       HorizontalTextAlignment="Center" />
+            </StackLayout>
+
+            <!-- Sección de Pagos Pendientes -->
+            <Frame BackgroundColor="#1f1f1f" CornerRadius="15" Padding="20" HasShadow="True">
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="Pagos Pendientes"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           TextColor="#ff9500"
+                           HorizontalOptions="Center" />
+
+                    <ActivityIndicator x:Name="activityIndicatorPendientes"
+                                       IsRunning="False"
+                                       Color="#d9a520"
+                                       HorizontalOptions="Center" />
+
+                    <Label x:Name="lblSinPagosPendientes"
+                           Text="No tienes pagos pendientes."
+                           TextColor="#cccccc"
+                           HorizontalOptions="Center"
+                           IsVisible="False" />
+
+                    <CollectionView x:Name="pagosPendientesCollection"
+                                    SelectionMode="None"
+                                    HeightRequest="200">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Frame BackgroundColor="#2d2d2d" 
+                                       CornerRadius="10" 
+                                       Padding="15">
+                                    <Grid RowDefinitions="Auto,Auto,Auto,Auto" 
+                                          ColumnDefinitions="*,Auto"
+                                          RowSpacing="8">
+
+                                        <!-- Servicio -->
+                                        <Label Grid.Row="0" Grid.Column="0"
+                                               Text="{Binding NombreServicio}"
+                                               FontAttributes="Bold"
+                                               TextColor="#ffffff"
+                                               FontSize="16" />
+
+                                        <!-- Monto -->
+                                        <Label Grid.Row="0" Grid.Column="1"
+                                               Text="{Binding MontoString}"
+                                               FontAttributes="Bold"
+                                               TextColor="#34c759"
+                                               FontSize="18" />
+
+                                        <!-- Fecha -->
+                                        <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                               Text="{Binding FechaCitaString, StringFormat='Fecha del servicio: {0}'}"
+                                               TextColor="#cccccc"
+                                               FontSize="14" />
+
+                                        <!-- Estado -->
+                                        <Frame Grid.Row="2" Grid.Column="0"
+                                               BackgroundColor="#ff9500"
+                                               CornerRadius="8"
+                                               Padding="8,3"
+                                               HorizontalOptions="Start">
+                                            <Label Text="{Binding Estado}"
+                                                   FontSize="12"
+                                                   TextColor="White"
+                                                   FontAttributes="Bold"/>
+                                        </Frame>
+
+                                        <!-- Botón Pagar -->
+                                        <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
+                                                Text="Pagar Ahora"
+                                                BackgroundColor="#d9a520"
+                                                TextColor="White"
+                                                CornerRadius="8"
+                                                FontAttributes="Bold"
+                                                Clicked="OnPagarClicked"
+                                                CommandParameter="{Binding}" />
+                                    </Grid>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Sección de Historial de Pagos -->
+            <Frame BackgroundColor="#1f1f1f" CornerRadius="15" Padding="20" HasShadow="True">
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="Historial de Pagos"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           TextColor="#d9a520"
+                           HorizontalOptions="Center" />
+
+                    <ActivityIndicator x:Name="activityIndicatorHistorial"
+                                       IsRunning="False"
+                                       Color="#d9a520"
+                                       HorizontalOptions="Center" />
+
+                    <Label x:Name="lblSinHistorial"
+                           Text="No tienes pagos registrados."
+                           TextColor="#cccccc"
+                           HorizontalOptions="Center"
+                           IsVisible="False" />
+
+                    <CollectionView x:Name="historialPagosCollection"
+                                    SelectionMode="None"
+                                    HeightRequest="300">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Frame BackgroundColor="#2d2d2d" 
+                                       CornerRadius="10" 
+                                       Padding="15">
+                                    <Grid RowDefinitions="Auto,Auto,Auto" 
+                                          ColumnDefinitions="*,Auto"
+                                          RowSpacing="5">
+
+                                        <!-- Monto -->
+                                        <Label Grid.Row="0" Grid.Column="0"
+                                               Text="{Binding ValorPago, StringFormat='${0:N2}'}"
+                                               FontAttributes="Bold"
+                                               TextColor="#34c759"
+                                               FontSize="18" />
+
+                                        <!-- Tipo de Pago -->
+                                        <Frame Grid.Row="0" Grid.Column="1"
+                                               BackgroundColor="#5e5ce6"
+                                               CornerRadius="8"
+                                               Padding="8,3">
+                                            <Label Text="{Binding TipoPago}"
+                                                   FontSize="12"
+                                                   TextColor="White"
+                                                   FontAttributes="Bold"/>
+                                        </Frame>
+
+                                        <!-- Fecha -->
+                                        <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                               Text="{Binding FechaCita, StringFormat='Pagado el: {0:dd/MM/yyyy}'}"
+                                               TextColor="#cccccc"
+                                               FontSize="14" />
+
+                                        <!-- Estado -->
+                                        <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                               Text="{Binding EstadoCita, StringFormat='Estado del servicio: {0}'}"
+                                               TextColor="#cccccc"
+                                               FontSize="14" />
+                                    </Grid>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
