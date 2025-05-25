@@ -2,67 +2,76 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Tapiceria.Views.RegistroPage"
-             BackgroundColor="#121212"
+             BackgroundColor="{StaticResource BackgroundColor}"
              Title="Registro de Usuario">
 
-    <ScrollView>
-        <StackLayout Padding="30" Spacing="20" VerticalOptions="CenterAndExpand">
+    <Grid>
 
-            <!-- Título -->
-            <Label Text="Crear Cuenta"
-                   FontSize="26"
-                   FontAttributes="Bold"
-                   TextColor="#d9a520"
-                   HorizontalOptions="Center" />
 
-            <!-- Usuario -->
-            <Frame BackgroundColor="#1f1f1f" CornerRadius="10" Padding="10" HasShadow="False">
-                <Entry x:Name="entryNombreUsuario"
-                       Placeholder="Nombre de Usuario"
-                       TextColor="White"
-                       PlaceholderColor="#999"
-                       BackgroundColor="Transparent" />
-            </Frame>
+        <!-- Contenido principal -->
+        <ScrollView Margin="0,60,0,0">
+            <StackLayout Padding="30" Spacing="20" VerticalOptions="CenterAndExpand">
 
-            <!-- Correo -->
-            <Frame BackgroundColor="#1f1f1f" CornerRadius="10" Padding="10" HasShadow="False">
-                <Entry x:Name="entryCorreo"
-                       Placeholder="Correo electrónico"
-                       Keyboard="Email"
-                       TextColor="White"
-                       PlaceholderColor="#999"
-                       BackgroundColor="Transparent" />
-            </Frame>
+                <!-- Título -->
+                <Label Text="Crear Cuenta"
+                       Style="{StaticResource TitleStyle}" />
 
-            <!-- Contraseña -->
-            <Frame BackgroundColor="#1f1f1f" CornerRadius="10" Padding="10" HasShadow="False">
-                <Entry x:Name="entryContrasena"
-                       Placeholder="Contraseña"
-                       IsPassword="True"
-                       TextColor="White"
-                       PlaceholderColor="#999"
-                       BackgroundColor="Transparent" />
-            </Frame>
+                <!-- Usuario -->
+                <Frame Style="{StaticResource EntryFrameStyle}">
+                    <Entry x:Name="entryNombreUsuario"
+                           Placeholder="Nombre de Usuario" />
+                </Frame>
 
-            <!-- Confirmar contraseña -->
-            <Frame BackgroundColor="#1f1f1f" CornerRadius="10" Padding="10" HasShadow="False">
-                <Entry x:Name="entryConfirmarContrasena"
-                       Placeholder="Confirmar contraseña"
-                       IsPassword="True"
-                       TextColor="White"
-                       PlaceholderColor="#999"
-                       BackgroundColor="Transparent" />
-            </Frame>
+                <!-- Correo -->
+                <Frame Style="{StaticResource EntryFrameStyle}">
+                    <Entry x:Name="entryCorreo"
+                           Placeholder="Correo electrónico"
+                           Keyboard="Email" />
+                </Frame>
 
-            <!-- Botón registrar -->
-            <Button Text="Registrar"
-                    Clicked="OnRegistrarClicked"
-                    BackgroundColor="#34c759"
-                    TextColor="White"
-                    CornerRadius="12"
-                    HeightRequest="50"
-                    FontAttributes="Bold" />
+                <!-- Contraseña -->
+                <Frame Style="{StaticResource EntryFrameStyle}">
+                    <Entry x:Name="entryContrasena"
+                           Placeholder="Contraseña"
+                           IsPassword="True" />
+                </Frame>
 
-        </StackLayout>
-    </ScrollView>
+                <!-- Confirmar contraseña -->
+                <Frame Style="{StaticResource EntryFrameStyle}">
+                    <Entry x:Name="entryConfirmarContrasena"
+                           Placeholder="Confirmar contraseña"
+                           IsPassword="True" />
+                </Frame>
+
+
+                <!-- Indicador de actividad -->
+                <ActivityIndicator x:Name="loadingIndicator"
+                                   IsRunning="False"
+                                   IsVisible="False"
+                                   HorizontalOptions="Center" />
+
+                <!-- Botón registrar -->
+                <Button Text="Registrar"
+                        BackgroundColor="{StaticResource WarningColor}" 
+                        Clicked="OnRegistrarClicked"
+                        Margin="0,15" />
+
+                <!-- Opción de login -->
+                <StackLayout Orientation="Horizontal" HorizontalOptions="Center">
+                    <Label Text="¿Ya tienes cuenta?" 
+                           TextColor="{StaticResource TextSecondaryColor}" 
+                           VerticalOptions="Center"/>
+
+                    <Label Text="Iniciar Sesión" 
+                           TextColor="{StaticResource PrimaryColor}" 
+                           FontAttributes="Bold" 
+                           VerticalOptions="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnNavigateToLogin" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                </StackLayout>
+            </StackLayout>
+        </ScrollView>
+    </Grid>
 </ContentPage>

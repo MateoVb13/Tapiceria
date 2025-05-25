@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Tapiceria.Views.PagosPage"
-             BackgroundColor="#121212"
+             BackgroundColor="{StaticResource BackgroundColor}"
              Title="Pagos">
 
     <ScrollView>
@@ -11,34 +11,28 @@
             <!-- Cabecera -->
             <StackLayout Orientation="Vertical" Spacing="8">
                 <Label Text="Gestión de Pagos"
-                       FontSize="28"
-                       FontAttributes="Bold"
-                       TextColor="#d9a520"
-                       HorizontalOptions="Center" />
+                       Style="{StaticResource TitleStyle}" />
 
                 <Label Text="Administra los pagos de tus servicios completados"
-                       FontSize="16"
-                       TextColor="#cccccc"
-                       HorizontalTextAlignment="Center" />
+                       Style="{StaticResource BodyTextStyle}" />
             </StackLayout>
 
             <!-- Sección de Pagos Pendientes -->
-            <Frame BackgroundColor="#1f1f1f" CornerRadius="15" Padding="20" HasShadow="True">
+            <Frame Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="15">
                     <Label Text="Pagos Pendientes"
                            FontSize="22"
                            FontAttributes="Bold"
-                           TextColor="#ff9500"
+                           TextColor="{StaticResource WarningColor}"
                            HorizontalOptions="Center" />
 
                     <ActivityIndicator x:Name="activityIndicatorPendientes"
                                        IsRunning="False"
-                                       Color="#d9a520"
                                        HorizontalOptions="Center" />
 
                     <Label x:Name="lblSinPagosPendientes"
                            Text="No tienes pagos pendientes."
-                           TextColor="#cccccc"
+                           TextColor="{StaticResource TextSecondaryColor}"
                            HorizontalOptions="Center"
                            IsVisible="False" />
 
@@ -50,9 +44,8 @@
                         </CollectionView.ItemsLayout>
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Frame BackgroundColor="#2d2d2d" 
-                                       CornerRadius="10" 
-                                       Padding="15">
+                                <Frame Style="{StaticResource CardStyle}"
+                                       BackgroundColor="{StaticResource SurfaceColor}">
                                     <Grid RowDefinitions="Auto,Auto,Auto,Auto" 
                                           ColumnDefinitions="*,Auto"
                                           RowSpacing="8">
@@ -61,28 +54,26 @@
                                         <Label Grid.Row="0" Grid.Column="0"
                                                Text="{Binding NombreServicio}"
                                                FontAttributes="Bold"
-                                               TextColor="#ffffff"
+                                               TextColor="{StaticResource TextPrimaryColor}"
                                                FontSize="16" />
 
                                         <!-- Monto -->
                                         <Label Grid.Row="0" Grid.Column="1"
                                                Text="{Binding MontoString}"
                                                FontAttributes="Bold"
-                                               TextColor="#34c759"
+                                               TextColor="{StaticResource SuccessColor}"
                                                FontSize="18" />
 
                                         <!-- Fecha -->
                                         <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
                                                Text="{Binding FechaCitaString, StringFormat='Fecha del servicio: {0}'}"
-                                               TextColor="#cccccc"
+                                               TextColor="{StaticResource TextSecondaryColor}"
                                                FontSize="14" />
 
                                         <!-- Estado -->
                                         <Frame Grid.Row="2" Grid.Column="0"
-                                               BackgroundColor="#ff9500"
-                                               CornerRadius="8"
-                                               Padding="8,3"
-                                               HorizontalOptions="Start">
+                                               Style="{StaticResource StatusFrameStyle}"
+                                               BackgroundColor="{StaticResource WarningColor}">
                                             <Label Text="{Binding Estado}"
                                                    FontSize="12"
                                                    TextColor="White"
@@ -92,10 +83,7 @@
                                         <!-- Botón Pagar -->
                                         <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
                                                 Text="Pagar Ahora"
-                                                BackgroundColor="#d9a520"
-                                                TextColor="White"
-                                                CornerRadius="8"
-                                                FontAttributes="Bold"
+                                                Style="{StaticResource PrimaryButtonStyle}"
                                                 Clicked="OnPagarClicked"
                                                 CommandParameter="{Binding}" />
                                     </Grid>
@@ -107,22 +95,20 @@
             </Frame>
 
             <!-- Sección de Historial de Pagos -->
-            <Frame BackgroundColor="#1f1f1f" CornerRadius="15" Padding="20" HasShadow="True">
+            <Frame Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="15">
                     <Label Text="Historial de Pagos"
-                           FontSize="22"
-                           FontAttributes="Bold"
-                           TextColor="#d9a520"
+                           Style="{StaticResource SubtitleStyle}"
+                           TextColor="{StaticResource PrimaryColor}"
                            HorizontalOptions="Center" />
 
                     <ActivityIndicator x:Name="activityIndicatorHistorial"
                                        IsRunning="False"
-                                       Color="#d9a520"
                                        HorizontalOptions="Center" />
 
                     <Label x:Name="lblSinHistorial"
                            Text="No tienes pagos registrados."
-                           TextColor="#cccccc"
+                           TextColor="{StaticResource TextSecondaryColor}"
                            HorizontalOptions="Center"
                            IsVisible="False" />
 
@@ -134,9 +120,8 @@
                         </CollectionView.ItemsLayout>
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Frame BackgroundColor="#2d2d2d" 
-                                       CornerRadius="10" 
-                                       Padding="15">
+                                <Frame Style="{StaticResource CardStyle}"
+                                       BackgroundColor="{StaticResource SurfaceColor}">
                                     <Grid RowDefinitions="Auto,Auto,Auto" 
                                           ColumnDefinitions="*,Auto"
                                           RowSpacing="5">
@@ -145,14 +130,13 @@
                                         <Label Grid.Row="0" Grid.Column="0"
                                                Text="{Binding ValorPago, StringFormat='${0:N2}'}"
                                                FontAttributes="Bold"
-                                               TextColor="#34c759"
+                                               TextColor="{StaticResource SuccessColor}"
                                                FontSize="18" />
 
                                         <!-- Tipo de Pago -->
                                         <Frame Grid.Row="0" Grid.Column="1"
-                                               BackgroundColor="#5e5ce6"
-                                               CornerRadius="8"
-                                               Padding="8,3">
+                                               Style="{StaticResource StatusFrameStyle}"
+                                               BackgroundColor="{StaticResource InfoColor}">
                                             <Label Text="{Binding TipoPago}"
                                                    FontSize="12"
                                                    TextColor="White"
@@ -162,13 +146,13 @@
                                         <!-- Fecha -->
                                         <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
                                                Text="{Binding FechaCita, StringFormat='Pagado el: {0:dd/MM/yyyy}'}"
-                                               TextColor="#cccccc"
+                                               TextColor="{StaticResource TextSecondaryColor}"
                                                FontSize="14" />
 
                                         <!-- Estado -->
                                         <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
                                                Text="{Binding EstadoCita, StringFormat='Estado del servicio: {0}'}"
-                                               TextColor="#cccccc"
+                                               TextColor="{StaticResource TextSecondaryColor}"
                                                FontSize="14" />
                                     </Grid>
                                 </Frame>

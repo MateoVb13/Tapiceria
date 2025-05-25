@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Tapiceria.Views.AgendarCitaPage"
-             BackgroundColor="#121212"
+             BackgroundColor="{StaticResource BackgroundColor}"
              Title="Agendar Cita">
 
     <ScrollView>
@@ -11,77 +11,75 @@
             <!-- Cabecera -->
             <StackLayout Orientation="Vertical" Spacing="8">
                 <Label Text="Agendar Nueva Cita"
-                       FontSize="28"
-                       FontAttributes="Bold"
-                       TextColor="#d9a520"
-                       HorizontalOptions="Center" />
+                       Style="{StaticResource TitleStyle}" />
 
                 <Label Text="Selecciona el servicio, fecha y horario para tu cita"
-                       FontSize="16"
-                       TextColor="#cccccc"
-                       HorizontalTextAlignment="Center" />
+                       Style="{StaticResource BodyTextStyle}" />
             </StackLayout>
 
             <!-- Paso 1: Selección de servicio -->
-            <Frame BackgroundColor="#1f1f1f" CornerRadius="15" Padding="15" HasShadow="True">
+            <Frame Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="1. Selecciona el Servicio"
-                           FontSize="18"
-                           FontAttributes="Bold"
-                           TextColor="#ffffff" />
+                           Style="{StaticResource SubtitleStyle}" />
 
-                    <Picker x:Name="servicePicker"
-                            Title="-- Selecciona un servicio --"
-                            TextColor="White"
-                            BackgroundColor="#2d2d2d"
-                            ItemDisplayBinding="{Binding Descripcion}"
-                            SelectedIndexChanged="OnServiceSelected" />
+                    <Frame Style="{StaticResource EntryFrameStyle}">
+                        <Picker x:Name="servicePicker"
+                                Title="-- Selecciona un servicio --"
+                                ItemDisplayBinding="{Binding Descripcion}"
+                                SelectedIndexChanged="OnServiceSelected" />
+                    </Frame>
 
-                    <Label Text="Duración estimada:" TextColor="#cccccc" FontSize="14" />
-                    <Label x:Name="lblDuracion" Text="--" TextColor="White" FontSize="16" FontAttributes="Bold" />
+                    <Label Text="Duración estimada:" 
+                           TextColor="{StaticResource TextSecondaryColor}" 
+                           FontSize="14" />
+                    <Label x:Name="lblDuracion" 
+                           Text="--" 
+                           TextColor="{StaticResource TextPrimaryColor}" 
+                           FontSize="16" 
+                           FontAttributes="Bold" />
 
-                    <Label Text="Precio:" TextColor="#cccccc" FontSize="14" />
-                    <Label x:Name="lblPrecio" Text="--" TextColor="#34c759" FontSize="18" FontAttributes="Bold" />
+                    <Label Text="Precio:" 
+                           TextColor="{StaticResource TextSecondaryColor}" 
+                           FontSize="14" />
+                    <Label x:Name="lblPrecio" 
+                           Text="--" 
+                           TextColor="{StaticResource SuccessColor}" 
+                           FontSize="18" 
+                           FontAttributes="Bold" />
                 </VerticalStackLayout>
             </Frame>
 
             <!-- Paso 2: Selección de fecha -->
-            <Frame BackgroundColor="#1f1f1f" CornerRadius="15" Padding="15" HasShadow="True">
+            <Frame Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="2. Selecciona la Fecha"
-                           FontSize="18"
-                           FontAttributes="Bold"
-                           TextColor="#ffffff" />
+                           Style="{StaticResource SubtitleStyle}" />
 
                     <DatePicker x:Name="datePicker"
                                 MinimumDate="{Binding MinDate}"
                                 Format="D"
-                                TextColor="White"
                                 DateSelected="OnDateSelected" />
 
                     <Label Text="Solo se muestran fechas disponibles para los próximos 30 días."
-                           TextColor="#cccccc"
-                           FontSize="12"
+                           Style="{StaticResource CaptionStyle}"
                            HorizontalTextAlignment="Center" />
                 </VerticalStackLayout>
             </Frame>
 
             <!-- Paso 3: Selección de horario -->
-            <Frame BackgroundColor="#1f1f1f" CornerRadius="15" Padding="15" HasShadow="True">
+            <Frame Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="3. Selecciona el Horario"
-                           FontSize="18"
-                           FontAttributes="Bold"
-                           TextColor="#ffffff" />
+                           Style="{StaticResource SubtitleStyle}" />
 
                     <ActivityIndicator x:Name="activityIndicator"
                                        IsRunning="False"
-                                       Color="#d9a520"
                                        HorizontalOptions="Center" />
 
                     <Label x:Name="lblNoHorarios" 
                            Text="No hay horarios disponibles para la fecha seleccionada."
-                           TextColor="#ff3b30"
+                           TextColor="{StaticResource ErrorColor}"
                            HorizontalOptions="Center"
                            IsVisible="False" />
 
@@ -98,59 +96,46 @@
 
             <!-- Paso 4: Detalles de la cita seleccionada -->
             <Frame x:Name="frameCitaSeleccionada" 
-                   BackgroundColor="#1f1f1f" 
-                   CornerRadius="15" 
-                   Padding="15" 
-                   HasShadow="True"
+                   Style="{StaticResource CardStyle}" 
                    IsVisible="False">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="Detalles de la Cita"
-                           FontSize="18"
-                           FontAttributes="Bold"
-                           TextColor="#ffffff" />
+                           Style="{StaticResource SubtitleStyle}" />
 
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
-                        <Label Grid.Row="0" Grid.Column="0" Text="Servicio:" TextColor="#cccccc" />
-                        <Label Grid.Row="0" Grid.Column="1" x:Name="lblServicioSeleccionado" TextColor="White" />
+                        <Label Grid.Row="0" Grid.Column="0" Text="Servicio:" TextColor="{StaticResource TextSecondaryColor}" />
+                        <Label Grid.Row="0" Grid.Column="1" x:Name="lblServicioSeleccionado" TextColor="{StaticResource TextPrimaryColor}" />
 
-                        <Label Grid.Row="1" Grid.Column="0" Text="Fecha:" TextColor="#cccccc" />
-                        <Label Grid.Row="1" Grid.Column="1" x:Name="lblFechaSeleccionada" TextColor="White" />
+                        <Label Grid.Row="1" Grid.Column="0" Text="Fecha:" TextColor="{StaticResource TextSecondaryColor}" />
+                        <Label Grid.Row="1" Grid.Column="1" x:Name="lblFechaSeleccionada" TextColor="{StaticResource TextPrimaryColor}" />
 
-                        <Label Grid.Row="2" Grid.Column="0" Text="Hora:" TextColor="#cccccc" />
-                        <Label Grid.Row="2" Grid.Column="1" x:Name="lblHoraSeleccionada" TextColor="White" />
+                        <Label Grid.Row="2" Grid.Column="0" Text="Hora:" TextColor="{StaticResource TextSecondaryColor}" />
+                        <Label Grid.Row="2" Grid.Column="1" x:Name="lblHoraSeleccionada" TextColor="{StaticResource TextPrimaryColor}" />
 
-                        <Label Grid.Row="3" Grid.Column="0" Text="Tapicero:" TextColor="#cccccc" />
-                        <Label Grid.Row="3" Grid.Column="1" x:Name="lblEmpleadoSeleccionado" TextColor="White" />
+                        <Label Grid.Row="3" Grid.Column="0" Text="Tapicero:" TextColor="{StaticResource TextSecondaryColor}" />
+                        <Label Grid.Row="3" Grid.Column="1" x:Name="lblEmpleadoSeleccionado" TextColor="{StaticResource TextPrimaryColor}" />
                     </Grid>
                 </VerticalStackLayout>
             </Frame>
 
             <!-- Paso 5: Notas adicionales -->
-            <Frame BackgroundColor="#1f1f1f" CornerRadius="15" Padding="15" HasShadow="True">
+            <Frame Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="5. Notas Adicionales (Opcional)"
-                           FontSize="18"
-                           FontAttributes="Bold"
-                           TextColor="#ffffff" />
+                           Style="{StaticResource SubtitleStyle}" />
 
-                    <Editor x:Name="notasEditor"
-                            Placeholder="Añade cualquier información adicional para tu cita..."
-                            HeightRequest="100"
-                            TextColor="White"
-                            PlaceholderColor="#999"
-                            BackgroundColor="#2d2d2d"
-                            AutoSize="TextChanges" />
+                    <Frame Style="{StaticResource EntryFrameStyle}" HeightRequest="100">
+                        <Editor x:Name="notasEditor"
+                                Placeholder="Añade cualquier información adicional para tu cita..."
+                                AutoSize="TextChanges" />
+                    </Frame>
                 </VerticalStackLayout>
             </Frame>
 
             <!-- Botón de confirmación -->
             <Button x:Name="btnConfirmar"
                     Text="Confirmar Cita"
-                    BackgroundColor="#d9a520"
-                    TextColor="White"
-                    CornerRadius="12"
-                    HeightRequest="50"
-                    FontAttributes="Bold"
+                    Style="{StaticResource PrimaryButtonStyle}"
                     IsEnabled="False"
                     Clicked="OnConfirmarClicked" />
         </VerticalStackLayout>

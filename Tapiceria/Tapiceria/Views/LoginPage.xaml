@@ -2,48 +2,62 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Tapiceria.Views.LoginPage"
-             BackgroundColor="#121212"
+             BackgroundColor="{StaticResource BackgroundColor}"
              Title="Iniciar Sesión">
 
-    <ScrollView>
-        <StackLayout Padding="30" Spacing="20" VerticalOptions="CenterAndExpand">
+    <Grid>
 
-            <!-- Título -->
-            <Label Text="Inicio de Sesión"
-                   FontSize="26"
-                   FontAttributes="Bold"
-                   TextColor="#d9a520"
-                   HorizontalOptions="Center" />
+        <!-- Contenido principal -->
+        <ScrollView Margin="0,60,0,0">
+            <StackLayout Padding="30" Spacing="20" VerticalOptions="CenterAndExpand">
 
-            <!-- Campo para correo -->
-            <Frame BackgroundColor="#1f1f1f" CornerRadius="10" Padding="10" HasShadow="False">
-                <Entry x:Name="entryCorreo"
-                       Placeholder="Correo electrónico"
-                       Keyboard="Email"
-                       TextColor="White"
-                       PlaceholderColor="#999"
-                       BackgroundColor="Transparent" />
-            </Frame>
+                <!-- Título -->
+                <Label Text="Inicio de Sesión"
+                       Style="{StaticResource TitleStyle}" />
 
-            <!-- Campo para contraseña -->
-            <Frame BackgroundColor="#1f1f1f" CornerRadius="10" Padding="10" HasShadow="False">
-                <Entry x:Name="entryContrasena"
-                       Placeholder="Contraseña"
-                       IsPassword="True"
-                       TextColor="White"
-                       PlaceholderColor="#999"
-                       BackgroundColor="Transparent" />
-            </Frame>
+                <!-- Campo para correo -->
+                <Frame Style="{StaticResource EntryFrameStyle}">
+                    <Entry x:Name="entryCorreo"
+                           Placeholder="Correo electrónico"
+                           Keyboard="Email" />
+                </Frame>
 
-            <!-- Botón para iniciar sesión -->
-            <Button Text="Iniciar Sesión"
-                    Clicked="OnLoginClicked"
-                    BackgroundColor="#d9a520"
-                    TextColor="White"
-                    CornerRadius="12"
-                    HeightRequest="50"
-                    FontAttributes="Bold" />
+                <!-- Campo para contraseña -->
+                <Frame Style="{StaticResource EntryFrameStyle}">
+                    <Entry x:Name="entryContrasena"
+                           Placeholder="Contraseña"
+                           IsPassword="True" />
+                </Frame>
 
-        </StackLayout>
-    </ScrollView>
+
+                <!-- Indicador de actividad -->
+                <ActivityIndicator x:Name="loadingIndicator"
+                                   IsRunning="False"
+                                   IsVisible="False"
+                                   HorizontalOptions="Center" />
+
+                <!-- Botón para iniciar sesión -->
+                <Button Text="Iniciar Sesión"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Clicked="OnLoginClicked"
+                        Margin="0,15" />
+
+                <!-- Opción de registro -->
+                <StackLayout Orientation="Horizontal" HorizontalOptions="Center">
+                    <Label Text="¿No tienes cuenta?" 
+                           TextColor="{StaticResource TextSecondaryColor}" 
+                           VerticalOptions="Center"/>
+
+                    <Label Text="Regístrate" 
+                           TextColor="{StaticResource PrimaryColor}" 
+                           FontAttributes="Bold" 
+                           VerticalOptions="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnNavigateToRegister" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                </StackLayout>
+            </StackLayout>
+        </ScrollView>
+    </Grid>
 </ContentPage>

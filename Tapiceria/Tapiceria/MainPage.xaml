@@ -2,72 +2,135 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Tapiceria.MainPage"
-             BackgroundColor="#121212"
+             BackgroundColor="{StaticResource BackgroundColor}"
              Title="TapizPro - Tapicería Automotriz">
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="20" VerticalOptions="CenterAndExpand">
 
             <!-- Banner superior con sombra -->
-            <Frame HasShadow="True" CornerRadius="20" Padding="0">
+            <Frame Style="{StaticResource CardStyle}" Padding="0" HeightRequest="200">
                 <Grid>
                     <Image Source="materiales.jpg"
-                           Aspect="AspectFill"
-                           HeightRequest="200" />
-                    <BoxView BackgroundColor="#00000066" />
+                           Aspect="AspectFill" />
+                    <BoxView BackgroundColor="#80000000"/>
+                    <VerticalStackLayout VerticalOptions="Center" 
+                                       HorizontalOptions="Center" 
+                                       Spacing="10" 
+                                       Padding="20">
+                        <Label Text="TapizPro" 
+                               FontSize="36" 
+                               TextColor="White" 
+                               FontAttributes="Bold" 
+                               HorizontalTextAlignment="Center"/>
+                        <Label Text="La mejor tapicería automotriz" 
+                               FontSize="18" 
+                               TextColor="White" 
+                               HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
                 </Grid>
             </Frame>
 
             <!-- Bienvenida -->
             <Label Text="¡Bienvenido a TapizPro!"
-                   FontSize="30"
-                   FontAttributes="Bold"
-                   TextColor="#d9a520"
-                   HorizontalOptions="Center" />
+                   Style="{StaticResource TitleStyle}" />
 
             <!-- Descripción -->
             <Label Text="Transformamos el interior de tu vehículo con servicios de tapicería automotriz premium. Desde asientos de cuero hasta detalles personalizados, hacemos que tu auto luzca como nuevo."
-                   FontSize="16"
-                   TextColor="#cccccc"
-                   HorizontalTextAlignment="Center" />
+                   Style="{StaticResource BodyTextStyle}" />
 
             <!-- Servicios destacados como tarjetas -->
-            <VerticalStackLayout Spacing="10">
-                <Frame BackgroundColor="#1f1f1f" CornerRadius="12" Padding="10">
-                    <Label Text="🔧 Restauración de interiores antiguos" TextColor="#eaeaea" FontSize="14"/>
+            <Label Text="Nuestros Servicios" 
+                   Style="{StaticResource SubtitleStyle}" 
+                   Margin="0,10,0,5"/>
+
+            <Grid ColumnDefinitions="*,*" 
+                  RowDefinitions="*,*" 
+                  RowSpacing="15" 
+                  ColumnSpacing="15">
+
+                <!-- Servicio 1 -->
+                <Frame Grid.Row="0" 
+                       Grid.Column="0" 
+                       Style="{StaticResource ServiceCardStyle}">
+                    <VerticalStackLayout>
+                        <Label Text="🔧" 
+                               FontSize="30" 
+                               HorizontalOptions="Center"/>
+                        <Label Text="Restauración" 
+                               FontSize="14" 
+                               TextColor="{StaticResource TextPrimaryColor}" 
+                               HorizontalTextAlignment="Center" 
+                               FontAttributes="Bold" 
+                               Margin="0,5,0,0"/>
+                    </VerticalStackLayout>
                 </Frame>
-                <Frame BackgroundColor="#1f1f1f" CornerRadius="12" Padding="10">
-                    <Label Text="🪑 Tapizado en cuero, vinil o tela" TextColor="#eaeaea" FontSize="14"/>
+
+                <!-- Servicio 2 -->
+                <Frame Grid.Row="0" 
+                       Grid.Column="1" 
+                       Style="{StaticResource ServiceCardStyle}">
+                    <VerticalStackLayout>
+                        <Label Text="🪑" 
+                               FontSize="30" 
+                               HorizontalOptions="Center"/>
+                        <Label Text="Tapizado" 
+                               FontSize="14" 
+                               TextColor="{StaticResource TextPrimaryColor}" 
+                               HorizontalTextAlignment="Center" 
+                               FontAttributes="Bold" 
+                               Margin="0,5,0,0"/>
+                    </VerticalStackLayout>
                 </Frame>
-                <Frame BackgroundColor="#1f1f1f" CornerRadius="12" Padding="10">
-                    <Label Text="✨ Personalización de autos de lujo" TextColor="#eaeaea" FontSize="14"/>
+
+                <!-- Servicio 3 -->
+                <Frame Grid.Row="1" 
+                       Grid.Column="0" 
+                       Style="{StaticResource ServiceCardStyle}">
+                    <VerticalStackLayout>
+                        <Label Text="✨" 
+                               FontSize="30" 
+                               HorizontalOptions="Center"/>
+                        <Label Text="Personalización" 
+                               FontSize="14" 
+                               TextColor="{StaticResource TextPrimaryColor}" 
+                               HorizontalTextAlignment="Center" 
+                               FontAttributes="Bold" 
+                               Margin="0,5,0,0"/>
+                    </VerticalStackLayout>
                 </Frame>
-                <Frame BackgroundColor="#1f1f1f" CornerRadius="12" Padding="10">
-                    <Label Text="🧼 Limpieza y detallado profesional" TextColor="#eaeaea" FontSize="14"/>
+
+                <!-- Servicio 4 -->
+                <Frame Grid.Row="1" 
+                       Grid.Column="1" 
+                       Style="{StaticResource ServiceCardStyle}">
+                    <VerticalStackLayout>
+                        <Label Text="🧼" 
+                               FontSize="30" 
+                               HorizontalOptions="Center"/>
+                        <Label Text="Limpieza" 
+                               FontSize="14" 
+                               TextColor="{StaticResource TextPrimaryColor}" 
+                               HorizontalTextAlignment="Center" 
+                               FontAttributes="Bold" 
+                               Margin="0,5,0,0"/>
+                    </VerticalStackLayout>
                 </Frame>
-            </VerticalStackLayout>
+            </Grid>
 
             <!-- Botones de acción -->
             <Button Text="Iniciar Sesión"
+                    Style="{StaticResource PrimaryButtonStyle}"
                     Clicked="OnLoginClicked"
-                    BackgroundColor="#d9a520"
-                    TextColor="White"
-                    CornerRadius="12"
-                    HeightRequest="50"
-                    FontAttributes="Bold" />
+                    Margin="0,20,0,5" />
 
             <Button Text="Registrarse"
-                    Clicked="OnRegisterClicked"
-                    BackgroundColor="#34c759"
-                    TextColor="White"
-                    CornerRadius="12"
-                    HeightRequest="50"
-                    FontAttributes="Bold" />
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Clicked="OnRegisterClicked" />
 
             <!-- Footer -->
             <Label Text="Calidad, elegancia y detalle en cada puntada."
-                   FontSize="12"
-                   TextColor="#888"
+                   Style="{StaticResource CaptionStyle}"
                    HorizontalTextAlignment="Center"
                    Margin="10,20,10,0"/>
         </VerticalStackLayout>

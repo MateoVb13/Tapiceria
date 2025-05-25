@@ -83,5 +83,11 @@ namespace Tapiceria.Views
                 await DisplayAlert("Error Inesperado", $"Ocurrió un error: {ex.Message}", "OK");
             }
         }
+
+        // Método para navegar al login
+        private async void OnNavigateToLogin(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new LoginPage());
+        }
     }
 }

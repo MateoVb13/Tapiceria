@@ -106,5 +106,12 @@ namespace Tapiceria.Views
                 // activityIndicator.IsRunning = false;
             }
         }
+        // Método para navegar al registro
+        private async void OnNavigateToRegister(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new RegistroPage());
+        }
+
+
     }
 }

@@ -2,28 +2,27 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Tapiceria.Views.PerfilPage"
-             BackgroundColor="#121212"
+             BackgroundColor="{StaticResource BackgroundColor}"
              Title="Mi Perfil">
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="20">
 
             <!-- Sección de información personal -->
-            <Frame BackgroundColor="#1f1f1f" CornerRadius="15" Padding="20" HasShadow="True">
+            <Frame Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="15">
                     <Label Text="Información Personal"
-                           FontSize="22"
-                           FontAttributes="Bold"
-                           TextColor="#d9a520"
+                           Style="{StaticResource SubtitleStyle}"
+                           TextColor="{StaticResource PrimaryColor}"
                            HorizontalOptions="Center" />
 
                     <!-- Nombre de Usuario (No editable) -->
                     <VerticalStackLayout Spacing="5">
                         <Label Text="Nombre de Usuario" 
-                               TextColor="#cccccc"
+                               TextColor="{StaticResource TextSecondaryColor}"
                                FontSize="14" />
                         <Label x:Name="lblNombreUsuario"
-                               TextColor="White"
+                               TextColor="{StaticResource TextPrimaryColor}"
                                FontSize="18"
                                FontAttributes="Bold" />
                     </VerticalStackLayout>
@@ -31,10 +30,10 @@
                     <!-- Correo Electrónico (No editable) -->
                     <VerticalStackLayout Spacing="5">
                         <Label Text="Correo Electrónico" 
-                               TextColor="#cccccc"
+                               TextColor="{StaticResource TextSecondaryColor}"
                                FontSize="14" />
                         <Label x:Name="lblCorreo"
-                               TextColor="White"
+                               TextColor="{StaticResource TextPrimaryColor}"
                                FontSize="18"
                                FontAttributes="Bold" />
                     </VerticalStackLayout>
@@ -42,59 +41,49 @@
                     <!-- Teléfono de Contacto (Editable) -->
                     <VerticalStackLayout Spacing="5">
                         <Label Text="Teléfono de Contacto" 
-                               TextColor="#cccccc"
+                               TextColor="{StaticResource TextSecondaryColor}"
                                FontSize="14" />
-                        <Frame BackgroundColor="#2d2d2d" Padding="10" CornerRadius="5" HasShadow="False">
+                        <Frame Style="{StaticResource EntryFrameStyle}">
                             <Entry x:Name="entryContacto"
                                    Placeholder="Ej: 315-123-4567"
-                                   Keyboard="Telephone"
-                                   TextColor="White"
-                                   PlaceholderColor="#999" />
+                                   Keyboard="Telephone" />
                         </Frame>
                     </VerticalStackLayout>
 
                     <!-- Dirección (Editable) -->
                     <VerticalStackLayout Spacing="5">
                         <Label Text="Dirección" 
-                               TextColor="#cccccc"
+                               TextColor="{StaticResource TextSecondaryColor}"
                                FontSize="14" />
-                        <Frame BackgroundColor="#2d2d2d" Padding="10" CornerRadius="5" HasShadow="False">
+                        <Frame Style="{StaticResource EntryFrameStyle}">
                             <Entry x:Name="entryDireccion"
-                                   Placeholder="Ej: Calle 10 #23-45, Sincelejo"
-                                   TextColor="White"
-                                   PlaceholderColor="#999" />
+                                   Placeholder="Ej: Calle 10 #23-45, Sincelejo" />
                         </Frame>
                     </VerticalStackLayout>
 
                     <!-- Botón Guardar -->
                     <Button Text="Guardar Cambios"
-                            BackgroundColor="#d9a520"
-                            TextColor="White"
-                            CornerRadius="12"
-                            HeightRequest="45"
+                            Style="{StaticResource PrimaryButtonStyle}"
                             Margin="0,10,0,0"
-                            FontAttributes="Bold"
                             Clicked="OnGuardarClicked" />
                 </VerticalStackLayout>
             </Frame>
 
             <!-- Sección de historial de citas -->
-            <Frame BackgroundColor="#1f1f1f" CornerRadius="15" Padding="20" HasShadow="True">
+            <Frame Style="{StaticResource CardStyle}">
                 <VerticalStackLayout Spacing="15">
                     <Label Text="Historial de Servicios"
-                           FontSize="22"
-                           FontAttributes="Bold"
-                           TextColor="#d9a520"
+                           Style="{StaticResource SubtitleStyle}"
+                           TextColor="{StaticResource PrimaryColor}"
                            HorizontalOptions="Center" />
 
                     <ActivityIndicator x:Name="activityIndicator"
                                        IsRunning="False"
-                                       Color="#d9a520"
                                        HorizontalOptions="Center" />
 
                     <Label x:Name="lblSinHistorial"
                            Text="No has completado ningún servicio aún."
-                           TextColor="#cccccc"
+                           TextColor="{StaticResource TextSecondaryColor}"
                            HorizontalOptions="Center"
                            IsVisible="False" />
 
@@ -107,9 +96,8 @@
                         </CollectionView.ItemsLayout>
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Frame BackgroundColor="#2d2d2d" 
-                                       CornerRadius="10" 
-                                       Padding="15">
+                                <Frame Style="{StaticResource CardStyle}"
+                                       BackgroundColor="{StaticResource SurfaceColor}">
                                     <Grid RowDefinitions="Auto,Auto,Auto" 
                                           ColumnDefinitions="*,Auto"
                                           RowSpacing="5">
@@ -118,14 +106,13 @@
                                         <Label Grid.Row="0" Grid.Column="0"
                                                Text="{Binding NombreServicio}"
                                                FontAttributes="Bold"
-                                               TextColor="#34c759"
+                                               TextColor="{StaticResource SuccessColor}"
                                                FontSize="16" />
 
                                         <!-- Estado -->
                                         <Frame Grid.Row="0" Grid.Column="1"
-                                               BackgroundColor="{Binding Estado, Converter={StaticResource EstadoColorConverter}}"
-                                               CornerRadius="8"
-                                               Padding="8,3">
+                                               Style="{StaticResource StatusFrameStyle}"
+                                               BackgroundColor="{Binding Estado, Converter={StaticResource EstadoColorConverter}}">
                                             <Label Text="{Binding Estado}"
                                                    FontSize="12"
                                                    TextColor="White"
@@ -135,13 +122,13 @@
                                         <!-- Fecha -->
                                         <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
                                                Text="{Binding Fecha}"
-                                               TextColor="#cccccc"
+                                               TextColor="{StaticResource TextSecondaryColor}"
                                                FontSize="14" />
 
                                         <!-- Empleado -->
                                         <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
                                                Text="{Binding NombreEmpleado, StringFormat='Tapicero: {0}'}"
-                                               TextColor="#cccccc"
+                                               TextColor="{StaticResource TextSecondaryColor}"
                                                FontSize="14"
                                                IsVisible="{Binding NombreEmpleado, Converter={StaticResource IsNotNullOrEmptyConverter}}" />
                                     </Grid>

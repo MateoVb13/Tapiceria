@@ -14,6 +14,30 @@
             <!-- Converters -->
             <converters:EstadoColorConverter x:Key="EstadoColorConverter" />
             <converters:IsNotNullOrEmptyConverter x:Key="IsNotNullOrEmptyConverter" />
+
+            <!-- Gradientes adicionales para el diseño moderno -->
+            <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#FF9500" Offset="0.0" />
+                <GradientStop Color="#FFCC00" Offset="1.0" />
+            </LinearGradientBrush>
+
+            <LinearGradientBrush x:Key="AccentGradient" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#FF6600" Offset="0.0" />
+                <GradientStop Color="#FF9500" Offset="1.0" />
+            </LinearGradientBrush>
+
+            <!-- Sombras para elementos -->
+            <Shadow x:Key="CardShadow"
+                    Brush="Black"
+                    Offset="0,2"
+                    Radius="8"
+                    Opacity="0.15" />
+
+            <Shadow x:Key="ButtonShadow"
+                    Brush="Black"
+                    Offset="0,4"
+                    Radius="8"
+                    Opacity="0.25" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>
