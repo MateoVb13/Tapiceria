@@ -1,324 +1,1897 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Tapicería</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
 
-    <title>Dashboard</title>
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            text-align: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
 
-    <!-- Custom fonts for this template-->
-    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
 
-    <!-- Custom styles for this template-->
-    <link href="css/sb-admin-2.min.css" rel="stylesheet">
+        .nav-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+            margin-bottom: 0;
+        }
 
-</head>
+        .nav-tab {
+            flex: 1;
+            padding: 1rem;
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
 
-<body id="page-top">
+        .nav-tab:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
 
-    <!-- Page Wrapper -->
-    <div id="wrapper">
+        .nav-tab.active {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: inset 0 -3px 0 #fff;
+        }
 
-        <!-- Sidebar -->
-        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+        .tab-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 0 0 10px 10px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            min-height: 600px;
+        }
 
-            <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
-                <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="fas fa-laugh-wink"></i>
-                </div>
-                <div class="sidebar-brand-text mx-3">SB Admin <sup>2</sup></div>
-            </a>
+        .tab-pane {
+            display: none;
+        }
 
-            <!-- Divider -->
-            <hr class="sidebar-divider my-0">
+        .tab-pane.active {
+            display: block;
+        }
 
-            <!-- Nav Item - Dashboard -->
-            <li class="nav-item active">
-                <a class="nav-link" href="index.html">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Dashboard</span></a>
-            </li>
+        .form-group {
+            margin-bottom: 1rem;
+        }
 
-            <!-- Divider -->
-            <hr class="sidebar-divider">
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
 
-            <!-- Nav Item - Charts -->
-            <li class="nav-item">
-                <a class="nav-link" href="charts.html">
-                    <i class="fas fa-fw fa-chart-area"></i>
-                    <span>Charts</span></a>
-            </li>
+        .form-row.single {
+            grid-template-columns: 1fr;
+        }
 
-            <!-- Nav Item - Tables -->
-            <li class="nav-item">
-                <a class="nav-link" href="tables.html">
-                    <i class="fas fa-fw fa-table"></i>
-                    <span>Tables</span></a>
-            </li>
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
 
-            <!-- Divider -->
-            <hr class="sidebar-divider d-none d-md-block">
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
 
-            <!-- Sidebar Toggler (Sidebar) -->
-            <div class="text-center d-none d-md-inline">
-                <button class="rounded-circle border-0" id="sidebarToggle"></button>
-            </div>
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
 
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
-        </ul>
-        <!-- End of Sidebar -->
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
 
-        <!-- Content Wrapper -->
-        <div id="content-wrapper" class="d-flex flex-column">
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
 
-            <!-- Main Content -->
-            <div id="content">
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
 
-                <!-- Topbar -->
-                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
 
-                    <!-- Sidebar Toggle (Topbar) -->
-                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
-                        <i class="fa fa-bars"></i>
-                    </button>
+        .table-container {
+            overflow-x: auto;
+            margin-top: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
 
-                    <!-- Topbar Search -->
-                    <form
-                        class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-                        <div class="input-group">
-                            <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..."
-                                aria-label="Search" aria-describedby="basic-addon2">
-                            <div class="input-group-append">
-                                <button class="btn btn-primary" type="button">
-                                    <i class="fas fa-search fa-sm"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </form>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
 
-                    <!-- Topbar Navbar -->
-                    <ul class="navbar-nav ml-auto">
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e1e5e9;
+        }
 
-                        <!-- Nav Item - Search Dropdown (Visible Only XS) -->
-                        <li class="nav-item dropdown no-arrow d-sm-none">
-                            <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-search fa-fw"></i>
-                            </a>
-                            <!-- Dropdown - Messages -->
-                            <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
-                                aria-labelledby="searchDropdown">
-                                <form class="form-inline mr-auto w-100 navbar-search">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control bg-light border-0 small"
-                                            placeholder="Search for..." aria-label="Search"
-                                            aria-describedby="basic-addon2">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-primary" type="button">
-                                                <i class="fas fa-search fa-sm"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </li>
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
 
- 
+        tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
 
+        .status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
 
-                        <div class="topbar-divider d-none d-sm-block"></div>
+        .status.pendiente { background: #fff3cd; color: #856404; }
+        .status.confirmada { background: #d4edda; color: #155724; }
+        .status.completada { background: #cce7ff; color: #004085; }
+        .status.cancelada { background: #f8d7da; color: #721c24; }
 
-                        <!-- Nav Item - User Information -->
-                        <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Douglas McGee</span>
-                                <img class="img-profile rounded-circle"
-                                    src="img/undraw_profile.svg">
-                            </a>
-                            <!-- Dropdown - User Information -->
-                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Profile
-                                </a>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Settings
-                                </a>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Activity Log
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
-                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Logout
-                                </a>
-                            </div>
-                        </li>
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
 
-                    </ul>
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
 
-                </nav>
-                <!-- End of Topbar -->
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
 
-                <!-- Begin Page Content -->
-                <div class="container-fluid">
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
 
-                    <!-- Page Heading -->
-                    <h1 class="h3 mb-2 text-gray-800">Charts</h1>
-                    <p class="mb-4">Chart.js is a third party plugin that is used to generate the charts in this theme.
-                        The charts below have been customized - for further customization options, please visit the <a
-                            target="_blank" href="https://www.chartjs.org/docs/latest/">official Chart.js
-                            documentation</a>.</p>
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
 
-                    <!-- Content Row -->
-                    <div class="row">
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
 
-                        <div class="col-xl-8 col-lg-7">
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
 
-                            <!-- Area Chart -->
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Area Chart</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="chart-area">
-                                        <canvas id="myAreaChart"></canvas>
-                                    </div>
-                                    <hr>
-                                    Styling for the area chart can be found in the
-                                    <code>/js/demo/chart-area-demo.js</code> file.
-                                </div>
-                            </div>
+        .close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
 
-                            <!-- Bar Chart -->
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Bar Chart</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="chart-bar">
-                                        <canvas id="myBarChart"></canvas>
-                                    </div>
-                                    <hr>
-                                    Styling for the bar chart can be found in the
-                                    <code>/js/demo/chart-bar-demo.js</code> file.
-                                </div>
-                            </div>
+        .close:hover {
+            color: #333;
+        }
 
-                        </div>
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
 
-                        <!-- Donut Chart -->
-                        <div class="col-xl-4 col-lg-5">
-                            <div class="card shadow mb-4">
-                                <!-- Card Header - Dropdown -->
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Donut Chart</h6>
-                                </div>
-                                <!-- Card Body -->
-                                <div class="card-body">
-                                    <div class="chart-pie pt-4">
-                                        <canvas id="myPieChart"></canvas>
-                                    </div>
-                                    <hr>
-                                    Styling for the donut chart can be found in the
-                                    <code>/js/demo/chart-pie-demo.js</code> file.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
 
-                </div>
-                <!-- /.container-fluid -->
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-            </div>
-            <!-- End of Main Content -->
+        .search-container {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
 
-            <!-- Footer -->
-            <footer class="sticky-footer bg-white">
-                <div class="container my-auto">
-                    <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; Your Website 2021</span>
-                    </div>
-                </div>
-            </footer>
-            <!-- End of Footer -->
+        .search-input {
+            flex: 1;
+            max-width: 300px;
+        }
 
-        </div>
-        <!-- End of Content Wrapper -->
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
 
-    </div>
-    <!-- End of Page Wrapper -->
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
 
-    <!-- Scroll to Top Button-->
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
 
-    <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="login.html">Logout</a>
-                </div>
-            </div>
-        </div>
-    </div>
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
-    <!-- Bootstrap core JavaScript-->
-    <script src="vendor/jquery/jquery.min.js"></script>
-    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="js/sb-admin-2.min.js"></script>
-
-    <!-- Page level plugins -->
-    <script src="vendor/chart.js/Chart.min.js"></script>
-
-    <!-- Page level custom scripts -->
-    <script src="js/demo/chart-area-demo.js"></script>
-    <script src="js/demo/chart-pie-demo.js"></script>
-
-
-    <script>
-        // Obtener el nombre del usuario desde localStorage
-        const nombreUsuario = localStorage.getItem("nombreUsuario");
-    
-        if (nombreUsuario) {
-            // Insertar el nombre en el elemento del navbar
-            const nombreElemento = document.querySelector(".nav-item .text-gray-600");
-            if (nombreElemento) {
-                nombreElemento.textContent = nombreUsuario;
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .container {
+                padding: 0 0.5rem;
             }
         }
-    </script>
+
+        .availability-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .availability-slot {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .availability-slot:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .availability-slot.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .slot-time {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .slot-employee {
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        🪑 Sistema de Gestión de Tapicería
+    </div>
+
+    <div class="container">
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('citas')">📅 Citas</button>
+            <button class="nav-tab" onclick="showTab('clientes')">👥 Clientes</button>
+            <button class="nav-tab" onclick="showTab('servicios')">🔧 Servicios</button>
+            <button class="nav-tab" onclick="showTab('empleados')">👨‍💼 Empleados</button>
+            <button class="nav-tab" onclick="showTab('pagos')">💰 Pagos</button>
+            <button class="nav-tab" onclick="showTab('disponibilidad')">🕒 Disponibilidad</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Dashboard/Estadísticas -->
+            <div id="dashboard" class="tab-pane">
+                <h2>📊 Dashboard</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalCitas">0</div>
+                        <div class="stat-label">Total Citas</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="citasPendientes">0</div>
+                        <div class="stat-label">Citas Pendientes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalClientes">0</div>
+                        <div class="stat-label">Total Clientes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalEmpleados">0</div>
+                        <div class="stat-label">Total Empleados</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Citas -->
+            <div id="citas" class="tab-pane active">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>📅 Gestión de Citas</h2>
+                    <button class="btn" onclick="openCreateCitaModal()">➕ Nueva Cita</button>
+                </div>
+
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="🔍 Buscar citas..." onkeyup="searchCitas(this.value)">
+                    <select id="filterEstado" onchange="filterCitasByEstado(this.value)">
+                        <option value="">Todos los estados</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Confirmada">Confirmada</option>
+                        <option value="Completada">Completada</option>
+                        <option value="Cancelada">Cancelada</option>
+                    </select>
+                </div>
+
+                <div class="loading" id="citasLoading">
+                    <div class="spinner"></div>
+                    <p>Cargando citas...</p>
+                </div>
+
+                <div class="table-container">
+                    <table id="citasTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Servicio</th>
+                                <th>Empleado</th>
+                                <th>Fecha/Hora</th>
+                                <th>Estado</th>
+                                <th>Precio</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="citasTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab Clientes -->
+            <div id="clientes" class="tab-pane">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>👥 Gestión de Clientes</h2>
+                    <button class="btn" onclick="openCreateClienteModal()">➕ Nuevo Cliente</button>
+                </div>
+
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="🔍 Buscar clientes..." onkeyup="searchClientes(this.value)">
+                </div>
+
+                <div class="loading" id="clientesLoading">
+                    <div class="spinner"></div>
+                    <p>Cargando clientes...</p>
+                </div>
+
+                <div class="table-container">
+                    <table id="clientesTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre Completo</th>
+                                <th>Contacto</th>
+                                <th>Dirección</th>
+                                <th>Usuario Asociado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientesTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab Servicios -->
+            <div id="servicios" class="tab-pane">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>🔧 Gestión de Servicios</h2>
+                    <button class="btn" onclick="openCreateServicioModal()">➕ Nuevo Servicio</button>
+                </div>
+
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="🔍 Buscar servicios..." onkeyup="searchServicios(this.value)">
+                </div>
+
+                <div class="loading" id="serviciosLoading">
+                    <div class="spinner"></div>
+                    <p>Cargando servicios...</p>
+                </div>
+
+                <div class="table-container">
+                    <table id="serviciosTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Descripción</th>
+                                <th>Duración (min)</th>
+                                <th>Precio</th>
+                                <th>Categoría</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="serviciosTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab Empleados -->
+            <div id="empleados" class="tab-pane">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>👨‍💼 Gestión de Empleados</h2>
+                    <button class="btn" onclick="openCreateEmpleadoModal()">➕ Nuevo Empleado</button>
+                </div>
+
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="🔍 Buscar empleados..." onkeyup="searchEmpleados(this.value)">
+                </div>
+
+                <div class="loading" id="empleadosLoading">
+                    <div class="spinner"></div>
+                    <p>Cargando empleados...</p>
+                </div>
+
+                <div class="table-container">
+                    <table id="empleadosTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre Completo</th>
+                                <th>Especialidad</th>
+                                <th>Contacto</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="empleadosTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab Pagos -->
+            <div id="pagos" class="tab-pane">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>💰 Gestión de Pagos</h2>
+                    <button class="btn" onclick="openCreatePagoModal()">➕ Registrar Pago</button>
+                </div>
+
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="🔍 Buscar pagos..." onkeyup="searchPagos(this.value)">
+                    <select id="filterTipoPago" onchange="filterPagosByTipo(this.value)">
+                        <option value="">Todos los tipos</option>
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Tarjeta">Tarjeta</option>
+                        <option value="Transferencia">Transferencia</option>
+                    </select>
+                </div>
+
+                <div class="loading" id="pagosLoading">
+                    <div class="spinner"></div>
+                    <p>Cargando pagos...</p>
+                </div>
+
+                <div class="table-container">
+                    <table id="pagosTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cita ID</th>
+                                <th>Tipo de Pago</th>
+                                <th>Valor</th>
+                                <th>Fecha Cita</th>
+                                <th>Estado Cita</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pagosTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab Disponibilidad -->
+            <div id="disponibilidad" class="tab-pane">
+                <h2>🕒 Consultar Disponibilidad</h2>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="servicioSelect">Servicio:</label>
+                        <select id="servicioSelect" required>
+                            <option value="">Seleccione un servicio</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="fechaConsulta">Fecha:</label>
+                        <input type="date" id="fechaConsulta" required>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="consultarDisponibilidad()">🔍 Consultar Disponibilidad</button>
+
+                <div class="loading" id="disponibilidadLoading">
+                    <div class="spinner"></div>
+                    <p>Consultando disponibilidad...</p>
+                </div>
+
+                <div id="disponibilidadResults" style="margin-top: 2rem;">
+                    <h3>Horarios Disponibles</h3>
+                    <div id="disponibilidadGrid" class="availability-grid">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Crear/Editar Cita -->
+    <div id="citaModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCitaModal()">&times;</span>
+            <h2 id="citaModalTitle">Nueva Cita</h2>
+            <form id="citaForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="clienteSelectCita">Cliente:</label>
+                        <select id="clienteSelectCita" required>
+                            <option value="">Seleccione un cliente</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="servicioSelectCita">Servicio:</label>
+                        <select id="servicioSelectCita" required>
+                            <option value="">Seleccione un servicio</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="empleadoSelectCita">Empleado (Opcional):</label>
+                        <select id="empleadoSelectCita">
+                            <option value="">Sin asignar</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="estadoCita">Estado:</label>
+                        <select id="estadoCita" required>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Confirmada">Confirmada</option>
+                            <option value="Completada">Completada</option>
+                            <option value="Cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fechaInicio">Fecha y Hora Inicio:</label>
+                        <input type="datetime-local" id="fechaInicio" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fechaFin">Fecha y Hora Fin:</label>
+                        <input type="datetime-local" id="fechaFin" required>
+                    </div>
+                </div>
+                <div class="form-row single">
+                    <div class="form-group">
+                        <label for="notasCita">Notas:</label>
+                        <textarea id="notasCita" rows="3" placeholder="Observaciones adicionales..."></textarea>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeCitaModal()">Cancelar</button>
+                    <button type="submit" class="btn">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Crear/Editar Cliente -->
+    <div id="clienteModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeClienteModal()">&times;</span>
+            <h2 id="clienteModalTitle">Nuevo Cliente</h2>
+            <form id="clienteForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nombreCompleto">Nombre Completo:</label>
+                        <input type="text" id="nombreCompleto" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactoCliente">Contacto:</label>
+                        <input type="text" id="contactoCliente" placeholder="Teléfono o email">
+                    </div>
+                </div>
+                <div class="form-row single">
+                    <div class="form-group">
+                        <label for="direccionCliente">Dirección:</label>
+                        <input type="text" id="direccionCliente" placeholder="Dirección completa">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeClienteModal()">Cancelar</button>
+                    <button type="submit" class="btn">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Crear/Editar Servicio -->
+    <div id="servicioModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeServicioModal()">&times;</span>
+            <h2 id="servicioModalTitle">Nuevo Servicio</h2>
+            <form id="servicioForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="descripcionServicio">Descripción:</label>
+                        <input type="text" id="descripcionServicio" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="duracionEstimada">Duración (minutos):</label>
+                        <input type="number" id="duracionEstimada" required min="1">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="precioServicio">Precio:</label>
+                        <input type="number" id="precioServicio" required min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="categoriaServicio">Categoría:</label>
+                        <input type="text" id="categoriaServicio" placeholder="Ej: Tapicería, Reparación">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeServicioModal()">Cancelar</button>
+                    <button type="submit" class="btn">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Crear/Editar Empleado -->
+    <div id="empleadoModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEmpleadoModal()">&times;</span>
+            <h2 id="empleadoModalTitle">Nuevo Empleado</h2>
+            <form id="empleadoForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nombreEmpleado">Nombre Completo:</label>
+                        <input type="text" id="nombreEmpleado" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="especialidadEmpleado">Especialidad:</label>
+                        <input type="text" id="especialidadEmpleado" placeholder="Ej: Tapicería moderna, Clásica">
+                    </div>
+                </div>
+                <div class="form-row single">
+                    <div class="form-group">
+                        <label for="contactoEmpleado">Contacto:</label>
+                        <input type="text" id="contactoEmpleado" placeholder="Teléfono o email">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeEmpleadoModal()">Cancelar</button>
+                    <button type="submit" class="btn">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Crear/Editar Pago -->
+    <div id="pagoModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePagoModal()">&times;</span>
+            <h2 id="pagoModalTitle">Registrar Pago</h2>
+            <form id="pagoForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="citaSelectPago">Cita:</label>
+                        <select id="citaSelectPago" required>
+                            <option value="">Seleccione una cita</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tipoPago">Tipo de Pago:</label>
+                        <select id="tipoPago" required>
+                            <option value="">Seleccione tipo</option>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Tarjeta">Tarjeta</option>
+                            <option value="Transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row single">
+                    <div class="form-group">
+                        <label for="valorPago">Valor:</label>
+                        <input type="number" id="valorPago" required min="0" step="0.01" placeholder="0.00">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closePagoModal()">Cancelar</button>
+                    <button type="submit" class="btn">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
     
 
-</body>
+        // Configuración de la API
+        const API_BASE_URL = 'https://c0c4-179-1-86-125.ngrok-free.app/api'; 
 
+        // Headers por defecto para todas las requests (incluye header para ngrok)
+        const DEFAULT_HEADERS = {
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true'
+        };
+
+        // Función auxiliar para hacer llamadas a la API con headers por defecto
+        async function apiCall(url, options = {}) {
+            const defaultOptions = {
+                headers: DEFAULT_HEADERS,
+                ...options
+            };
+            
+            // Si hay body, mantener Content-Type, si no, usar solo el header de ngrok
+            if (!options.body) {
+                defaultOptions.headers = {
+                    'ngrok-skip-browser-warning': 'true'
+                };
+            }
+            
+            return await fetch(url, defaultOptions);
+        }
+
+        // Variables globales
+        let currentEditId = null;
+        let currentEditType = null;
+        let allCitas = [];
+        let allClientes = [];
+        let allServicios = [];
+        let allEmpleados = [];
+        let allPagos = [];
+
+        // Función para mostrar/ocultar tabs
+        function showTab(tabName) {
+            // Ocultar todos los tabs
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            tabPanes.forEach(pane => pane.classList.remove('active'));
+
+            // Remover clase active de todos los botones
+            const tabButtons = document.querySelectorAll('.nav-tab');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+
+            // Mostrar tab seleccionado
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Cargar datos del tab
+            loadTabData(tabName);
+        }
+
+        // Función para cargar datos según el tab
+        async function loadTabData(tabName) {
+            switch(tabName) {
+                case 'citas':
+                    await loadCitas();
+                    break;
+                case 'clientes':
+                    await loadClientes();
+                    break;
+                case 'servicios':
+                    await loadServicios();
+                    break;
+                case 'empleados':
+                    await loadEmpleados();
+                    break;
+                case 'pagos':
+                    await loadPagos();
+                    break;
+                case 'disponibilidad':
+                    await loadServiciosForSelect();
+                    break;
+            }
+        }
+
+        // ===== GESTIÓN DE CITAS =====
+        async function loadCitas() {
+            showLoading('citasLoading');
+            try {
+                const response = await apiCall(`${API_BASE_URL}/citas`);
+                if (!response.ok) throw new Error('Error al cargar citas');
+                
+                allCitas = await response.json();
+                displayCitas(allCitas);
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al cargar las citas', 'error');
+            } finally {
+                hideLoading('citasLoading');
+            }
+        }
+
+        function displayCitas(citas) {
+            const tbody = document.getElementById('citasTableBody');
+            tbody.innerHTML = '';
+
+            citas.forEach(cita => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${cita.idCita}</td>
+                    <td>${cita.nombreCliente}</td>
+                    <td>${cita.nombreServicio}</td>
+                    <td>${cita.nombreEmpleado || 'Sin asignar'}</td>
+                    <td>${formatDateTime(cita.fechaInicio)}</td>
+                    <td><span class="status ${cita.estado.toLowerCase()}">${cita.estado}</span></td>
+                    <td>$${cita.precio.toFixed(2)}</td>
+                    <td class="actions">
+                        <button class="btn btn-sm" onclick="editCita(${cita.idCita})">✏️ Editar</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteCita(${cita.idCita})">🗑️ Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function openCreateCitaModal() {
+            currentEditId = null;
+            currentEditType = 'cita';
+            document.getElementById('citaModalTitle').textContent = 'Nueva Cita';
+            document.getElementById('citaForm').reset();
+            
+            // Cargar selectores
+            await loadClientesForSelect('clienteSelectCita');
+            await loadServiciosForSelect('servicioSelectCita');
+            await loadEmpleadosForSelect('empleadoSelectCita');
+            
+            document.getElementById('citaModal').style.display = 'block';
+        }
+
+        async function editCita(id) {
+            try {
+                const response = await apiCall(`${API_BASE_URL}/citas/${id}`);
+                if (!response.ok) throw new Error('Error al cargar cita');
+                
+                const cita = await response.json();
+                
+                currentEditId = id;
+                currentEditType = 'cita';
+                document.getElementById('citaModalTitle').textContent = 'Editar Cita';
+                
+                // Cargar selectores
+                await loadClientesForSelect('clienteSelectCita');
+                await loadServiciosForSelect('servicioSelectCita');
+                await loadEmpleadosForSelect('empleadoSelectCita');
+                
+                // Llenar formulario
+                document.getElementById('clienteSelectCita').value = cita.idCliente;
+                document.getElementById('servicioSelectCita').value = cita.idServicio;
+                document.getElementById('empleadoSelectCita').value = cita.idEmpleado || '';
+                document.getElementById('estadoCita').value = cita.estado;
+                document.getElementById('fechaInicio').value = formatDateTimeForInput(cita.fechaInicio);
+                document.getElementById('fechaFin').value = formatDateTimeForInput(cita.fechaFin);
+                document.getElementById('notasCita').value = cita.notas || '';
+                
+                document.getElementById('citaModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al cargar la cita', 'error');
+            }
+        }
+
+        async function deleteCita(id) {
+            if (!confirm('¿Está seguro de que desea eliminar esta cita?')) return;
+            
+            try {
+                const response = await apiCall(`${API_BASE_URL}/citas/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) throw new Error('Error al eliminar cita');
+                
+                showAlert('Cita eliminada exitosamente', 'success');
+                await loadCitas();
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al eliminar la cita', 'error');
+            }
+        }
+
+        function closeCitaModal() {
+            document.getElementById('citaModal').style.display = 'none';
+            currentEditId = null;
+            currentEditType = null;
+        }
+
+        // ===== GESTIÓN DE CLIENTES =====
+        async function loadClientes() {
+            showLoading('clientesLoading');
+            try {
+                const response = await apiCall(`${API_BASE_URL}/clientes`);
+                if (!response.ok) throw new Error('Error al cargar clientes');
+                
+                allClientes = await response.json();
+                displayClientes(allClientes);
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al cargar los clientes', 'error');
+            } finally {
+                hideLoading('clientesLoading');
+            }
+        }
+
+        function displayClientes(clientes) {
+            const tbody = document.getElementById('clientesTableBody');
+            tbody.innerHTML = '';
+
+            clientes.forEach(cliente => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${cliente.idCliente}</td>
+                    <td>${cliente.nombreCompleto}</td>
+                    <td>${cliente.contacto || '-'}</td>
+                    <td>${cliente.direccion || '-'}</td>
+                    <td>${cliente.nombreUsuario || 'Sin usuario'}</td>
+                    <td class="actions">
+                        <button class="btn btn-sm" onclick="editCliente(${cliente.idCliente})">✏️ Editar</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteCliente(${cliente.idCliente})">🗑️ Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function openCreateClienteModal() {
+            currentEditId = null;
+            currentEditType = 'cliente';
+            document.getElementById('clienteModalTitle').textContent = 'Nuevo Cliente';
+            document.getElementById('clienteForm').reset();
+            document.getElementById('clienteModal').style.display = 'block';
+        }
+
+        async function editCliente(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/clientes/${id}`);
+                if (!response.ok) throw new Error('Error al cargar cliente');
+                
+                const cliente = await response.json();
+                
+                currentEditId = id;
+                currentEditType = 'cliente';
+                document.getElementById('clienteModalTitle').textContent = 'Editar Cliente';
+                
+                document.getElementById('nombreCompleto').value = cliente.nombreCompleto;
+                document.getElementById('contactoCliente').value = cliente.contacto || '';
+                document.getElementById('direccionCliente').value = cliente.direccion || '';
+                
+                document.getElementById('clienteModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al cargar el cliente', 'error');
+            }
+        }
+
+        async function deleteCliente(id) {
+            if (!confirm('¿Está seguro de que desea eliminar este cliente?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/clientes/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) throw new Error('Error al eliminar cliente');
+                
+                showAlert('Cliente eliminado exitosamente', 'success');
+                await loadClientes();
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al eliminar el cliente', 'error');
+            }
+        }
+
+        function closeClienteModal() {
+            document.getElementById('clienteModal').style.display = 'none';
+            currentEditId = null;
+            currentEditType = null;
+        }
+
+        // ===== GESTIÓN DE SERVICIOS =====
+        async function loadServicios() {
+            showLoading('serviciosLoading');
+            try {
+                const response = await apiCall(`${API_BASE_URL}/servicios`);
+                if (!response.ok) throw new Error('Error al cargar servicios');
+                
+                allServicios = await response.json();
+                displayServicios(allServicios);
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al cargar los servicios', 'error');
+            } finally {
+                hideLoading('serviciosLoading');
+            }
+        }
+
+        function displayServicios(servicios) {
+            const tbody = document.getElementById('serviciosTableBody');
+            tbody.innerHTML = '';
+
+            servicios.forEach(servicio => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${servicio.idServicio}</td>
+                    <td>${servicio.descripcion}</td>
+                    <td>${servicio.duracionEstimada}</td>
+                    <td>$${servicio.precio.toFixed(2)}</td>
+                    <td>${servicio.categoria || '-'}</td>
+                    <td class="actions">
+                        <button class="btn btn-sm" onclick="editServicio(${servicio.idServicio})">✏️ Editar</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteServicio(${servicio.idServicio})">🗑️ Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function openCreateServicioModal() {
+            currentEditId = null;
+            currentEditType = 'servicio';
+            document.getElementById('servicioModalTitle').textContent = 'Nuevo Servicio';
+            document.getElementById('servicioForm').reset();
+            document.getElementById('servicioModal').style.display = 'block';
+        }
+
+        async function editServicio(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/servicios/${id}`);
+                if (!response.ok) throw new Error('Error al cargar servicio');
+                
+                const servicio = await response.json();
+                
+                currentEditId = id;
+                currentEditType = 'servicio';
+                document.getElementById('servicioModalTitle').textContent = 'Editar Servicio';
+                
+                document.getElementById('descripcionServicio').value = servicio.descripcion;
+                document.getElementById('duracionEstimada').value = servicio.duracionEstimada;
+                document.getElementById('precioServicio').value = servicio.precio;
+                document.getElementById('categoriaServicio').value = servicio.categoria || '';
+                
+                document.getElementById('servicioModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al cargar el servicio', 'error');
+            }
+        }
+
+        async function deleteServicio(id) {
+            if (!confirm('¿Está seguro de que desea eliminar este servicio?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/servicios/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) throw new Error('Error al eliminar servicio');
+                
+                showAlert('Servicio eliminado exitosamente', 'success');
+                await loadServicios();
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al eliminar el servicio', 'error');
+            }
+        }
+
+        function closeServicioModal() {
+            document.getElementById('servicioModal').style.display = 'none';
+            currentEditId = null;
+            currentEditType = null;
+        }
+
+        // ===== GESTIÓN DE EMPLEADOS =====
+        async function loadEmpleados() {
+            showLoading('empleadosLoading');
+            try {
+                const response = await apiCall(`${API_BASE_URL}/empleados`);
+                if (!response.ok) throw new Error('Error al cargar empleados');
+                
+                allEmpleados = await response.json();
+                displayEmpleados(allEmpleados);
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al cargar los empleados', 'error');
+            } finally {
+                hideLoading('empleadosLoading');
+            }
+        }
+
+        function displayEmpleados(empleados) {
+            const tbody = document.getElementById('empleadosTableBody');
+            tbody.innerHTML = '';
+
+            empleados.forEach(empleado => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${empleado.idEmpleado}</td>
+                    <td>${empleado.nombreCompleto}</td>
+                    <td>${empleado.especialidad || '-'}</td>
+                    <td>${empleado.contacto || '-'}</td>
+                    <td class="actions">
+                        <button class="btn btn-sm" onclick="editEmpleado(${empleado.idEmpleado})">✏️ Editar</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteEmpleado(${empleado.idEmpleado})">🗑️ Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function openCreateEmpleadoModal() {
+            currentEditId = null;
+            currentEditType = 'empleado';
+            document.getElementById('empleadoModalTitle').textContent = 'Nuevo Empleado';
+            document.getElementById('empleadoForm').reset();
+            document.getElementById('empleadoModal').style.display = 'block';
+        }
+
+        async function editEmpleado(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/empleados/${id}`);
+                if (!response.ok) throw new Error('Error al cargar empleado');
+                
+                const empleado = await response.json();
+                
+                currentEditId = id;
+                currentEditType = 'empleado';
+                document.getElementById('empleadoModalTitle').textContent = 'Editar Empleado';
+                
+                document.getElementById('nombreEmpleado').value = empleado.nombreCompleto;
+                document.getElementById('especialidadEmpleado').value = empleado.especialidad || '';
+                document.getElementById('contactoEmpleado').value = empleado.contacto || '';
+                
+                document.getElementById('empleadoModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al cargar el empleado', 'error');
+            }
+        }
+
+        async function deleteEmpleado(id) {
+            if (!confirm('¿Está seguro de que desea eliminar este empleado?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/empleados/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) throw new Error('Error al eliminar empleado');
+                
+                showAlert('Empleado eliminado exitosamente', 'success');
+                await loadEmpleados();
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al eliminar el empleado', 'error');
+            }
+        }
+
+        function closeEmpleadoModal() {
+            document.getElementById('empleadoModal').style.display = 'none';
+            currentEditId = null;
+            currentEditType = null;
+        }
+
+        // ===== GESTIÓN DE PAGOS =====
+        async function loadPagos() {
+            showLoading('pagosLoading');
+            try {
+                const response = await fetch(`${API_BASE_URL}/pagos`);
+                if (!response.ok) throw new Error('Error al cargar pagos');
+                
+                allPagos = await response.json();
+                displayPagos(allPagos);
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al cargar los pagos', 'error');
+            } finally {
+                hideLoading('pagosLoading');
+            }
+        }
+
+        function displayPagos(pagos) {
+            const tbody = document.getElementById('pagosTableBody');
+            tbody.innerHTML = '';
+
+            pagos.forEach(pago => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${pago.idPago}</td>
+                    <td>${pago.idCita}</td>
+                    <td>${pago.tipoPago}</td>
+                    <td>$${pago.valorPago ? pago.valorPago.toFixed(2) : '0.00'}</td>
+                    <td>${formatDateTime(pago.fechaCita)}</td>
+                    <td><span class="status ${pago.estadoCita.toLowerCase()}">${pago.estadoCita}</span></td>
+                    <td class="actions">
+                        <button class="btn btn-sm" onclick="editPago(${pago.idPago})">✏️ Editar</button>
+                        <button class="btn btn-sm btn-danger" onclick="deletePago(${pago.idPago})">🗑️ Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function openCreatePagoModal() {
+            currentEditId = null;
+            currentEditType = 'pago';
+            document.getElementById('pagoModalTitle').textContent = 'Registrar Pago';
+            document.getElementById('pagoForm').reset();
+            
+            // Cargar citas para el selector
+            await loadCitasForSelect();
+            
+            document.getElementById('pagoModal').style.display = 'block';
+        }
+
+        async function editPago(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/pagos/${id}`);
+                if (!response.ok) throw new Error('Error al cargar pago');
+                
+                const pago = await response.json();
+                
+                currentEditId = id;
+                currentEditType = 'pago';
+                document.getElementById('pagoModalTitle').textContent = 'Editar Pago';
+                
+                // Cargar citas para el selector
+                await loadCitasForSelect();
+                
+                document.getElementById('citaSelectPago').value = pago.idCita;
+                document.getElementById('tipoPago').value = pago.tipoPago;
+                document.getElementById('valorPago').value = pago.valorPago || '';
+                
+                document.getElementById('pagoModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al cargar el pago', 'error');
+            }
+        }
+
+        async function deletePago(id) {
+            if (!confirm('¿Está seguro de que desea eliminar este pago?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/pagos/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) throw new Error('Error al eliminar pago');
+                
+                showAlert('Pago eliminado exitosamente', 'success');
+                await loadPagos();
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al eliminar el pago', 'error');
+            }
+        }
+
+        function closePagoModal() {
+            document.getElementById('pagoModal').style.display = 'none';
+            currentEditId = null;
+            currentEditType = null;
+        }
+
+        // ===== GESTIÓN DE DISPONIBILIDAD =====
+        async function consultarDisponibilidad() {
+            const servicioId = document.getElementById('servicioSelect').value;
+            const fecha = document.getElementById('fechaConsulta').value;
+
+            if (!servicioId || !fecha) {
+                showAlert('Por favor seleccione un servicio y una fecha', 'error');
+                return;
+            }
+
+            showLoading('disponibilidadLoading');
+            try {
+                const response = await fetch(`${API_BASE_URL}/disponibilidad?idServicio=${servicioId}&fecha=${fecha}`);
+                if (!response.ok) throw new Error('Error al consultar disponibilidad');
+                
+                const disponibilidad = await response.json();
+                displayDisponibilidad(disponibilidad);
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al consultar la disponibilidad', 'error');
+            } finally {
+                hideLoading('disponibilidadLoading');
+            }
+        }
+
+        function displayDisponibilidad(disponibilidad) {
+            const grid = document.getElementById('disponibilidadGrid');
+            grid.innerHTML = '';
+
+            if (disponibilidad.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">No hay horarios disponibles para la fecha seleccionada.</p>';
+                return;
+            }
+
+            disponibilidad.forEach(slot => {
+                const slotElement = document.createElement('div');
+                slotElement.className = 'availability-slot';
+                slotElement.innerHTML = `
+                    <div class="slot-time">${formatTime(slot.fechaInicio)} - ${formatTime(slot.fechaFin)}</div>
+                    <div class="slot-employee">👨‍💼 ${slot.nombreEmpleado}</div>
+                `;
+                slotElement.addEventListener('click', () => selectAvailabilitySlot(slot, slotElement));
+                grid.appendChild(slotElement);
+            });
+        }
+
+        function selectAvailabilitySlot(slot, element) {
+            // Remover selección anterior
+            document.querySelectorAll('.availability-slot').forEach(el => el.classList.remove('selected'));
+            
+            // Seleccionar nuevo slot
+            element.classList.add('selected');
+            
+            // Opcional: Pre-llenar el formulario de cita con esta información
+            console.log('Slot seleccionado:', slot);
+        }
+
+        // ===== FUNCIONES AUXILIARES =====
+        async function loadClientesForSelect(selectId = 'clienteSelect') {
+            try {
+                if (allClientes.length === 0) {
+                    const response = await apiCall(`${API_BASE_URL}/clientes`);
+                    if (response.ok) {
+                        allClientes = await response.json();
+                    }
+                }
+
+                const select = document.getElementById(selectId);
+                select.innerHTML = '<option value="">Seleccione un cliente</option>';
+                
+                allClientes.forEach(cliente => {
+                    const option = document.createElement('option');
+                    option.value = cliente.idCliente;
+                    option.textContent = cliente.nombreCompleto;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error al cargar clientes:', error);
+            }
+        }
+
+        async function loadServiciosForSelect(selectId = 'servicioSelect') {
+            try {
+                if (allServicios.length === 0) {
+                    const response = await apiCall(`${API_BASE_URL}/servicios`);
+                    if (response.ok) {
+                        allServicios = await response.json();
+                    }
+                }
+
+                const select = document.getElementById(selectId);
+                select.innerHTML = '<option value="">Seleccione un servicio</option>';
+                
+                allServicios.forEach(servicio => {
+                    const option = document.createElement('option');
+                    option.value = servicio.idServicio;
+                    option.textContent = servicio.descripcion;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error al cargar servicios:', error);
+            }
+        }
+
+        async function loadEmpleadosForSelect(selectId = 'empleadoSelect') {
+            try {
+                if (allEmpleados.length === 0) {
+                    const response = await apiCall(`${API_BASE_URL}/empleados`);
+                    if (response.ok) {
+                        allEmpleados = await response.json();
+                    }
+                }
+
+                const select = document.getElementById(selectId);
+                select.innerHTML = '<option value="">Sin asignar</option>';
+                
+                allEmpleados.forEach(empleado => {
+                    const option = document.createElement('option');
+                    option.value = empleado.idEmpleado;
+                    option.textContent = empleado.nombreCompleto;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error al cargar empleados:', error);
+            }
+        }
+
+        async function loadCitasForSelect() {
+            try {
+                if (allCitas.length === 0) {
+                    const response = await apiCall(`${API_BASE_URL}/citas`);
+                    if (response.ok) {
+                        allCitas = await response.json();
+                    }
+                }
+
+                const select = document.getElementById('citaSelectPago');
+                select.innerHTML = '<option value="">Seleccione una cita</option>';
+                
+                allCitas.forEach(cita => {
+                    const option = document.createElement('option');
+                    option.value = cita.idCita;
+                    option.textContent = `#${cita.idCita} - ${cita.nombreCliente} - ${cita.nombreServicio}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error al cargar citas:', error);
+            }
+        }
+
+        // Funciones de formato
+        function formatDateTime(dateTimeString) {
+            const date = new Date(dateTimeString);
+            return date.toLocaleString('es-ES', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatTime(dateTimeString) {
+            const date = new Date(dateTimeString);
+            return date.toLocaleString('es-ES', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatDateTimeForInput(dateTimeString) {
+            const date = new Date(dateTimeString);
+            return date.toISOString().slice(0, 16);
+        }
+
+        // Funciones de loading
+        function showLoading(loadingId) {
+            document.getElementById(loadingId).style.display = 'block';
+        }
+
+        function hideLoading(loadingId) {
+            document.getElementById(loadingId).style.display = 'none';
+        }
+
+        // Función para mostrar alertas
+        function showAlert(message, type = 'success') {
+            // Crear elemento de alerta
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type === 'success' ? 'success' : 'error'}`;
+            alert.textContent = message;
+            
+            // Insertar al inicio del container
+            const container = document.querySelector('.container');
+            container.insertBefore(alert, container.firstChild);
+            
+            // Remover después de 5 segundos
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 5000);
+        }
+
+        // Funciones de búsqueda
+        function searchCitas(searchTerm) {
+            const filteredCitas = allCitas.filter(cita => 
+                cita.nombreCliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                cita.nombreServicio.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (cita.nombreEmpleado && cita.nombreEmpleado.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                cita.estado.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            displayCitas(filteredCitas);
+        }
+
+        function searchClientes(searchTerm) {
+            const filteredClientes = allClientes.filter(cliente => 
+                cliente.nombreCompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (cliente.contacto && cliente.contacto.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (cliente.direccion && cliente.direccion.toLowerCase().includes(searchTerm.toLowerCase()))
+            );
+            displayClientes(filteredClientes);
+        }
+
+        function searchServicios(searchTerm) {
+            const filteredServicios = allServicios.filter(servicio => 
+                servicio.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (servicio.categoria && servicio.categoria.toLowerCase().includes(searchTerm.toLowerCase()))
+            );
+            displayServicios(filteredServicios);
+        }
+
+        function searchEmpleados(searchTerm) {
+            const filteredEmpleados = allEmpleados.filter(empleado => 
+                empleado.nombreCompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (empleado.especialidad && empleado.especialidad.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (empleado.contacto && empleado.contacto.toLowerCase().includes(searchTerm.toLowerCase()))
+            );
+            displayEmpleados(filteredEmpleados);
+        }
+
+        function searchPagos(searchTerm) {
+            const filteredPagos = allPagos.filter(pago => 
+                pago.tipoPago.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                pago.estadoCita.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            displayPagos(filteredPagos);
+        }
+
+        // Funciones de filtro
+        function filterCitasByEstado(estado) {
+            const filteredCitas = estado ? allCitas.filter(cita => cita.estado === estado) : allCitas;
+            displayCitas(filteredCitas);
+        }
+
+        function filterPagosByTipo(tipo) {
+            const filteredPagos = tipo ? allPagos.filter(pago => pago.tipoPago === tipo) : allPagos;
+            displayPagos(filteredPagos);
+        }
+
+        // Event Listeners para formularios
+        document.getElementById('citaForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                idCliente: parseInt(document.getElementById('clienteSelectCita').value),
+                idServicio: parseInt(document.getElementById('servicioSelectCita').value),
+                idEmpleado: document.getElementById('empleadoSelectCita').value ? 
+                    parseInt(document.getElementById('empleadoSelectCita').value) : null,
+                fechaInicio: document.getElementById('fechaInicio').value,
+                fechaFin: document.getElementById('fechaFin').value,
+                estado: document.getElementById('estadoCita').value,
+                notas: document.getElementById('notasCita').value || null
+            };
+            
+            try {
+                const url = currentEditId ? 
+                    `${API_BASE_URL}/citas/${currentEditId}` : 
+                    `${API_BASE_URL}/citas`;
+                
+                const method = currentEditId ? 'PUT' : 'POST';
+                
+                // Para PUT, necesitamos incluir el ID en el cuerpo
+                if (currentEditId) {
+                    formData.idCita = currentEditId;
+                }
+                
+                const response = await apiCall(url, {
+                    method: method,
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error al guardar la cita');
+                }
+                
+                showAlert(currentEditId ? 'Cita actualizada exitosamente' : 'Cita creada exitosamente', 'success');
+                closeCitaModal();
+                await loadCitas();
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert(error.message || 'Error al guardar la cita', 'error');
+            }
+        });
+
+        document.getElementById('clienteForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                nombreCompleto: document.getElementById('nombreCompleto').value,
+                contacto: document.getElementById('contactoCliente').value || null,
+                direccion: document.getElementById('direccionCliente').value || null,
+                idUsuario: null // Por ahora no vinculamos con usuarios
+            };
+            
+            try {
+                const url = currentEditId ? 
+                    `${API_BASE_URL}/clientes/${currentEditId}` : 
+                    `${API_BASE_URL}/clientes`;
+                
+                const method = currentEditId ? 'PUT' : 'POST';
+                
+                if (currentEditId) {
+                    formData.idCliente = currentEditId;
+                }
+                
+                const response = await apiCall(url, {
+                    method: method,
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error al guardar el cliente');
+                }
+                
+                showAlert(currentEditId ? 'Cliente actualizado exitosamente' : 'Cliente creado exitosamente', 'success');
+                closeClienteModal();
+                await loadClientes();
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert(error.message || 'Error al guardar el cliente', 'error');
+            }
+        });
+
+        document.getElementById('servicioForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                descripcion: document.getElementById('descripcionServicio').value,
+                duracionEstimada: parseInt(document.getElementById('duracionEstimada').value),
+                precio: parseFloat(document.getElementById('precioServicio').value),
+                categoria: document.getElementById('categoriaServicio').value || null
+            };
+            
+            try {
+                const url = currentEditId ? 
+                    `${API_BASE_URL}/servicios/${currentEditId}` : 
+                    `${API_BASE_URL}/servicios`;
+                
+                const method = currentEditId ? 'PUT' : 'POST';
+                
+                if (currentEditId) {
+                    formData.idServicio = currentEditId;
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error al guardar el servicio');
+                }
+                
+                showAlert(currentEditId ? 'Servicio actualizado exitosamente' : 'Servicio creado exitosamente', 'success');
+                closeServicioModal();
+                await loadServicios();
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert(error.message || 'Error al guardar el servicio', 'error');
+            }
+        });
+
+        document.getElementById('empleadoForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                nombreCompleto: document.getElementById('nombreEmpleado').value,
+                especialidad: document.getElementById('especialidadEmpleado').value || null,
+                contacto: document.getElementById('contactoEmpleado').value || null
+            };
+            
+            try {
+                const url = currentEditId ? 
+                    `${API_BASE_URL}/empleados/${currentEditId}` : 
+                    `${API_BASE_URL}/empleados`;
+                
+                const method = currentEditId ? 'PUT' : 'POST';
+                
+                if (currentEditId) {
+                    formData.idEmpleado = currentEditId;
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error al guardar el empleado');
+                }
+                
+                showAlert(currentEditId ? 'Empleado actualizado exitosamente' : 'Empleado creado exitosamente', 'success');
+                closeEmpleadoModal();
+                await loadEmpleados();
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert(error.message || 'Error al guardar el empleado', 'error');
+            }
+        });
+
+        document.getElementById('pagoForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                idCita: parseInt(document.getElementById('citaSelectPago').value),
+                tipoPago: document.getElementById('tipoPago').value,
+                valorPago: parseFloat(document.getElementById('valorPago').value) || null
+            };
+            
+            try {
+                const url = currentEditId ? 
+                    `${API_BASE_URL}/pagos/${currentEditId}` : 
+                    `${API_BASE_URL}/pagos`;
+                
+                const method = currentEditId ? 'PUT' : 'POST';
+                
+                if (currentEditId) {
+                    formData.idPago = currentEditId;
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error al guardar el pago');
+                }
+                
+                showAlert(currentEditId ? 'Pago actualizado exitosamente' : 'Pago registrado exitosamente', 'success');
+                closePagoModal();
+                await loadPagos();
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert(error.message || 'Error al guardar el pago', 'error');
+            }
+        });
+
+        // Cerrar modales al hacer clic fuera
+        window.addEventListener('click', function(event) {
+            const modals = ['citaModal', 'clienteModal', 'servicioModal', 'empleadoModal', 'pagoModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                    currentEditId = null;
+                    currentEditType = null;
+                }
+            });
+        });
+
+        // Cargar datos iniciales al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Establecer fecha mínima para consulta de disponibilidad (hoy)
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fechaConsulta').min = today;
+            document.getElementById('fechaConsulta').value = today;
+            
+            // Cargar tab inicial
+            loadTabData('citas');
+        });
+    </script>
+</body>
 </html>

@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Servicios - Dashboard</title>
+    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
+    <link href="css/sb-admin-2.min.css" rel="stylesheet">
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .action-buttons {
+            white-space: nowrap;
+        }
+        .action-buttons button {
+            margin: 0 3px;
+        }
+        .badge-muebles {
+            background-color: #4e73df;
+            color: white;
+        }
+        .badge-tapizados {
+            background-color: #1cc88a;
+            color: white;
+        }
+        .badge-restauracion {
+            background-color: #f6c23e;
+            color: white;
+        }
+        .badge-otros {
+            background-color: #36b9cc;
+            color: white;
+        }
+        .price-column {
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body id="page-top">
+
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-couch"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">Tapicería Admin</div>
+            </a>
+            <hr class="sidebar-divider my-0">
+            <li class="nav-item">
+                <a class="nav-link" href="index.html">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <hr class="sidebar-divider">
+            <li class="nav-item">
+                <a class="nav-link" href="clientes.html">
+                    <i class="fas fa-fw fa-user"></i>
+                    <span>Clientes</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="empleados.html">
+                    <i class="fas fa-fw fa-users"></i>
+                    <span>Empleados</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="citas.html">
+                    <i class="fas fa-fw fa-calendar"></i>
+                    <span>Citas</span>
+                </a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="servicios.html">
+                    <i class="fas fa-fw fa-tools"></i>
+                    <span>Servicios</span>
+                </a>
+            </li>
+        </ul>
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Usuario</span>
+                                <img class="img-profile rounded-circle" src="img/undraw_profile.svg">
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+                    <h1 class="h3 mb-2 text-gray-800">Gestión de Servicios</h1>
+                    
+                    <!-- Filtros -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Filtros de búsqueda</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label for="filterCategoria">Categoría:</label>
+                                    <select class="form-control" id="filterCategoria">
+                                        <option value="">Todas las categorías</option>
+                                        <option value="Muebles">Muebles</option>
+                                        <option value="Tapizados">Tapizados</option>
+                                        <option value="Restauración">Restauración</option>
+                                        <option value="Otros">Otros</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="filterPrecioMin">Precio Mínimo:</label>
+                                    <input type="number" class="form-control" id="filterPrecioMin" min="0" step="0.01">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="filterPrecioMax">Precio Máximo:</label>
+                                    <input type="number" class="form-control" id="filterPrecioMax" min="0" step="0.01">
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-12 text-right">
+                                    <button class="btn btn-primary" id="applyFiltersBtn">
+                                        <i class="fas fa-search"></i> Aplicar Filtros
+                                    </button>
+                                    <button class="btn btn-secondary" id="clearFiltersBtn">
+                                        <i class="fas fa-undo"></i> Limpiar Filtros
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tabla de Servicios -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">Servicios Registrados</h6>
+                            <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addServicioModal">
+                                <i class="fas fa-plus"></i> Agregar Servicio
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="serviciosTable" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Descripción</th>
+                                            <th>Duración (min)</th>
+                                            <th>Precio</th>
+                                            <th>Categoría</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="serviciosBody">
+                                        <!-- Aquí se insertarán los datos -->
+                                    </tbody>
+                                </table>                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Tapicería Admin 2025</span>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Modal para Agregar Servicio -->
+    <div class="modal fade" id="addServicioModal" tabindex="-1" role="dialog" aria-labelledby="addServicioModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addServicioModalLabel">Agregar Nuevo Servicio</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addServicioForm">
+                        <div class="form-group">
+                            <label for="descripcion">Descripción *</label>
+                            <input type="text" class="form-control" id="descripcion" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="duracionEstimada">Duración Estimada (minutos) *</label>
+                            <input type="number" class="form-control" id="duracionEstimada" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="precio">Precio *</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">$</span>
+                                </div>
+                                <input type="number" class="form-control" id="precio" min="0" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="categoria">Categoría</label>
+                            <select class="form-control" id="categoria">
+                                <option value="">Sin categoría</option>
+                                <option value="Muebles">Muebles</option>
+                                <option value="Tapizados">Tapizados</option>
+                                <option value="Restauración">Restauración</option>
+                                <option value="Otros">Otros</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="saveServicioBtn">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Servicio -->
+    <div class="modal fade" id="editServicioModal" tabindex="-1" role="dialog" aria-labelledby="editServicioModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editServicioModalLabel">Editar Servicio</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editServicioForm">
+                        <input type="hidden" id="editIdServicio">
+                        <div class="form-group">
+                            <label for="editDescripcion">Descripción *</label>
+                            <input type="text" class="form-control" id="editDescripcion" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editDuracionEstimada">Duración Estimada (minutos) *</label>
+                            <input type="number" class="form-control" id="editDuracionEstimada" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editPrecio">Precio *</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">$</span>
+                                </div>
+                                <input type="number" class="form-control" id="editPrecio" min="0" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="editCategoria">Categoría</label>
+                            <select class="form-control" id="editCategoria">
+                                <option value="">Sin categoría</option>
+                                <option value="Muebles">Muebles</option>
+                                <option value="Tapizados">Tapizados</option>
+                                <option value="Restauración">Restauración</option>
+                                <option value="Otros">Otros</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="updateServicioBtn">Actualizar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación para Eliminar -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteConfirmModalLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar este servicio?</p>
+                    <p id="deleteServicioDesc" class="font-weight-bold"></p>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        Esta acción no se puede deshacer. Si el servicio está asociado a citas existentes, no podrá ser eliminado.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript para CRUD de servicios -->
+    <script>
+        // URL base de la API
+        const API_URL = " https://eae5-179-1-86-116.ngrok-free.app/api";
+        let serviciosList = [];
+        
+        // Al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            loadServicios();
+            
+            // Event listeners para filtros
+            document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
+            document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
+            
+            // Event listener para guardar servicio
+            document.getElementById('saveServicioBtn').addEventListener('click', saveServicio);
+            
+            // Event listener para actualizar servicio
+            document.getElementById('updateServicioBtn').addEventListener('click', updateServicio);
+            
+            // Event listener para eliminar servicio
+            document.getElementById('confirmDeleteBtn').addEventListener('click', deleteServicio);
+        });
+        
+        // Cargar servicios desde la API
+        async function loadServicios() {
+            try {
+                const response = await fetch(`${API_URL}/Servicios`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+        
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Error al obtener servicios: ${response.status} - ${errorText}`);
+                }
+        
+                serviciosList = await response.json();
+                renderServiciosTable(serviciosList);
+                console.log('Servicios cargados:', serviciosList);
+            } catch (error) {
+                console.error('Error al cargar servicios:', error.message);
+                alert('No se pudieron cargar los servicios: ' + error.message);
+            }
+        }
+        
+        // Renderizar tabla de servicios
+        function renderServiciosTable(servicios) {
+            const tablaBody = document.getElementById('serviciosBody');
+            tablaBody.innerHTML = ''; // Limpiar antes de insertar
+            
+            if (servicios.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="6" class="text-center">No hay servicios registrados</td>';
+                tablaBody.appendChild(row);
+                return;
+            }
+            
+            servicios.forEach(servicio => {
+                const row = document.createElement('tr');
+                
+                // Determinar clase CSS para la categoría
+                let categoriaClass = '';
+                if (servicio.categoria) {
+                    switch (servicio.categoria.toLowerCase()) {
+                        case 'muebles': categoriaClass = 'badge-muebles'; break;
+                        case 'tapizados': categoriaClass = 'badge-tapizados'; break;
+                        case 'restauración': categoriaClass = 'badge-restauracion'; break;
+                        default: categoriaClass = 'badge-otros';
+                    }
+                }
+                
+                row.innerHTML = `
+                    <td>${servicio.idServicio}</td>
+                    <td>${servicio.descripcion}</td>
+                    <td>${servicio.duracionEstimada}</td>
+                    <td class="price-column">$${servicio.precio.toFixed(2)}</td>
+                    <td>${servicio.categoria ? 
+                        `<span class="badge ${categoriaClass}">${servicio.categoria}</span>` : 
+                        '<span class="text-muted">Sin categoría</span>'}</td>
+                    <td class="action-buttons">
+                        <button class="btn btn-primary btn-sm edit-btn" data-id="${servicio.idServicio}" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm delete-btn" data-id="${servicio.idServicio}" 
+                            data-descripcion="${servicio.descripcion}" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tablaBody.appendChild(row);
+            });
+            
+            // Agregar event listeners a los botones
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', handleEditClick);
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', handleDeleteClick);
+            });
+        }
+        
+        // Aplicar filtros
+        function applyFilters() {
+            const categoria = document.getElementById('filterCategoria').value;
+            const precioMin = document.getElementById('filterPrecioMin').value;
+            const precioMax = document.getElementById('filterPrecioMax').value;
+            
+            let filteredServicios = [...serviciosList];
+            
+            // Filtrar por categoría
+            if (categoria) {
+                filteredServicios = filteredServicios.filter(servicio => 
+                    servicio.categoria && servicio.categoria.toLowerCase() === categoria.toLowerCase()
+                );
+            }
+            
+            // Filtrar por precio mínimo
+            if (precioMin) {
+                filteredServicios = filteredServicios.filter(servicio => 
+                    servicio.precio >= parseFloat(precioMin)
+                );
+            }
+            
+            // Filtrar por precio máximo
+            if (precioMax) {
+                filteredServicios = filteredServicios.filter(servicio => 
+                    servicio.precio <= parseFloat(precioMax)
+                );
+            }
+            
+            renderServiciosTable(filteredServicios);
+        }
+        
+        // Limpiar filtros
+        function clearFilters() {
+            document.getElementById('filterCategoria').value = '';
+            document.getElementById('filterPrecioMin').value = '';
+            document.getElementById('filterPrecioMax').value = '';
+            
+            renderServiciosTable(serviciosList);
+        }
+        
+        // Manejar clic en botón Editar
+        function handleEditClick(event) {
+            const id = parseInt(event.currentTarget.getAttribute('data-id'));
+            const servicio = serviciosList.find(s => s.idServicio === id);
+            
+            if (servicio) {
+                // Llenar formulario con datos del servicio
+                document.getElementById('editIdServicio').value = servicio.idServicio;
+                document.getElementById('editDescripcion').value = servicio.descripcion;
+                document.getElementById('editDuracionEstimada').value = servicio.duracionEstimada;
+                document.getElementById('editPrecio').value = servicio.precio;
+                document.getElementById('editCategoria').value = servicio.categoria || '';
+                
+                // Mostrar modal
+                $('#editServicioModal').modal('show');
+            }
+        }
+        
+        // Manejar clic en botón Eliminar
+        function handleDeleteClick(event) {
+            const id = event.currentTarget.getAttribute('data-id');
+            const descripcion = event.currentTarget.getAttribute('data-descripcion');
+            
+            // Mostrar descripción en modal de confirmación
+            document.getElementById('deleteServicioDesc').textContent = descripcion;
+            
+            // Configurar botón de confirmación
+            document.getElementById('confirmDeleteBtn').setAttribute('data-id', id);
+            
+            // Mostrar modal de confirmación
+            $('#deleteConfirmModal').modal('show');
+        }
+        
+        // Guardar nuevo servicio
+        async function saveServicio() {
+            // Validar formulario
+            const descripcion = document.getElementById('descripcion').value.trim();
+            const duracionEstimada = document.getElementById('duracionEstimada').value;
+            const precio = document.getElementById('precio').value;
+            
+            if (!descripcion || !duracionEstimada || !precio) {
+                alert('Por favor complete todos los campos obligatorios');
+                return;
+            }
+            
+            try {
+                const categoriaValue = document.getElementById('categoria').value;
+                
+                const servicioData = {
+                    descripcion: descripcion,
+                    duracionEstimada: parseInt(duracionEstimada),
+                    precio: parseFloat(precio),
+                    categoria: categoriaValue || null
+                };
+                
+                const response = await fetch(`${API_URL}/Servicios`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify(servicioData)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Error al agregar servicio: ${response.status} - ${errorText}`);
+                }
+                
+                // Recargar servicios
+                await loadServicios();
+                
+                // Cerrar modal y limpiar formulario
+                $('#addServicioModal').modal('hide');
+                document.getElementById('addServicioForm').reset();
+                
+                // Mostrar confirmación
+                alert('Servicio agregado correctamente');
+                
+            } catch (error) {
+                console.error('Error al agregar servicio:', error.message);
+                alert('No se pudo agregar el servicio: ' + error.message);
+            }
+        }
+        
+        // Actualizar servicio
+        async function updateServicio() {
+            // Validar formulario
+            const idServicio = document.getElementById('editIdServicio').value;
+            const descripcion = document.getElementById('editDescripcion').value.trim();
+            const duracionEstimada = document.getElementById('editDuracionEstimada').value;
+            const precio = document.getElementById('editPrecio').value;
+            
+            if (!descripcion || !duracionEstimada || !precio) {
+                alert('Por favor complete todos los campos obligatorios');
+                return;
+            }
+            
+            try {
+                const categoriaValue = document.getElementById('editCategoria').value;
+                
+                const servicioData = {
+                    idServicio: parseInt(idServicio),
+                    descripcion: descripcion,
+                    duracionEstimada: parseInt(duracionEstimada),
+                    precio: parseFloat(precio),
+                    categoria: categoriaValue || null
+                };
+                
+                const response = await fetch(`${API_URL}/Servicios/${idServicio}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify(servicioData)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Error al actualizar servicio: ${response.status} - ${errorText}`);
+                }
+                
+                // Recargar servicios
+                await loadServicios();
+                
+                // Cerrar modal
+                $('#editServicioModal').modal('hide');
+                
+                // Mostrar confirmación
+                alert('Servicio actualizado correctamente');
+                
+            } catch (error) {
+                console.error('Error al actualizar servicio:', error.message);
+                alert('No se pudo actualizar el servicio: ' + error.message);
+            }
+        }
+        
+        // Eliminar servicio
+        async function deleteServicio() {
+            const idServicio = this.getAttribute('data-id');
+            
+            try {
+                const response = await fetch(`${API_URL}/Servicios/${idServicio}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    
+                    // Personalizar mensaje de error para citas vinculadas
+                    if (errorText.includes("citas vinculadas") || response.status === 500) {
+                        throw new Error("No se puede eliminar el servicio porque está asociado a citas existentes.");
+                    }
+                    
+                    throw new Error(`Error al eliminar servicio: ${response.status} - ${errorText}`);
+                }
+                
+                // Recargar servicios
+                await loadServicios();
+                
+                // Cerrar modal
+                $('#deleteConfirmModal').modal('hide');
+                
+                // Mostrar confirmación
+                alert('Servicio eliminado correctamente');
+                
+            } catch (error) {
+                console.error('Error al eliminar servicio:', error.message);
+                alert('No se pudo eliminar el servicio: ' + error.message);
+                // Cerrar modal
+                $('#deleteConfirmModal').modal('hide');
+            }
+        }
+    </script>
+
+</body>
+
+</html>

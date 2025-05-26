@@ -1,25 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
+    <meta name="description" content="Sistema de Gestión de Tapicería">
     <meta name="author" content="">
 
-    <title>Dashboard</title>
+    <title>Tapicería Pro - Dashboard</title>
 
     <!-- Custom fonts for this template-->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
 
     <!-- Custom styles for this template-->
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
 
+    <style>
+        .bg-gradient-tapiceria {
+            background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+        }
+        
+        .text-tapiceria {
+            color: #6f42c1 !important;
+        }
+        
+        .border-left-tapiceria {
+            border-left: 0.25rem solid #6f42c1 !important;
+        }
+        
+        .loading-spinner {
+            display: none;
+        }
+        
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+        
+        .metric-icon {
+            font-size: 2rem;
+        }
+        
+        .recent-activity {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .activity-item {
+            border-left: 3px solid #e3e6f0;
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .activity-item.new {
+            border-left-color: #1cc88a;
+        }
+        
+        .activity-item.pending {
+            border-left-color: #f6c23e;
+        }
+        
+        .activity-item.completed {
+            border-left-color: #36b9cc;
+        }
+    </style>
 </head>
 
 <body id="page-top">
@@ -28,14 +74,14 @@
     <div id="wrapper">
 
         <!-- Sidebar -->
-        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+        <ul class="navbar-nav bg-gradient-tapiceria sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
                 <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="fas fa-laugh-wink"></i>
+                    <i class="fas fa-chair"></i>
                 </div>
-                <div class="sidebar-brand-text mx-3">SB Admin <sup>2</sup></div>
+                <div class="sidebar-brand-text mx-3">Tapicería <sup>Pro</sup></div>
             </a>
 
             <!-- Divider -->
@@ -45,24 +91,96 @@
             <li class="nav-item active">
                 <a class="nav-link" href="index.html">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Dashboard</span></a>
+                    <span>Dashboard</span>
+                </a>
             </li>
 
             <!-- Divider -->
             <hr class="sidebar-divider">
 
-            <!-- Nav Item - Charts -->
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Gestión Principal
+            </div>
+
+            <!-- Nav Item - Citas -->
             <li class="nav-item">
-                <a class="nav-link" href="charts.html">
-                    <i class="fas fa-fw fa-chart-area"></i>
-                    <span>Charts</span></a>
+                <a class="nav-link" href="charts.html?tab=citas">
+                    <i class="fas fa-fw fa-calendar-alt"></i>
+                    <span>Citas</span>
+                </a>
             </li>
 
-            <!-- Nav Item - Tables -->
+            <!-- Nav Item - Clientes -->
             <li class="nav-item">
-                <a class="nav-link" href="tables.html">
-                    <i class="fas fa-fw fa-table"></i>
-                    <span>Tables</span></a>
+                <a class="nav-link" href="charts.html?tab=clientes">
+                    <i class="fas fa-fw fa-users"></i>
+                    <span>Clientes</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Servicios -->
+            <li class="nav-item">
+                <a class="nav-link" href="charts.html?tab=servicios">
+                    <i class="fas fa-fw fa-tools"></i>
+                    <span>Servicios</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Empleados -->
+            <li class="nav-item">
+                <a class="nav-link" href="charts.html?tab=empleados">
+                    <i class="fas fa-fw fa-user-tie"></i>
+                    <span>Empleados</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Finanzas
+            </div>
+
+            <!-- Nav Item - Pagos -->
+            <li class="nav-item">
+                <a class="nav-link" href="charts.html?tab=pagos">
+                    <i class="fas fa-fw fa-dollar-sign"></i>
+                    <span>Pagos</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Reportes -->
+            <li class="nav-item">
+                <a class="nav-link" href="reportes.html">
+                    <i class="fas fa-fw fa-chart-line"></i>
+                    <span>Reportes</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Herramientas
+            </div>
+
+            <!-- Nav Item - Disponibilidad -->
+            <li class="nav-item">
+                <a class="nav-link" href="charts.html?tab=disponibilidad">
+                    <i class="fas fa-fw fa-clock"></i>
+                    <span>Disponibilidad</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Configuración -->
+            <li class="nav-item">
+                <a class="nav-link" href="configuracion.html">
+                    <i class="fas fa-fw fa-cogs"></i>
+                    <span>Configuración</span>
+                </a>
             </li>
 
             <!-- Divider -->
@@ -72,7 +190,6 @@
             <div class="text-center d-none d-md-inline">
                 <button class="rounded-circle border-0" id="sidebarToggle"></button>
             </div>
-
 
         </ul>
         <!-- End of Sidebar -->
@@ -92,11 +209,9 @@
                     </button>
 
                     <!-- Topbar Search -->
-                    <form
-                        class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                    <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
                         <div class="input-group">
-                            <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..."
-                                aria-label="Search" aria-describedby="basic-addon2">
+                            <input type="text" class="form-control bg-light border-0 small" placeholder="Buscar citas, clientes..." aria-label="Search" aria-describedby="basic-addon2">
                             <div class="input-group-append">
                                 <button class="btn btn-primary" type="button">
                                     <i class="fas fa-search fa-sm"></i>
@@ -110,18 +225,14 @@
 
                         <!-- Nav Item - Search Dropdown (Visible Only XS) -->
                         <li class="nav-item dropdown no-arrow d-sm-none">
-                            <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-search fa-fw"></i>
                             </a>
                             <!-- Dropdown - Messages -->
-                            <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
-                                aria-labelledby="searchDropdown">
+                            <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in" aria-labelledby="searchDropdown">
                                 <form class="form-inline mr-auto w-100 navbar-search">
                                     <div class="input-group">
-                                        <input type="text" class="form-control bg-light border-0 small"
-                                            placeholder="Search for..." aria-label="Search"
-                                            aria-describedby="basic-addon2">
+                                        <input type="text" class="form-control bg-light border-0 small" placeholder="Buscar..." aria-label="Search" aria-describedby="basic-addon2">
                                         <div class="input-group-append">
                                             <button class="btn btn-primary" type="button">
                                                 <i class="fas fa-search fa-sm"></i>
@@ -132,38 +243,51 @@
                             </div>
                         </li>
 
- 
-
+                        <!-- Nav Item - Alerts -->
+                        <li class="nav-item dropdown no-arrow mx-1">
+                            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-bell fa-fw"></i>
+                                <!-- Counter - Alerts -->
+                                <span class="badge badge-danger badge-counter" id="alertsCounter">3+</span>
+                            </a>
+                            <!-- Dropdown - Alerts -->
+                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="alertsDropdown">
+                                <h6 class="dropdown-header">
+                                    Centro de Alertas
+                                </h6>
+                                <div id="alertsContent">
+                                    <!-- Se llenará dinámicamente -->
+                                </div>
+                                <a class="dropdown-item text-center small text-gray-500" href="#">Ver Todas las Alertas</a>
+                            </div>
+                        </li>
 
                         <div class="topbar-divider d-none d-sm-block"></div>
 
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Douglas McGee</span>
-                                <img class="img-profile rounded-circle"
-                                    src="img/undraw_profile.svg">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small" id="nombreUsuario">Usuario</span>
+                                <img class="img-profile rounded-circle" src="img/undraw_profile.svg">
                             </a>
                             <!-- Dropdown - User Information -->
-                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                aria-labelledby="userDropdown">
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
                                 <a class="dropdown-item" href="#">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Profile
+                                    Perfil
                                 </a>
                                 <a class="dropdown-item" href="#">
                                     <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Settings
+                                    Configuración
                                 </a>
                                 <a class="dropdown-item" href="#">
                                     <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Activity Log
+                                    Registro de Actividad
                                 </a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
                                     <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Logout
+                                    Cerrar Sesión
                                 </a>
                             </div>
                         </li>
@@ -179,40 +303,47 @@
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-                        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
-                                class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>
+                        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" onclick="generarReporte()">
+                            <i class="fas fa-download fa-sm text-white-50"></i> Generar Reporte
+                        </a>
                     </div>
 
                     <!-- Content Row -->
                     <div class="row">
 
-                        <!-- Earnings (Monthly) Card Example -->
+                        <!-- Citas Hoy Card -->
                         <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card border-left-primary shadow h-100 py-2" style="cursor: pointer;" onclick="window.location.href='charts.html?tab=citas'">
                                 <div class="card-body">
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
                                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                Earnings (Monthly)</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">$40,000</div>
+                                                Citas Hoy</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="citasHoy">
+                                                <div class="spinner-border spinner-border-sm loading-spinner" role="status"></div>
+                                                <span class="data-value">0</span>
+                                            </div>
                                         </div>
                                         <div class="col-auto">
-                                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                            <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Earnings (Monthly) Card Example -->
+                        <!-- Ingresos Mensuales Card -->
                         <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-success shadow h-100 py-2">
+                            <div class="card border-left-success shadow h-100 py-2" style="cursor: pointer;" onclick="window.location.href='charts.html?tab=pagos'">
                                 <div class="card-body">
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
                                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                                Earnings (Annual)</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">$215,000</div>
+                                                Ingresos del Mes</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="ingresosMes">
+                                                <div class="spinner-border spinner-border-sm loading-spinner" role="status"></div>
+                                                <span class="data-value">$0</span>
+                                            </div>
                                         </div>
                                         <div class="col-auto">
                                             <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
@@ -222,25 +353,17 @@
                             </div>
                         </div>
 
-                        <!-- Earnings (Monthly) Card Example -->
+                        <!-- Citas Pendientes Card -->
                         <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-info shadow h-100 py-2">
+                            <div class="card border-left-info shadow h-100 py-2" style="cursor: pointer;" onclick="window.location.href='charts.html?tab=citas'">
                                 <div class="card-body">
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Tasks
-                                            </div>
-                                            <div class="row no-gutters align-items-center">
-                                                <div class="col-auto">
-                                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">50%</div>
-                                                </div>
-                                                <div class="col">
-                                                    <div class="progress progress-sm mr-2">
-                                                        <div class="progress-bar bg-info" role="progressbar"
-                                                            style="width: 50%" aria-valuenow="50" aria-valuemin="0"
-                                                            aria-valuemax="100"></div>
-                                                    </div>
-                                                </div>
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                Citas Pendientes</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="citasPendientes">
+                                                <div class="spinner-border spinner-border-sm loading-spinner" role="status"></div>
+                                                <span class="data-value">0</span>
                                             </div>
                                         </div>
                                         <div class="col-auto">
@@ -251,18 +374,21 @@
                             </div>
                         </div>
 
-                        <!-- Pending Requests Card Example -->
+                        <!-- Clientes Activos Card -->
                         <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-warning shadow h-100 py-2">
+                            <div class="card border-left-warning shadow h-100 py-2" style="cursor: pointer;" onclick="window.location.href='charts.html?tab=clientes'">
                                 <div class="card-body">
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
                                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                                Pending Requests</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+                                                Total Clientes</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalClientes">
+                                                <div class="spinner-border spinner-border-sm loading-spinner" role="status"></div>
+                                                <span class="data-value">0</span>
+                                            </div>
                                         </div>
                                         <div class="col-auto">
-                                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                                            <i class="fas fa-users fa-2x text-gray-300"></i>
                                         </div>
                                     </div>
                                 </div>
@@ -271,28 +397,24 @@
                     </div>
 
                     <!-- Content Row -->
-
                     <div class="row">
 
-                        <!-- Area Chart -->
+                        <!-- Gráfico de Ingresos -->
                         <div class="col-xl-8 col-lg-7">
                             <div class="card shadow mb-4">
-                                <!-- Card Header - Dropdown -->
-                                <div
-                                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">Earnings Overview</h6>
+                                <!-- Card Header -->
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Resumen de Ingresos</h6>
                                     <div class="dropdown no-arrow">
-                                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                             <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
                                         </a>
-                                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                                            aria-labelledby="dropdownMenuLink">
-                                            <div class="dropdown-header">Dropdown Header:</div>
-                                            <a class="dropdown-item" href="#">Action</a>
-                                            <a class="dropdown-item" href="#">Another action</a>
+                                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                                            <div class="dropdown-header">Opciones:</div>
+                                            <a class="dropdown-item" href="#" onclick="actualizarGrafico('7d')">Últimos 7 días</a>
+                                            <a class="dropdown-item" href="#" onclick="actualizarGrafico('30d')">Últimos 30 días</a>
                                             <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" href="#">Something else here</a>
+                                            <a class="dropdown-item" href="#" onclick="exportarGrafico()">Exportar</a>
                                         </div>
                                     </div>
                                 </div>
@@ -305,43 +427,20 @@
                             </div>
                         </div>
 
-                        <!-- Pie Chart -->
+                        <!-- Servicios más Solicitados -->
                         <div class="col-xl-4 col-lg-5">
                             <div class="card shadow mb-4">
-                                <!-- Card Header - Dropdown -->
-                                <div
-                                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">Revenue Sources</h6>
-                                    <div class="dropdown no-arrow">
-                                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                                            aria-labelledby="dropdownMenuLink">
-                                            <div class="dropdown-header">Dropdown Header:</div>
-                                            <a class="dropdown-item" href="#">Action</a>
-                                            <a class="dropdown-item" href="#">Another action</a>
-                                            <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" href="#">Something else here</a>
-                                        </div>
-                                    </div>
+                                <!-- Card Header -->
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Servicios Populares</h6>
                                 </div>
                                 <!-- Card Body -->
                                 <div class="card-body">
                                     <div class="chart-pie pt-4 pb-2">
                                         <canvas id="myPieChart"></canvas>
                                     </div>
-                                    <div class="mt-4 text-center small">
-                                        <span class="mr-2">
-                                            <i class="fas fa-circle text-primary"></i> Direct
-                                        </span>
-                                        <span class="mr-2">
-                                            <i class="fas fa-circle text-success"></i> Social
-                                        </span>
-                                        <span class="mr-2">
-                                            <i class="fas fa-circle text-info"></i> Referral
-                                        </span>
+                                    <div class="mt-4 text-center small" id="pieChartLegend">
+                                        <!-- Se llenará dinámicamente -->
                                     </div>
                                 </div>
                             </div>
@@ -351,14 +450,94 @@
                     <!-- Content Row -->
                     <div class="row">
 
-                        <!-- Content Column -->
+                        <!-- Próximas Citas -->
                         <div class="col-lg-6 mb-4">
-
-
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                    <h6 class="m-0 font-weight-bold text-primary">Próximas Citas</h6>
+                                    <a href="charts.html?tab=citas" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-eye fa-sm"></i> Ver Todas
+                                    </a>
+                                </div>
+                                <div class="card-body">
+                                    <div id="proximasCitas">
+                                        <div class="text-center">
+                                            <div class="spinner-border" role="status">
+                                                <span class="sr-only">Cargando...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
+                        <!-- Actividad Reciente -->
                         <div class="col-lg-6 mb-4">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Actividad Reciente</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="recent-activity" id="actividadReciente">
+                                        <div class="text-center">
+                                            <div class="spinner-border" role="status">
+                                                <span class="sr-only">Cargando...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
+                    <!-- Accesos Rápidos -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Accesos Rápidos</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-2 col-sm-4 text-center mb-3">
+                                            <a href="charts.html?tab=citas" class="btn btn-outline-primary btn-circle btn-lg mb-2">
+                                                <i class="fas fa-calendar-plus"></i>
+                                            </a>
+                                            <div class="small">Nueva Cita</div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-4 text-center mb-3">
+                                            <a href="charts.html?tab=clientes" class="btn btn-outline-success btn-circle btn-lg mb-2">
+                                                <i class="fas fa-user-plus"></i>
+                                            </a>
+                                            <div class="small">Nuevo Cliente</div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-4 text-center mb-3">
+                                            <a href="charts.html?tab=servicios" class="btn btn-outline-info btn-circle btn-lg mb-2">
+                                                <i class="fas fa-tools"></i>
+                                            </a>
+                                            <div class="small">Servicios</div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-4 text-center mb-3">
+                                            <a href="charts.html?tab=empleados" class="btn btn-outline-warning btn-circle btn-lg mb-2">
+                                                <i class="fas fa-user-tie"></i>
+                                            </a>
+                                            <div class="small">Empleados</div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-4 text-center mb-3">
+                                            <a href="charts.html?tab=pagos" class="btn btn-outline-dark btn-circle btn-lg mb-2">
+                                                <i class="fas fa-credit-card"></i>
+                                            </a>
+                                            <div class="small">Pagos</div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-4 text-center mb-3">
+                                            <a href="charts.html?tab=disponibilidad" class="btn btn-outline-secondary btn-circle btn-lg mb-2">
+                                                <i class="fas fa-clock"></i>
+                                            </a>
+                                            <div class="small">Disponibilidad</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -372,7 +551,7 @@
             <footer class="sticky-footer bg-white">
                 <div class="container my-auto">
                     <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; Your Website 2021</span>
+                        <span>Copyright &copy; Tapicería Pro 2025</span>
                     </div>
                 </div>
             </footer>
@@ -390,20 +569,19 @@
     </a>
 
     <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">¿Listo para salir?</h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
-                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <div class="modal-body">Selecciona "Cerrar Sesión" si estás listo para terminar tu sesión actual.</div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="login.html">Logout</a>
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
+                    <a class="btn btn-primary" href="login.html">Cerrar Sesión</a>
                 </div>
             </div>
         </div>
@@ -422,24 +600,489 @@
     <!-- Page level plugins -->
     <script src="vendor/chart.js/Chart.min.js"></script>
 
-    <!-- Page level custom scripts -->
-    <script src="js/demo/chart-area-demo.js"></script>
-    <script src="js/demo/chart-pie-demo.js"></script>
+    <!-- Aquí está la sección de scripts corregida para tu index.html -->
+<script>
+    // Configuración de la API
+    const API_BASE_URL = 'https://c0c4-179-1-86-125.ngrok-free.app/api'; // Sin espacio al inicio
 
+    // Headers por defecto para todas las requests
+    const DEFAULT_HEADERS = {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true'
+    };
 
-    <script>
-        // Obtener el nombre del usuario desde localStorage
-        const nombreUsuario = localStorage.getItem("nombreUsuario");
-    
-        if (nombreUsuario) {
-            // Insertar el nombre en el elemento del navbar
-            const nombreElemento = document.querySelector(".nav-item .text-gray-600");
-            if (nombreElemento) {
-                nombreElemento.textContent = nombreUsuario;
+    // Función auxiliar para hacer llamadas a la API con manejo de errores mejorado
+    async function apiCall(url, options = {}) {
+        try {
+            const defaultOptions = {
+                mode: 'cors', // Importante para CORS
+                headers: {
+                    ...DEFAULT_HEADERS,
+                    ...(options.headers || {})
+                },
+                ...options
+            };
+            
+            const response = await fetch(url, defaultOptions);
+            
+            // Log para debugging
+            console.log(`API Call to ${url}:`, response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+            
+            return response;
+        } catch (error) {
+            console.error('Error en API call:', error);
+            throw error;
         }
-    </script>
-    
+    }
+
+    // Variables globales para gráficos
+    let areaChart = null;
+    let pieChart = null;
+
+    // Función para cargar datos del dashboard
+    async function cargarDashboard() {
+        try {
+            console.log('Iniciando carga del dashboard...');
+            
+            // Mostrar spinners
+            document.querySelectorAll('.loading-spinner').forEach(spinner => {
+                spinner.style.display = 'inline-block';
+            });
+
+            // Cargar métricas principales con manejo de errores individual
+            await Promise.allSettled([
+                cargarCitasHoy().catch(err => console.error('Error citas hoy:', err)),
+                cargarIngresosMes().catch(err => console.error('Error ingresos:', err)),
+                cargarCitasPendientes().catch(err => console.error('Error citas pendientes:', err)),
+                cargarTotalClientes().catch(err => console.error('Error total clientes:', err)),
+                cargarProximasCitas().catch(err => console.error('Error próximas citas:', err)),
+                cargarActividadReciente().catch(err => console.error('Error actividad:', err))
+            ]);
+
+            // Cargar gráficos
+            await cargarGraficos().catch(err => console.error('Error en gráficos:', err));
+
+            // Ocultar spinners
+            document.querySelectorAll('.loading-spinner').forEach(spinner => {
+                spinner.style.display = 'none';
+            });
+
+            console.log('Dashboard cargado completamente');
+
+        } catch (error) {
+            console.error('Error general al cargar dashboard:', error);
+            mostrarError('Error al cargar los datos del dashboard');
+        }
+    }
+
+    // Función para cargar citas de hoy
+    async function cargarCitasHoy() {
+        try {
+            const response = await apiCall(`${API_BASE_URL}/citas`);
+            const citas = await response.json();
+            const hoy = new Date().toDateString();
+            const citasHoy = citas.filter(cita => 
+                new Date(cita.fechaInicio).toDateString() === hoy
+            );
+            document.querySelector('#citasHoy .data-value').textContent = citasHoy.length;
+        } catch (error) {
+            console.error('Error al cargar citas de hoy:', error);
+            document.querySelector('#citasHoy .data-value').textContent = 'Error';
+        }
+    }
+
+    // Función para cargar ingresos del mes
+    async function cargarIngresosMes() {
+        try {
+            const response = await apiCall(`${API_BASE_URL}/pagos`);
+            const pagos = await response.json();
+            const mesActual = new Date().getMonth();
+            const añoActual = new Date().getFullYear();
+            
+            const ingresosMes = pagos
+                .filter(pago => {
+                    const fechaPago = new Date(pago.fechaCita);
+                    return fechaPago.getMonth() === mesActual && 
+                           fechaPago.getFullYear() === añoActual;
+                })
+                .reduce((total, pago) => total + (pago.valorPago || 0), 0);
+            
+            document.querySelector('#ingresosMes .data-value').textContent = 
+                `$${ingresosMes.toLocaleString('es-CO')}`;
+        } catch (error) {
+            console.error('Error al cargar ingresos del mes:', error);
+            document.querySelector('#ingresosMes .data-value').textContent = 'Error';
+        }
+    }
+
+    // Función para cargar citas pendientes
+    async function cargarCitasPendientes() {
+        try {
+            const response = await apiCall(`${API_BASE_URL}/citas`);
+            const citas = await response.json();
+            const citasPendientes = citas.filter(cita => 
+                cita.estado === 'Pendiente' || cita.estado === 'Confirmada'
+            );
+            document.querySelector('#citasPendientes .data-value').textContent = citasPendientes.length;
+        } catch (error) {
+            console.error('Error al cargar citas pendientes:', error);
+            document.querySelector('#citasPendientes .data-value').textContent = 'Error';
+        }
+    }
+
+    // Función para cargar total de clientes
+    async function cargarTotalClientes() {
+        try {
+            const response = await apiCall(`${API_BASE_URL}/clientes`);
+            const clientes = await response.json();
+            document.querySelector('#totalClientes .data-value').textContent = clientes.length;
+        } catch (error) {
+            console.error('Error al cargar total de clientes:', error);
+            document.querySelector('#totalClientes .data-value').textContent = 'Error';
+        }
+    }
+
+    // Función para cargar próximas citas
+    async function cargarProximasCitas() {
+        try {
+            const response = await apiCall(`${API_BASE_URL}/citas`);
+            const citas = await response.json();
+            const ahora = new Date();
+            const proximasCitas = citas
+                .filter(cita => new Date(cita.fechaInicio) > ahora)
+                .sort((a, b) => new Date(a.fechaInicio) - new Date(b.fechaInicio))
+                .slice(0, 5);
+
+            const contenedor = document.getElementById('proximasCitas');
+            if (proximasCitas.length === 0) {
+                contenedor.innerHTML = '<p class="text-muted">No hay citas próximas programadas.</p>';
+            } else {
+                contenedor.innerHTML = proximasCitas.map(cita => `
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="mr-3">
+                            <div class="icon-circle bg-primary">
+                                <i class="fas fa-calendar text-white"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0">${cita.nombreCliente}</h6>
+                            <small class="text-muted">${cita.nombreServicio}</small>
+                            <div class="small text-gray-500">
+                                ${formatearFecha(cita.fechaInicio)}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="badge badge-${obtenerColorEstado(cita.estado)}">${cita.estado}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        } catch (error) {
+            console.error('Error al cargar próximas citas:', error);
+            document.getElementById('proximasCitas').innerHTML = 
+                '<p class="text-danger">Error al cargar las citas. Verifica la conexión.</p>';
+        }
+    }
+
+    // Función para cargar actividad reciente
+    async function cargarActividadReciente() {
+        try {
+            const response = await apiCall(`${API_BASE_URL}/citas`);
+            const citas = await response.json();
+            const actividadReciente = citas
+                .sort((a, b) => new Date(b.fechaInicio) - new Date(a.fechaInicio))
+                .slice(0, 8);
+
+            const contenedor = document.getElementById('actividadReciente');
+            if (actividadReciente.length === 0) {
+                contenedor.innerHTML = '<p class="text-muted">No hay actividad reciente.</p>';
+            } else {
+                contenedor.innerHTML = actividadReciente.map(cita => `
+                    <div class="activity-item ${cita.estado.toLowerCase()}">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>${cita.nombreCliente}</strong> - ${cita.nombreServicio}
+                                <div class="small text-muted">${formatearFecha(cita.fechaInicio)}</div>
+                            </div>
+                            <span class="badge badge-${obtenerColorEstado(cita.estado)}">${cita.estado}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        } catch (error) {
+            console.error('Error al cargar actividad reciente:', error);
+            document.getElementById('actividadReciente').innerHTML = 
+                '<p class="text-danger">Error al cargar la actividad. Verifica la conexión.</p>';
+        }
+    }
+
+    // Función para cargar gráficos
+    async function cargarGraficos() {
+        try {
+            await Promise.allSettled([
+                cargarGraficoIngresos().catch(err => console.error('Error gráfico ingresos:', err)),
+                cargarGraficoServicios().catch(err => console.error('Error gráfico servicios:', err))
+            ]);
+        } catch (error) {
+            console.error('Error al cargar gráficos:', error);
+        }
+    }
+
+    // Función para cargar gráfico de ingresos
+    async function cargarGraficoIngresos() {
+        try {
+            const response = await apiCall(`${API_BASE_URL}/pagos`);
+            const pagos = await response.json();
+            
+            // Agrupar ingresos por día de los últimos 7 días
+            const labels = [];
+            const data = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const fecha = new Date();
+                fecha.setDate(fecha.getDate() - i);
+                
+                const ingresosDia = pagos
+                    .filter(pago => {
+                        const fechaPago = new Date(pago.fechaCita);
+                        return fechaPago.toDateString() === fecha.toDateString();
+                    })
+                    .reduce((total, pago) => total + (pago.valorPago || 0), 0);
+                
+                labels.push(fecha.toLocaleDateString('es-CO', { 
+                    month: 'short', 
+                    day: 'numeric' 
+                }));
+                data.push(ingresosDia);
+            }
+
+            // Crear gráfico
+            const ctx = document.getElementById('myAreaChart');
+            if (!ctx) {
+                console.error('Canvas para gráfico de área no encontrado');
+                return;
+            }
+            
+            if (areaChart) {
+                areaChart.destroy();
+            }
+            
+            areaChart = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Ingresos',
+                        data: data,
+                        backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                        borderColor: 'rgba(78, 115, 223, 1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Ingresos de los Últimos 7 Días'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString('es-CO');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error al cargar gráfico de ingresos:', error);
+        }
+    }
+
+    // Función para cargar gráfico de servicios
+    async function cargarGraficoServicios() {
+        try {
+            const response = await apiCall(`${API_BASE_URL}/citas`);
+            const citas = await response.json();
+            
+            // Contar servicios más solicitados
+            const serviciosCount = {};
+            citas.forEach(cita => {
+                serviciosCount[cita.nombreServicio] = (serviciosCount[cita.nombreServicio] || 0) + 1;
+            });
+
+            // Obtener top 5 servicios
+            const serviciosOrdenados = Object.entries(serviciosCount)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 5);
+
+            const labels = serviciosOrdenados.map(([servicio]) => servicio);
+            const data = serviciosOrdenados.map(([,count]) => count);
+            const colors = [
+                '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'
+            ];
+
+            // Crear gráfico de pastel
+            const ctx = document.getElementById('myPieChart');
+            if (!ctx) {
+                console.error('Canvas para gráfico de pastel no encontrado');
+                return;
+            }
+            
+            if (pieChart) {
+                pieChart.destroy();
+            }
+            
+            pieChart = new Chart(ctx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // Crear leyenda personalizada
+            const legendContainer = document.getElementById('pieChartLegend');
+            if (legendContainer) {
+                legendContainer.innerHTML = labels.map((label, index) => `
+                    <span class="mr-2">
+                        <i class="fas fa-circle" style="color: ${colors[index]}"></i> ${label}
+                    </span>
+                `).join('');
+            }
+        } catch (error) {
+            console.error('Error al cargar gráfico de servicios:', error);
+        }
+    }
+
+    // Funciones auxiliares
+    function formatearFecha(fechaString) {
+        try {
+            const fecha = new Date(fechaString);
+            return fecha.toLocaleString('es-CO', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (error) {
+            return 'Fecha inválida';
+        }
+    }
+
+    function obtenerColorEstado(estado) {
+        const estadoLower = estado ? estado.toLowerCase() : '';
+        switch (estadoLower) {
+            case 'pendiente': return 'warning';
+            case 'confirmada': return 'info';
+            case 'completada': return 'success';
+            case 'cancelada': return 'danger';
+            default: return 'secondary';
+        }
+    }
+
+    function mostrarError(mensaje) {
+        console.error(mensaje);
+        // Implementar sistema de notificaciones toast
+        const toast = document.createElement('div');
+        toast.className = 'alert alert-danger position-fixed';
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999;';
+        toast.textContent = mensaje;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+    }
+
+    // Funciones para la interfaz
+    function generarReporte() {
+        console.log('Generando reporte...');
+        alert('Función de generar reporte en desarrollo');
+    }
+
+    function actualizarGrafico(periodo) {
+        console.log('Actualizando gráfico para periodo:', periodo);
+        // Recargar el gráfico con el nuevo periodo
+        cargarGraficoIngresos();
+    }
+
+    function exportarGrafico() {
+        console.log('Exportando gráfico...');
+        alert('Función de exportar gráfico en desarrollo');
+    }
+
+    // Obtener el nombre del usuario desde localStorage
+    function cargarUsuario() {
+        const nombreUsuario = localStorage.getItem("nombreUsuario") || "Usuario";
+        const elementoNombre = document.getElementById("nombreUsuario");
+        if (elementoNombre) {
+            elementoNombre.textContent = nombreUsuario;
+        }
+    }
+
+    // Función para verificar la conexión con la API
+    async function verificarConexionAPI() {
+        try {
+            console.log('Verificando conexión con API...');
+            const response = await fetch(API_BASE_URL.replace('/api', ''), {
+                method: 'GET',
+                headers: {
+                    'ngrok-skip-browser-warning': 'true'
+                }
+            });
+            console.log('Conexión API status:', response.status);
+            return response.ok;
+        } catch (error) {
+            console.error('Error al verificar conexión:', error);
+            return false;
+        }
+    }
+
+    // Inicialización
+    document.addEventListener('DOMContentLoaded', async function() {
+        console.log('Iniciando aplicación...');
+        
+        // Verificar conexión con API
+        const apiConectada = await verificarConexionAPI();
+        if (!apiConectada) {
+            mostrarError('No se puede conectar con el servidor. Verifica que ngrok esté ejecutándose.');
+        }
+        
+        cargarUsuario();
+        cargarDashboard();
+        
+        // Actualizar datos cada 5 minutos
+        setInterval(cargarDashboard, 300000);
+    });
+
+    // Manejo de errores globales
+    window.addEventListener('unhandledrejection', event => {
+        console.error('Promesa rechazada:', event.reason);
+        event.preventDefault();
+    });
+</script>
 
 </body>
 

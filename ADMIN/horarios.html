@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Horarios - Dashboard</title>
+    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
+    <link href="css/sb-admin-2.min.css" rel="stylesheet">
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .action-buttons {
+            white-space: nowrap;
+        }
+        .action-buttons button {
+            margin: 0 3px;
+        }
+        .nav-tabs .nav-link.active {
+            font-weight: bold;
+            background-color: #4e73df;
+            color: white;
+        }
+        .horario-card {
+            border-left: 4px solid #4e73df;
+            margin-bottom: 15px;
+        }
+        .horario-card.inactive {
+            border-left-color: #858796;
+            opacity: 0.7;
+        }
+        .day-badge {
+            display: inline-block;
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 10px;
+            margin-right: 5px;
+            color: white;
+        }
+        .day-1 { background-color: #4e73df; } /* Lunes */
+        .day-2 { background-color: #1cc88a; } /* Martes */
+        .day-3 { background-color: #f6c23e; } /* Miércoles */
+        .day-4 { background-color: #e74a3b; } /* Jueves */
+        .day-5 { background-color: #36b9cc; } /* Viernes */
+        .day-6 { background-color: #6f42c1; } /* Sábado */
+        .day-7 { background-color: #858796; } /* Domingo */
+        .time-display {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .duration-display {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .custom-toggle-btn {
+            width: 90px;
+        }
+        .card-scroll {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .empleado-badge {
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            background-color: #4e73df;
+            color: white;
+            border-radius: 15px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body id="page-top">
+
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-couch"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">Tapicería Admin</div>
+            </a>
+            <hr class="sidebar-divider my-0">
+            <li class="nav-item">
+                <a class="nav-link" href="index.html">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <hr class="sidebar-divider">
+            <li class="nav-item">
+                <a class="nav-link" href="clientes.html">
+                    <i class="fas fa-fw fa-user"></i>
+                    <span>Clientes</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="empleados.html">
+                    <i class="fas fa-fw fa-users"></i>
+                    <span>Empleados</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="citas.html">
+                    <i class="fas fa-fw fa-calendar"></i>
+                    <span>Citas</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="servicios.html">
+                    <i class="fas fa-fw fa-tools"></i>
+                    <span>Servicios</span>
+                </a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="horarios.html">
+                    <i class="fas fa-fw fa-clock"></i>
+                    <span>Horarios</span>
+                </a>
+            </li>
+        </ul>
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Usuario</span>
+                                <img class="img-profile rounded-circle" src="img/undraw_profile.svg">
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+                    <h1 class="h3 mb-2 text-gray-800">Gestión de Horarios</h1>
+                    
+                    <!-- Tabs para alternar entre horarios base y disponibilidad de empleados -->
+                    <ul class="nav nav-tabs mb-4" id="horariosTab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="horarios-base-tab" data-toggle="tab" href="#horarios-base" role="tab">
+                                <i class="fas fa-calendar-alt"></i> Horarios Base
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="disponibilidad-tab" data-toggle="tab" href="#disponibilidad" role="tab">
+                                <i class="fas fa-user-clock"></i> Disponibilidad de Empleados
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="horariosTabContent">
+                        <!-- Tab de Horarios Base -->
+                        <div class="tab-pane fade show active" id="horarios-base" role="tabpanel">
+                            <!-- Filtros para horarios base -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Filtros de Horarios Base</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label for="filterDiaSemanaBase">Día de la Semana:</label>
+                                            <select class="form-control" id="filterDiaSemanaBase">
+                                                <option value="0">Todos los días</option>
+                                                <option value="1">Lunes</option>
+                                                <option value="2">Martes</option>
+                                                <option value="3">Miércoles</option>
+                                                <option value="4">Jueves</option>
+                                                <option value="5">Viernes</option>
+                                                <option value="6">Sábado</option>
+                                                <option value="7">Domingo</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="filterActivoBase">Estado:</label>
+                                            <select class="form-control" id="filterActivoBase">
+                                                <option value="all">Todos</option>
+                                                <option value="true">Activos</option>
+                                                <option value="false">Inactivos</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4 d-flex align-items-end">
+                                            <button class="btn btn-primary" id="applyFiltersBaseBtn">
+                                                <i class="fas fa-search"></i> Aplicar Filtros
+                                            </button>
+                                            <button class="btn btn-secondary ml-2" id="clearFiltersBaseBtn">
+                                                <i class="fas fa-undo"></i> Limpiar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Contenedor de Horarios Base -->
+                            <div class="row">
+                                <div class="col-lg-8">
+                                    <div class="card shadow mb-4">
+                                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                            <h6 class="m-0 font-weight-bold text-primary">Horarios Base de Agendamiento</h6>
+                                            <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addHorarioBaseModal">
+                                                <i class="fas fa-plus"></i> Agregar Horario Base
+                                            </button>
+                                        </div>
+                                        <div class="card-body card-scroll">
+                                            <div id="horariosBaseContainer">
+                                                <!-- Aquí se cargarán dinámicamente los horarios base -->
+                                                <div class="text-center py-5">
+                                                    <div class="spinner-border text-primary" role="status">
+                                                        <span class="sr-only">Cargando...</span>
+                                                    </div>
+                                                    <p class="mt-2">Cargando horarios base...</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class="card shadow mb-4">
+                                        <div class="card-header py-3">
+                                            <h6 class="m-0 font-weight-bold text-primary">Resumen de Horarios</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <h5>Distribución por Día</h5>
+                                                <div id="resumenDias">
+                                                    <!-- Aquí se mostrará el resumen de horarios por día -->
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h5>Estadísticas</h5>
+                                                <ul class="list-group">
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        Total de horarios
+                                                        <span class="badge badge-primary badge-pill" id="totalHorarios">0</span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        Horarios activos
+                                                        <span class="badge badge-success badge-pill" id="horariosActivos">0</span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        Horarios inactivos
+                                                        <span class="badge badge-secondary badge-pill" id="horariosInactivos">0</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tab de Disponibilidad de Empleados -->
+                        <div class="tab-pane fade" id="disponibilidad" role="tabpanel">
+                            <!-- Filtros para disponibilidad de empleados -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Filtros de Disponibilidad</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label for="filterEmpleadoDisp">Empleado:</label>
+                                            <select class="form-control" id="filterEmpleadoDisp">
+                                                <option value="">Seleccione un empleado</option>
+                                                <!-- Opciones se cargarán dinámicamente -->
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="filterDiaSemanaDisp">Día de la Semana:</label>
+                                            <select class="form-control" id="filterDiaSemanaDisp">
+                                                <option value="0">Todos los días</option>
+                                                <option value="1">Lunes</option>
+                                                <option value="2">Martes</option>
+                                                <option value="3">Miércoles</option>
+                                                <option value="4">Jueves</option>
+                                                <option value="5">Viernes</option>
+                                                <option value="6">Sábado</option>
+                                                <option value="7">Domingo</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4 d-flex align-items-end">
+                                            <button class="btn btn-primary" id="applyFiltersDispBtn">
+                                                <i class="fas fa-search"></i> Buscar Disponibilidad
+                                            </button>
+                                            <button class="btn btn-secondary ml-2" id="clearFiltersDispBtn">
+                                                <i class="fas fa-undo"></i> Limpiar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Contenedor de Disponibilidad de Empleados -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Disponibilidad de Empleados</h6>
+                                    <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addDisponibilidadModal">
+                                        <i class="fas fa-plus"></i> Agregar Disponibilidad
+                                    </button>
+                                </div>
+                                <div class="card-body card-scroll">
+                                    <div id="disponibilidadContainer">
+                                        <!-- Aquí se mostrarán las franjas de disponibilidad -->
+                                        <div class="text-center py-5">
+                                            <p class="text-muted">Seleccione un empleado para ver su disponibilidad</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Tapicería Admin 2025</span>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Modal para Agregar Horario Base -->
+    <div class="modal fade" id="addHorarioBaseModal" tabindex="-1" role="dialog" aria-labelledby="addHorarioBaseModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addHorarioBaseModalLabel">Agregar Horario Base</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addHorarioBaseForm">
+                        <div class="form-group">
+                            <label for="diaSemana">Día de la Semana *</label>
+                            <select class="form-control" id="diaSemana" required>
+                                <option value="">Seleccione un día</option>
+                                <option value="1">Lunes</option>
+                                <option value="2">Martes</option>
+                                <option value="3">Miércoles</option>
+                                <option value="4">Jueves</option>
+                                <option value="5">Viernes</option>
+                                <option value="6">Sábado</option>
+                                <option value="7">Domingo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="horaInicio">Hora de Inicio *</label>
+                            <input type="time" class="form-control" id="horaInicio" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="duracionMinutos">Duración (minutos) *</label>
+                            <input type="number" class="form-control" id="duracionMinutos" min="15" step="15" value="60" required>
+                            <small class="form-text text-muted">Recomendado: múltiplos de 15 minutos</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="tipoDia">Tipo de Día (opcional)</label>
+                            <input type="text" class="form-control" id="tipoDia" placeholder="Ej: Laboral, Festivo, etc.">
+                        </div>
+                        <div class="form-group">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="activo" checked>
+                                <label class="custom-control-label" for="activo">Activo</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="saveHorarioBaseBtn">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Horario Base -->
+    <div class="modal fade" id="editHorarioBaseModal" tabindex="-1" role="dialog" aria-labelledby="editHorarioBaseModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editHorarioBaseModalLabel">Editar Horario Base</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editHorarioBaseForm">
+                        <input type="hidden" id="editIdHorarioBase">
+                        <div class="form-group">
+                            <label for="editDiaSemana">Día de la Semana *</label>
+                            <select class="form-control" id="editDiaSemana" required>
+                                <option value="">Seleccione un día</option>
+                                <option value="1">Lunes</option>
+                                <option value="2">Martes</option>
+                                <option value="3">Miércoles</option>
+                                <option value="4">Jueves</option>
+                                <option value="5">Viernes</option>
+                                <option value="6">Sábado</option>
+                                <option value="7">Domingo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editHoraInicio">Hora de Inicio *</label>
+                            <input type="time" class="form-control" id="editHoraInicio" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editDuracionMinutos">Duración (minutos) *</label>
+                            <input type="number" class="form-control" id="editDuracionMinutos" min="15" step="15" required>
+                            <small class="form-text text-muted">Recomendado: múltiplos de 15 minutos</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="editTipoDia">Tipo de Día (opcional)</label>
+                            <input type="text" class="form-control" id="editTipoDia" placeholder="Ej: Laboral, Festivo, etc.">
+                        </div>
+                        <div class="form-group">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="editActivo">
+                                <label class="custom-control-label" for="editActivo">Activo</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="updateHorarioBaseBtn">Actualizar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Agregar Disponibilidad de Empleado -->
+    <div class="modal fade" id="addDisponibilidadModal" tabindex="-1" role="dialog" aria-labelledby="addDisponibilidadModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addDisponibilidadModalLabel">Agregar Disponibilidad</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addDisponibilidadForm">
+                        <div class="form-group">
+                            <label for="idEmpleado">Empleado *</label>
+                            <select class="form-control" id="idEmpleado" required>
+                                <option value="">Seleccione un empleado</option>
+                                <!-- Se cargarán dinámicamente los empleados -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="dispDiaSemana">Día de la Semana *</label>
+                            <select class="form-control" id="dispDiaSemana" required>
+                                <option value="">Seleccione un día</option>
+                                <option value="1">Lunes</option>
+                                <option value="2">Martes</option>
+                                <option value="3">Miércoles</option>
+                                <option value="4">Jueves</option>
+                                <option value="5">Viernes</option>
+                                <option value="6">Sábado</option>
+                                <option value="7">Domingo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="dispHoraInicio">Hora de Inicio *</label>
+                            <input type="time" class="form-control" id="dispHoraInicio" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="dispHoraFin">Hora de Fin *</label>
+                            <input type="time" class="form-control" id="dispHoraFin" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="saveDisponibilidadBtn">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Disponibilidad de Empleado -->
+    <div class="modal fade" id="editDisponibilidadModal" tabindex="-1" role="dialog" aria-labelledby="editDisponibilidadModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editDisponibilidadModalLabel">Editar Disponibilidad</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editDisponibilidadForm">
+                        <input type="hidden" id="editIdDisponibilidad">
+                        <div class="form-group">
+                            <label for="editIdEmpleadoDisp">Empleado *</label>
+                            <select class="form-control" id="editIdEmpleadoDisp" required>
+                                <option value="">Seleccione un empleado</option>
+                                <!-- Se cargarán dinámicamente los empleados -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editDispDiaSemana">Día de la Semana *</label>
+                            <select class="form-control" id="editDispDiaSemana" required>
+                                <option value="">Seleccione un día</option>
+                                <option value="1">Lunes</option>
+                                <option value="2">Martes</option>
+                                <option value="3">Miércoles</option>
+                                <option value="4">Jueves</option>
+                                <option value="5">Viernes</option>
+                                <option value="6">Sábado</option>
+                                <option value="7">Domingo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editDispHoraInicio">Hora de Inicio *</label>
+                            <input type="time" class="form-control" id="editDispHoraInicio" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editDispHoraFin">Hora de Fin *</label>
+                            <input type="time" class="form-control" id="editDispHoraFin" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="updateDisponibilidadBtn">Actualizar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación para Eliminar -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteConfirmModalLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar este registro?</p>
+                    <div id="deleteItemDetails" class="alert alert-info"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript para gestionar horarios -->
+    <script>
+        // URL base de la API
+        const API_URL = " https://eae5-179-1-86-116.ngrok-free.app/api";
+        let horariosBaseList = [];
+        let disponibilidadList = [];
+        let empleadosList = [];
+        let deleteType = ''; // Para identificar qué tipo de elemento se está eliminando
+        
+        // Nombres de los días de la semana
+        const diasSemana = {
+            1: "Lunes",
+            2: "Martes",
+            3: "Miércoles",
+            4: "Jueves",
+            5: "Viernes",
+            6: "Sábado",
+            7: "Domingo"
+        };
+        
+        // Al cargar la página
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Cargar datos iniciales
+            await loadEmpleados();
+            await loadHorariosBase();
+            
+            // Event listeners para tabs
+            $('#horariosTab a').on('click', function (e) {
+                e.preventDefault();
+                $(this).tab('show');
+                
+                // Si se cambia a la pestaña de disponibilidad
+                if (this.id === 'disponibilidad-tab') {
+                    const selectedEmpleado = document.getElementById('filterEmpleadoDisp').value;
+                    if (selectedEmpleado) {
+                        loadDisponibilidadEmpleado(selectedEmpleado);
+                    }
+                }
+            });
+            
+            // Event listeners para filtros
+            document.getElementById('applyFiltersBaseBtn').addEventListener('click', filtrarHorariosBase);
+            document.getElementById('clearFiltersBaseBtn').addEventListener('click', function() {
+                document.getElementById('filterDiaSemanaBase').value = '0';
+                document.getElementById('filterActivoBase').value = 'all';
+                renderHorariosBase(horariosBaseList);
+                actualizarResumenHorarios(horariosBaseList);
+            });
+            
+            document.getElementById('applyFiltersDispBtn').addEventListener('click', function() {
+                const empleadoId = document.getElementById('filterEmpleadoDisp').value;
+                if (empleadoId) {
+                    loadDisponibilidadEmpleado(empleadoId);
+                } else {
+                    alert('Por favor seleccione un empleado');
+                }
+            });
+            
+            document.getElementById('clearFiltersDispBtn').addEventListener('click', function() {
+                document.getElementById('filterEmpleadoDisp').value = '';
+                document.getElementById('filterDiaSemanaDisp').value = '0';
+                document.getElementById('disponibilidadContainer').innerHTML = 
+                    '<div class="text-center py-5"><p class="text-muted">Seleccione un empleado para ver su disponibilidad</p></div>';
+            });
+            
+            // Event listeners para los botones de guardar
+            document.getElementById('saveHorarioBaseBtn').addEventListener('click', saveHorarioBase);
+            document.getElementById('updateHorarioBaseBtn').addEventListener('click', updateHorarioBase);
+            document.getElementById('saveDisponibilidadBtn').addEventListener('click', saveDisponibilidad);
+            document.getElementById('updateDisponibilidadBtn').addEventListener('click', updateDisponibilidad);
+            document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+        });
+        
+        // Función para cargar los empleados
+        async function loadEmpleados() {
+            try {
+                const response = await fetch(`${API_URL}/Empleados`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+                
+                empleadosList = await response.json();
+                console.log('Empleados cargados:', empleadosList);
+                
+                // Llenar selects de empleados
+                const filterEmpleadoSelect = document.getElementById('filterEmpleadoDisp');
+                const idEmpleadoSelect = document.getElementById('idEmpleado');
+                const editIdEmpleadoSelect = document.getElementById('editIdEmpleadoDisp');
+                
+                // Limpiar opciones existentes
+                filterEmpleadoSelect.innerHTML = '<option value="">Seleccione un empleado</option>';
+                idEmpleadoSelect.innerHTML = '<option value="">Seleccione un empleado</option>';
+                editIdEmpleadoSelect.innerHTML = '<option value="">Seleccione un empleado</option>';
+                
+                empleadosList.forEach(empleado => {
+                    // Verificar estructura y nombres de propiedades
+                    const nombreEmpleado = empleado.nombre || empleado.nombreEmpleado || empleado.nombreCompleto || "Empleado " + empleado.idEmpleado;
+                    
+                    // Para filtro
+                    const optionFilter = document.createElement('option');
+                    optionFilter.value = empleado.idEmpleado;
+                    optionFilter.textContent = nombreEmpleado;
+                    filterEmpleadoSelect.appendChild(optionFilter);
+                    
+                    // Para agregar
+                    const optionAdd = document.createElement('option');
+                    optionAdd.value = empleado.idEmpleado;
+                    optionAdd.textContent = nombreEmpleado;
+                    idEmpleadoSelect.appendChild(optionAdd);
+                    
+                    // Para editar
+                    const optionEdit = document.createElement('option');
+                    optionEdit.value = empleado.idEmpleado;
+                    optionEdit.textContent = nombreEmpleado;
+                    editIdEmpleadoSelect.appendChild(optionEdit);
+                });
+            } catch (error) {
+                console.error('Error al cargar empleados:', error);
+                alert('No se pudieron cargar los empleados');
+            }
+        }
+        
+        // Función para cargar horarios base
+        async function loadHorariosBase() {
+            try {
+                const response = await fetch(`${API_URL}/HorariosBaseAgendamiento`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+                
+                horariosBaseList = await response.json();
+                console.log('Horarios base cargados:', horariosBaseList);
+                
+                renderHorariosBase(horariosBaseList);
+                actualizarResumenHorarios(horariosBaseList);
+            } catch (error) {
+                console.error('Error al cargar horarios base:', error);
+                document.getElementById('horariosBaseContainer').innerHTML = 
+                    '<div class="alert alert-danger">Error al cargar los horarios base. Intente nuevamente más tarde.</div>';
+            }
+        }
+        
+        // Función para cargar disponibilidad de un empleado
+        async function loadDisponibilidadEmpleado(empleadoId) {
+            try {
+                // Mostrar loader
+                document.getElementById('disponibilidadContainer').innerHTML = `
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Cargando...</span>
+                        </div>
+                        <p class="mt-2">Cargando disponibilidad...</p>
+                    </div>`;
+                
+                const response = await fetch(`${API_URL}/EmpleadoDisponibilidad/empleado/${empleadoId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+                
+                disponibilidadList = await response.json();
+                console.log('Disponibilidad cargada:', disponibilidadList);
+                
+                // Filtrar por día de la semana si es necesario
+                const diaSemanaFilter = parseInt(document.getElementById('filterDiaSemanaDisp').value);
+                if (diaSemanaFilter > 0) {
+                    disponibilidadList = disponibilidadList.filter(disp => disp.diaSemana === diaSemanaFilter);
+                }
+                
+                renderDisponibilidadEmpleado(disponibilidadList, empleadoId);
+            } catch (error) {
+                console.error('Error al cargar disponibilidad:', error);
+                document.getElementById('disponibilidadContainer').innerHTML = 
+                    '<div class="alert alert-danger">Error al cargar la disponibilidad. Intente nuevamente más tarde.</div>';
+            }
+        }
+        
+        // Renderizar horarios base
+        function renderHorariosBase(horarios) {
+            const container = document.getElementById('horariosBaseContainer');
+            container.innerHTML = '';
+            
+            if (horarios.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">No hay horarios base configurados.</div>';
+                return;
+            }
+            
+            // Ordenar por día de la semana y hora de inicio
+            horarios.sort((a, b) => {
+                if (a.diaSemana !== b.diaSemana) {
+                    return a.diaSemana - b.diaSemana;
+                }
+                return a.horaInicio.localeCompare(b.horaInicio);
+            });
+            
+            // Agrupar por día de la semana
+            const horariosPorDia = {};
+            horarios.forEach(horario => {
+                if (!horariosPorDia[horario.diaSemana]) {
+                    horariosPorDia[horario.diaSemana] = [];
+                }
+                horariosPorDia[horario.diaSemana].push(horario);
+            });
+            
+            // Crear elementos por día
+            Object.keys(horariosPorDia).forEach(dia => {
+                const diaDiv = document.createElement('div');
+                diaDiv.className = 'mb-4';
+                
+                // Título del día
+                const diaTitulo = document.createElement('h5');
+                diaTitulo.innerHTML = `<span class="day-badge day-${dia}">${diasSemana[dia]}</span>`;
+                diaDiv.appendChild(diaTitulo);
+                
+                // Horarios del día
+                horariosPorDia[dia].forEach(horario => {
+                    const horarioCard = document.createElement('div');
+                    horarioCard.className = `card horario-card mb-2 ${horario.activo ? '' : 'inactive'}`;
+                    
+                    // Formatear hora de inicio
+                    const horaInicio = horario.horaInicio.substring(0, 5);
+                    
+                    // Calcular hora de fin basado en duración
+                    const duracionMinutos = horario.duracionMinutos;
+                    const [horas, minutos] = horaInicio.split(':').map(Number);
+                    let totalMinutos = (horas * 60) + minutos + duracionMinutos;
+                    const horaFin = `${Math.floor(totalMinutos / 60).toString().padStart(2, '0')}:${(totalMinutos % 60).toString().padStart(2, '0')}`;
+                    
+                    horarioCard.innerHTML = `
+                        <div class="card-body py-2">
+                            <div class="row align-items-center">
+                                <div class="col-md-4">
+                                    <span class="time-display">${horaInicio} - ${horaFin}</span>
+                                    <div class="duration-display">${duracionMinutos} min</div>
+                                </div>
+                                <div class="col-md-4">
+                                    ${horario.tipoDia ? `<span class="badge badge-info">${horario.tipoDia}</span>` : ''}
+                                    <span class="badge ${horario.activo ? 'badge-success' : 'badge-secondary'} ml-2">
+                                        ${horario.activo ? 'Activo' : 'Inactivo'}
+                                    </span>
+                                </div>
+                                <div class="col-md-4 text-right">
+                                    <button class="btn btn-primary btn-sm edit-horario-btn" data-id="${horario.idHorarioBase}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-danger btn-sm delete-horario-btn" data-id="${horario.idHorarioBase}" 
+                                      data-dia="${diasSemana[horario.diaSemana]}" data-hora="${horaInicio}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    diaDiv.appendChild(horarioCard);
+                });
+                
+                container.appendChild(diaDiv);
+            });
+            
+            // Agregar event listeners a los botones
+            document.querySelectorAll('.edit-horario-btn').forEach(btn => {
+                btn.addEventListener('click', handleEditHorarioClick);
+            });
+            
+            document.querySelectorAll('.delete-horario-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    handleDeleteHorarioClick(this, 'horario');
+                });
+            });
+        }
+        
+        // Renderizar disponibilidad de empleado
+        function renderDisponibilidadEmpleado(disponibilidad, empleadoId) {
+            const container = document.getElementById('disponibilidadContainer');
+            container.innerHTML = '';
+            
+            // Obtener nombre del empleado
+            const empleado = empleadosList.find(e => e.idEmpleado === parseInt(empleadoId));
+            const nombreEmpleado = empleado ? 
+                (empleado.nombre || empleado.nombreEmpleado || empleado.nombreCompleto || "Empleado " + empleado.idEmpleado) : 
+                "Empleado";
+            
+            // Título con el nombre del empleado
+            const empleadoHeader = document.createElement('div');
+            empleadoHeader.className = 'mb-3';
+            empleadoHeader.innerHTML = `
+                <div class="empleado-badge">
+                    <i class="fas fa-user"></i> ${nombreEmpleado}
+                </div>
+            `;
+            container.appendChild(empleadoHeader);
+            
+            if (disponibilidad.length === 0) {
+                container.innerHTML += '<div class="alert alert-info">No hay disponibilidad configurada para este empleado.</div>';
+                return;
+            }
+            
+            // Ordenar por día de la semana y hora de inicio
+            disponibilidad.sort((a, b) => {
+                if (a.diaSemana !== b.diaSemana) {
+                    return a.diaSemana - b.diaSemana;
+                }
+                return a.horaInicio.localeCompare(b.horaInicio);
+            });
+            
+            // Agrupar por día de la semana
+            const disponibilidadPorDia = {};
+            disponibilidad.forEach(disp => {
+                if (!disponibilidadPorDia[disp.diaSemana]) {
+                    disponibilidadPorDia[disp.diaSemana] = [];
+                }
+                disponibilidadPorDia[disp.diaSemana].push(disp);
+            });
+            
+            // Crear elementos por día
+            Object.keys(disponibilidadPorDia).forEach(dia => {
+                const diaDiv = document.createElement('div');
+                diaDiv.className = 'mb-4';
+                
+                // Título del día
+                const diaTitulo = document.createElement('h5');
+                diaTitulo.innerHTML = `<span class="day-badge day-${dia}">${diasSemana[dia]}</span>`;
+                diaDiv.appendChild(diaTitulo);
+                
+                // Bloques de disponibilidad del día
+                disponibilidadPorDia[dia].forEach(disp => {
+                    const dispCard = document.createElement('div');
+                    dispCard.className = 'card horario-card mb-2';
+                    
+                    // Formatear horas
+                    const horaInicio = disp.horaInicio.substring(0, 5);
+                    const horaFin = disp.horaFin.substring(0, 5);
+                    
+                    dispCard.innerHTML = `
+                        <div class="card-body py-2">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <span class="time-display">${horaInicio} - ${horaFin}</span>
+                                </div>
+                                <div class="col-md-6 text-right">
+                                    <button class="btn btn-primary btn-sm edit-disp-btn" data-id="${disp.idEmpleadoDisponibilidad}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-danger btn-sm delete-disp-btn" data-id="${disp.idEmpleadoDisponibilidad}" 
+                                      data-dia="${diasSemana[disp.diaSemana]}" data-hora="${horaInicio} - ${horaFin}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    diaDiv.appendChild(dispCard);
+                });
+                
+                container.appendChild(diaDiv);
+            });
+            
+            // Agregar event listeners a los botones
+            document.querySelectorAll('.edit-disp-btn').forEach(btn => {
+                btn.addEventListener('click', handleEditDisponibilidadClick);
+            });
+            
+            document.querySelectorAll('.delete-disp-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    handleDeleteHorarioClick(this, 'disponibilidad');
+                });
+            });
+        }
+        
+        // Actualizar el resumen de horarios
+        function actualizarResumenHorarios(horarios) {
+            // Contar horarios por día
+            const contadorDias = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0};
+            horarios.forEach(h => {
+                contadorDias[h.diaSemana]++;
+            });
+            
+            // Actualizar resumen por día
+            const resumenDiasDiv = document.getElementById('resumenDias');
+            resumenDiasDiv.innerHTML = '';
+            
+            Object.keys(contadorDias).forEach(dia => {
+                const count = contadorDias[dia];
+                if (count > 0) {
+                    const badgeDiv = document.createElement('div');
+                    badgeDiv.className = 'mb-2';
+                    badgeDiv.innerHTML = `
+                        <span class="day-badge day-${dia}">${diasSemana[dia]}</span>
+                        <span class="badge badge-pill badge-secondary">${count} horarios</span>
+                    `;
+                    resumenDiasDiv.appendChild(badgeDiv);
+                }
+            });
+            
+            // Actualizar contadores
+            document.getElementById('totalHorarios').textContent = horarios.length;
+            
+            const activos = horarios.filter(h => h.activo).length;
+            const inactivos = horarios.length - activos;
+            
+            document.getElementById('horariosActivos').textContent = activos;
+            document.getElementById('horariosInactivos').textContent = inactivos;
+        }
+        
+        // Filtrar horarios base
+        function filtrarHorariosBase() {
+            const diaSemana = parseInt(document.getElementById('filterDiaSemanaBase').value);
+            const activo = document.getElementById('filterActivoBase').value;
+            
+            let filteredHorarios = [...horariosBaseList];
+            
+            // Filtrar por día de la semana
+            if (diaSemana > 0) {
+                filteredHorarios = filteredHorarios.filter(h => h.diaSemana === diaSemana);
+            }
+            
+            // Filtrar por estado activo/inactivo
+            if (activo !== 'all') {
+                const isActive = activo === 'true';
+                filteredHorarios = filteredHorarios.filter(h => h.activo === isActive);
+            }
+            
+            renderHorariosBase(filteredHorarios);
+        }
+        
+        // Manejar clic en editar horario base
+        function handleEditHorarioClick(event) {
+            const id = parseInt(event.currentTarget.getAttribute('data-id'));
+            const horario = horariosBaseList.find(h => h.idHorarioBase === id);
+            
+            if (horario) {
+                // Llenar formulario con datos del horario
+                document.getElementById('editIdHorarioBase').value = horario.idHorarioBase;
+                document.getElementById('editDiaSemana').value = horario.diaSemana;
+                
+                // Formatear hora para input time
+                document.getElementById('editHoraInicio').value = horario.horaInicio.substring(0, 5);
+                
+                document.getElementById('editDuracionMinutos').value = horario.duracionMinutos;
+                document.getElementById('editTipoDia').value = horario.tipoDia || '';
+                document.getElementById('editActivo').checked = horario.activo;
+                
+                // Mostrar modal
+                $('#editHorarioBaseModal').modal('show');
+            }
+        }
+        
+        // Manejar clic en editar disponibilidad
+        function handleEditDisponibilidadClick(event) {
+            const id = parseInt(event.currentTarget.getAttribute('data-id'));
+            const disponibilidad = disponibilidadList.find(d => d.idEmpleadoDisponibilidad === id);
+            
+            if (disponibilidad) {
+                // Llenar formulario con datos de la disponibilidad
+                document.getElementById('editIdDisponibilidad').value = disponibilidad.idEmpleadoDisponibilidad;
+                document.getElementById('editIdEmpleadoDisp').value = disponibilidad.idEmpleado;
+                document.getElementById('editDispDiaSemana').value = disponibilidad.diaSemana;
+                
+                // Formatear horas para input time
+                document.getElementById('editDispHoraInicio').value = disponibilidad.horaInicio.substring(0, 5);
+                document.getElementById('editDispHoraFin').value = disponibilidad.horaFin.substring(0, 5);
+                
+                // Mostrar modal
+                $('#editDisponibilidadModal').modal('show');
+            }
+        }
+        
+        // Manejar clic en eliminar
+        function handleDeleteHorarioClick(button, type) {
+            const id = button.getAttribute('data-id');
+            const dia = button.getAttribute('data-dia');
+            const hora = button.getAttribute('data-hora');
+            
+            // Guardar tipo de elemento a eliminar (horario o disponibilidad)
+            deleteType = type;
+            
+            // Configurar modal de confirmación
+            document.getElementById('deleteItemDetails').innerHTML = `
+                <p><strong>Día:</strong> ${dia}</p>
+                <p><strong>Horario:</strong> ${hora}</p>
+            `;
+            
+            // Configurar botón de confirmación
+            document.getElementById('confirmDeleteBtn').setAttribute('data-id', id);
+            
+            // Mostrar modal de confirmación
+            $('#deleteConfirmModal').modal('show');
+        }
+        
+        // Confirmar eliminación
+        async function confirmDelete() {
+            const id = this.getAttribute('data-id');
+            
+            try {
+                let endpoint = '';
+                let refreshFunction = null;
+                
+                if (deleteType === 'horario') {
+                    endpoint = `${API_URL}/HorariosBaseAgendamiento/${id}`;
+                    refreshFunction = loadHorariosBase;
+                } else if (deleteType === 'disponibilidad') {
+                    endpoint = `${API_URL}/EmpleadoDisponibilidad/${id}`;
+                    refreshFunction = () => {
+                        const empleadoId = document.getElementById('filterEmpleadoDisp').value;
+                        if (empleadoId) {
+                            loadDisponibilidadEmpleado(empleadoId);
+                        }
+                    };
+                } else {
+                    throw new Error('Tipo de eliminación no reconocido');
+                }
+                
+                const response = await fetch(endpoint, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+                
+                // Cerrar modal
+                $('#deleteConfirmModal').modal('hide');
+                
+                // Recargar datos
+                await refreshFunction();
+                
+                // Mostrar mensaje de éxito
+                alert('Registro eliminado correctamente');
+                
+            } catch (error) {
+                console.error('Error al eliminar:', error);
+                alert('Error al eliminar el registro: ' + error.message);
+                $('#deleteConfirmModal').modal('hide');
+            }
+        }
+        
+        // Guardar nuevo horario base
+        async function saveHorarioBase() {
+            // Validar formulario
+            const diaSemana = document.getElementById('diaSemana').value;
+            const horaInicio = document.getElementById('horaInicio').value;
+            const duracionMinutos = document.getElementById('duracionMinutos').value;
+            
+            if (!diaSemana || !horaInicio || !duracionMinutos) {
+                alert('Por favor complete todos los campos obligatorios');
+                return;
+            }
+            
+            try {
+                // Formatear hora para que coincida con el formato TimeSpan que espera la API
+                const horaInicioFormat = horaInicio.includes(':') && horaInicio.split(':').length === 2 
+                    ? `${horaInicio}:00` : horaInicio;
+                
+                // Estructura exacta esperada por el backend - nota que usamos camelCase según JsonProperty
+                const horarioData = {
+                    diaSemana: parseInt(diaSemana),
+                    horaInicio: horaInicioFormat,
+                    duracionMinutos: parseInt(duracionMinutos),
+                    tipoDia: document.getElementById('tipoDia').value || null,
+                    activo: document.getElementById('activo').checked
+                };
+                
+                console.log('Enviando horario base:', horarioData);
+                
+                const response = await fetch(`${API_URL}/HorariosBaseAgendamiento`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify(horarioData)
+                });
+                
+                if (!response.ok) {
+                    let errorText = '';
+                    try {
+                        const errorResponse = await response.json();
+                        console.error('Error detallado:', errorResponse);
+                        errorText = JSON.stringify(errorResponse);
+                    } catch (e) {
+                        errorText = await response.text();
+                    }
+                    throw new Error(`Error al agregar horario base: ${response.status} - ${errorText}`);
+                }
+                
+                // Recargar horarios
+                await loadHorariosBase();
+                
+                // Cerrar modal y limpiar formulario
+                $('#addHorarioBaseModal').modal('hide');
+                document.getElementById('addHorarioBaseForm').reset();
+                
+                // Mostrar confirmación
+                alert('Horario base agregado correctamente');
+                
+            } catch (error) {
+                console.error('Error al agregar horario base:', error.message);
+                alert('No se pudo agregar el horario base: ' + error.message);
+            }
+        }
+        
+        // Actualizar horario base
+        async function updateHorarioBase() {
+            // Validar formulario
+            const idHorarioBase = document.getElementById('editIdHorarioBase').value;
+            const diaSemana = document.getElementById('editDiaSemana').value;
+            const horaInicio = document.getElementById('editHoraInicio').value;
+            const duracionMinutos = document.getElementById('editDuracionMinutos').value;
+            
+            if (!diaSemana || !horaInicio || !duracionMinutos) {
+                alert('Por favor complete todos los campos obligatorios');
+                return;
+            }
+            
+            try {
+                // Formatear hora para que coincida con el formato TimeSpan que espera la API
+                const horaInicioFormat = horaInicio.includes(':') && horaInicio.split(':').length === 2 
+                    ? `${horaInicio}:00` : horaInicio;
+                
+                // Estructura exacta esperada por el backend - nota que usamos camelCase según JsonProperty
+                const horarioData = {
+                    idHorarioBase: parseInt(idHorarioBase),
+                    diaSemana: parseInt(diaSemana),
+                    horaInicio: horaInicioFormat,
+                    duracionMinutos: parseInt(duracionMinutos),
+                    tipoDia: document.getElementById('editTipoDia').value || null,
+                    activo: document.getElementById('editActivo').checked
+                };
+                
+                console.log('Actualizando horario base:', horarioData);
+                
+                const response = await fetch(`${API_URL}/HorariosBaseAgendamiento/${idHorarioBase}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify(horarioData)
+                });
+                
+                if (!response.ok) {
+                    let errorText = '';
+                    try {
+                        const errorResponse = await response.json();
+                        console.error('Error detallado:', errorResponse);
+                        errorText = JSON.stringify(errorResponse);
+                    } catch (e) {
+                        errorText = await response.text();
+                    }
+                    throw new Error(`Error al actualizar horario base: ${response.status} - ${errorText}`);
+                }
+                
+                // Recargar horarios
+                await loadHorariosBase();
+                
+                // Cerrar modal
+                $('#editHorarioBaseModal').modal('hide');
+                
+                // Mostrar confirmación
+                alert('Horario base actualizado correctamente');
+                
+            } catch (error) {
+                console.error('Error al actualizar horario base:', error.message);
+                alert('No se pudo actualizar el horario base: ' + error.message);
+            }
+        }
+        
+        // Guardar nueva disponibilidad
+        async function saveDisponibilidad() {
+            // Validar formulario
+            const idEmpleado = document.getElementById('idEmpleado').value;
+            const diaSemana = document.getElementById('dispDiaSemana').value;
+            const horaInicio = document.getElementById('dispHoraInicio').value;
+            const horaFin = document.getElementById('dispHoraFin').value;
+            
+            if (!idEmpleado || !diaSemana || !horaInicio || !horaFin) {
+                alert('Por favor complete todos los campos obligatorios');
+                return;
+            }
+            
+            // Validar que hora de fin sea posterior a hora de inicio
+            if (horaFin <= horaInicio) {
+                alert('La hora de fin debe ser posterior a la hora de inicio');
+                return;
+            }
+            
+            try {
+                // Formatear horas para que coincidan con el formato TimeSpan que espera la API
+                const horaInicioFormat = horaInicio.includes(':') && horaInicio.split(':').length === 2 
+                    ? `${horaInicio}:00` : horaInicio;
+                const horaFinFormat = horaFin.includes(':') && horaFin.split(':').length === 2
+                    ? `${horaFin}:00` : horaFin;
+                
+                // Obtener datos del empleado seleccionado
+                const empleadoSeleccionado = empleadosList.find(e => e.idEmpleado === parseInt(idEmpleado));
+                
+                // Si no encontramos el empleado en la lista, creamos un objeto con los campos mínimos
+                const nombreEmpleado = empleadoSeleccionado ? 
+                    (empleadoSeleccionado.nombreCompleto || empleadoSeleccionado.nombre || "Empleado " + idEmpleado) : 
+                    "Empleado " + idEmpleado;
+                
+                // Construir el objeto con la estructura exacta que espera el backend
+                const requestBody = {
+                    IdEmpleado: parseInt(idEmpleado),
+                    DiaSemana: parseInt(diaSemana),
+                    HoraInicio: horaInicioFormat,
+                    HoraFin: horaFinFormat,
+                    Empleado: {
+                        IdEmpleado: parseInt(idEmpleado),
+                        NombreCompleto: nombreEmpleado,
+                        // No necesitamos incluir los campos opcionales/nullable
+                    }
+                };
+                
+                console.log('Enviando disponibilidad:', requestBody);
+                
+                const response = await fetch(`${API_URL}/EmpleadoDisponibilidad`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (!response.ok) {
+                    let errorText = '';
+                    try {
+                        const errorResponse = await response.json();
+                        console.error('Error detallado:', errorResponse);
+                        errorText = JSON.stringify(errorResponse);
+                    } catch (e) {
+                        errorText = await response.text();
+                    }
+                    throw new Error(`Error al agregar disponibilidad: ${response.status} - ${errorText}`);
+                }
+                
+                // Recargar disponibilidad
+                await loadDisponibilidadEmpleado(idEmpleado);
+                
+                // Actualizar el filtro de empleado por el que acabamos de usar
+                document.getElementById('filterEmpleadoDisp').value = idEmpleado;
+                
+                // Cerrar modal y limpiar formulario
+                $('#addDisponibilidadModal').modal('hide');
+                document.getElementById('addDisponibilidadForm').reset();
+                
+                // Mostrar confirmación
+                alert('Disponibilidad agregada correctamente');
+                
+            } catch (error) {
+                console.error('Error al agregar disponibilidad:', error.message);
+                alert('No se pudo agregar la disponibilidad: ' + error.message);
+            }
+        }
+        
+        // Actualizar disponibilidad
+        async function updateDisponibilidad() {
+            // Validar formulario
+            const idDisponibilidad = document.getElementById('editIdDisponibilidad').value;
+            const idEmpleado = document.getElementById('editIdEmpleadoDisp').value;
+            const diaSemana = document.getElementById('editDispDiaSemana').value;
+            const horaInicio = document.getElementById('editDispHoraInicio').value;
+            const horaFin = document.getElementById('editDispHoraFin').value;
+            
+            if (!idEmpleado || !diaSemana || !horaInicio || !horaFin) {
+                alert('Por favor complete todos los campos obligatorios');
+                return;
+            }
+            
+            // Validar que hora de fin sea posterior a hora de inicio
+            if (horaFin <= horaInicio) {
+                alert('La hora de fin debe ser posterior a la hora de inicio');
+                return;
+            }
+            
+            try {
+                // Formatear horas para que coincidan con el formato TimeSpan que espera la API
+                // Agregar ":00" para segundos si es necesario
+                const horaInicioFormat = horaInicio.includes(':') && horaInicio.split(':').length === 2 
+                    ? `${horaInicio}:00` : horaInicio;
+                const horaFinFormat = horaFin.includes(':') && horaFin.split(':').length === 2
+                    ? `${horaFin}:00` : horaFin;
+                
+                // Estructura exacta esperada por el backend
+                const requestBody = {
+                    IdEmpleadoDisponibilidad: parseInt(idDisponibilidad),
+                    IdEmpleado: parseInt(idEmpleado),
+                    DiaSemana: parseInt(diaSemana),
+                    HoraInicio: horaInicioFormat,
+                    HoraFin: horaFinFormat
+                };
+                
+                console.log('Actualizando disponibilidad:', requestBody);
+                
+                const response = await fetch(`${API_URL}/EmpleadoDisponibilidad/${idDisponibilidad}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (!response.ok) {
+                    let errorText = '';
+                    try {
+                        const errorResponse = await response.json();
+                        console.error('Error detallado:', errorResponse);
+                        errorText = JSON.stringify(errorResponse);
+                    } catch (e) {
+                        errorText = await response.text();
+                    }
+                    throw new Error(`Error al actualizar disponibilidad: ${response.status} - ${errorText}`);
+                }
+                
+                // Recargar disponibilidad (usar el empleado del filtro actual)
+                const empleadoFiltroActual = document.getElementById('filterEmpleadoDisp').value;
+                if (empleadoFiltroActual) {
+                    await loadDisponibilidadEmpleado(empleadoFiltroActual);
+                }
+                
+                // Cerrar modal
+                $('#editDisponibilidadModal').modal('hide');
+                
+                // Mostrar confirmación
+                alert('Disponibilidad actualizada correctamente');
+                
+            } catch (error) {
+                console.error('Error al actualizar disponibilidad:', error.message);
+                alert('No se pudo actualizar la disponibilidad: ' + error.message);
+            }
+        }
+    </script>
+
+</body>
+
+</html>
