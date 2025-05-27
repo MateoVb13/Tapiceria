@@ -84,4 +84,36 @@ namespace APITapiceria.Models
 
         public string? Notas { get; set; } // Nullable
     }
+
+
+    public class CitasUpdate
+    {
+
+        [Key]
+        public int IdCita { get; set; }
+
+        [Required]
+        public int IdCliente { get; set; } // Clave foránea
+
+        [Required]
+        public int IdServicio { get; set; } // Clave foránea
+
+        // Clave foránea a Empleados (es nullable en BD)
+        public int? IdEmpleado { get; set; }
+
+        [Required]
+        public DateTime FechaInicio { get; set; }
+
+        [Required]
+        public DateTime FechaFin { get; set; }
+
+        [Required]
+        public string Estado { get; set; }
+
+        public string? Notas { get; set; } // Nullable en BD
+
+    
+
+
+    }
 }

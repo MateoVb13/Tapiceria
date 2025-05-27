@@ -58,7 +58,16 @@ namespace APITapiceria.Controllers
         {
             var connection = _context.Database.GetDbConnection();
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
-            using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteNonQueryAsync(); }
+
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = procedureName;
+                command.CommandType = CommandType.StoredProcedure;
+                if (parameters != null) command.Parameters.AddRange(parameters);
+
+                return await command.ExecuteNonQueryAsync(); // Devuelve el número de filas afectadas
+            }
+            // La conexión se gestiona por el ciclo de vida del DbContext
         }
 
         [HttpGet]
@@ -296,7 +305,7 @@ namespace APITapiceria.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCita(int id, Citas cita) // Usa el modelo Citas como entrada
+        public async Task<IActionResult> PutCita(int id, CitasUpdate cita) // Usa el modelo Citas como entrada
         {
             if (id != cita.IdCita) return BadRequest("El ID de la URL no coincide con el ID de la cita.");
 
