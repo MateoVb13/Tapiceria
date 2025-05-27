@@ -50,9 +50,18 @@ namespace APITapiceria.Controllers
         {
             var connection = _context.Database.GetDbConnection();
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
-            using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteNonQueryAsync(); }
+
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = procedureName;
+                command.CommandType = CommandType.StoredProcedure;
+                if (parameters != null) command.Parameters.AddRange(parameters);
+
+                return await command.ExecuteNonQueryAsync(); // Devuelve el número de filas afectadas
+            }
+            // La conexión se gestiona por el ciclo de vida del DbContext
         }
- 
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ClientDto>>> GetClientes()
         {

@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS `tapiceria`.`clientes` (
 `IdCliente` INT NOT NULL AUTO_INCREMENT,
 `IdUsuario` INT NULL DEFAULT NULL, -- Puede ser NULL si un cliente no tiene cuenta de usuario
 `NombreCompleto` VARCHAR(100) NOT NULL,
-`Contacto` VARCHAR(100) NULL DEFAULT NULL,
+`Contacto` int NULL DEFAULT NULL,
 `Direccion` VARCHAR(200) NULL DEFAULT NULL,
 PRIMARY KEY (`IdCliente`),
 INDEX `fk_clientes_usuarios_idx` (`IdUsuario` ASC) VISIBLE,
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS `tapiceria`.`empleados` (
 `IdEmpleado` INT NOT NULL AUTO_INCREMENT,
 `NombreCompleto` VARCHAR(100) NOT NULL,
 `Especialidad` VARCHAR(100) NULL DEFAULT NULL,
-`Contacto` VARCHAR(100) NULL DEFAULT NULL,
+`Contacto` int NULL DEFAULT NULL,
 PRIMARY KEY (`IdEmpleado`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
@@ -236,8 +236,6 @@ BEGIN
         Contrasena = p_Contrasena
     WHERE IdUsuario = p_IdUsuario;
 
-    -- Indicar cuántas filas se actualizaron
-    SELECT ROW_COUNT() AS FilasActualizadas;
 END$$
 Delimiter $$
 -- 5. Eliminar un usuario por su Id
@@ -250,8 +248,6 @@ BEGIN
     DELETE FROM usuarios
     WHERE IdUsuario = p_IdUsuario;
 
-    -- Indicar si se eliminó algo
-    SELECT ROW_COUNT() AS FilasEliminadas;
 END$$
 
 
@@ -347,7 +343,7 @@ BEGIN
         Direccion = p_Direccion
     WHERE IdCliente = p_IdCliente;
 
-    SELECT ROW_COUNT() AS FilasActualizadas;
+
 END$$
 Delimiter $$
 -- 11. Eliminar un cliente por su Id
@@ -360,7 +356,6 @@ BEGIN
     DELETE FROM clientes
     WHERE IdCliente = p_IdCliente;
 
-    SELECT ROW_COUNT() AS FilasEliminadas;
 END$$
 
 -- =============================================
@@ -419,7 +414,6 @@ BEGIN
         Categoria = p_Categoria
     WHERE IdServicio = p_IdServicio;
 
-    SELECT ROW_COUNT() AS FilasActualizadas;
 END$$
 Delimiter $$
 -- 16. Eliminar un servicio por su Id
@@ -432,7 +426,6 @@ BEGIN
     DELETE FROM servicios
     WHERE IdServicio = p_IdServicio;
 
-    SELECT ROW_COUNT() AS FilasEliminadas;
 END$$
 
 -- =============================================
@@ -502,7 +495,6 @@ BEGIN
         -- HorarioDisponible eliminado de la actualización
     WHERE IdEmpleado = p_IdEmpleado;
 
-    SELECT ROW_COUNT() AS FilasActualizadas;
 END$$
 Delimiter $$
 -- 21. Eliminar un empleado por su Id
@@ -515,7 +507,7 @@ BEGIN
     DELETE FROM empleados
     WHERE IdEmpleado = p_IdEmpleado;
 
-    SELECT ROW_COUNT() AS FilasEliminadas;
+
 END$$
 Delimiter $$
 -- =============================================
@@ -572,7 +564,7 @@ BEGIN
         HoraFin = p_HoraFin
     WHERE IdEmpleadoDisponibilidad = p_IdEmpleadoDisponibilidad;
 
-    SELECT ROW_COUNT() AS FilasActualizadas;
+ 
 END$$
 Delimiter $$
 -- 25. Eliminar un bloque de disponibilidad por su Id
@@ -584,7 +576,7 @@ BEGIN
     DELETE FROM empleado_disponibilidad
     WHERE IdEmpleadoDisponibilidad = p_IdEmpleadoDisponibilidad;
 
-    SELECT ROW_COUNT() AS FilasEliminadas;
+
 END$$
 
 
@@ -743,7 +735,7 @@ BEGIN
         Notas = p_Notas
     WHERE IdCita = p_IdCita;
 
-    SELECT ROW_COUNT() AS FilasActualizadas;
+
 END$$
 Delimiter $$
 -- 32. Eliminar una cita por su Id
@@ -756,7 +748,7 @@ BEGIN
     DELETE FROM citas
     WHERE IdCita = p_IdCita;
 
-    SELECT ROW_COUNT() AS FilasEliminadas;
+
 END$$
 Delimiter $$
 -- 33. Procedimiento para verificar si un empleado está ocupado en un rango de tiempo
@@ -862,7 +854,7 @@ BEGIN
         ValorPago = p_ValorPago
     WHERE IdPago = p_IdPago;
 
-    SELECT ROW_COUNT() AS FilasActualizadas;
+
 END$$
 Delimiter $$
 -- 39. Eliminar un pago por su Id
@@ -874,7 +866,7 @@ BEGIN
     DELETE FROM pagos
     WHERE IdPago = p_IdPago;
 
-    SELECT ROW_COUNT() AS FilasEliminadas;
+
 END$$
 
 

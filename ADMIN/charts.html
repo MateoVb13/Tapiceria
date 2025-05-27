@@ -835,7 +835,7 @@
     
 
         // Configuración de la API
-        const API_BASE_URL = 'https://e889-190-0-245-162.ngrok-free.app/api'; 
+        const API_BASE_URL = 'https://d9c2-190-0-245-162.ngrok-free.app/api'; 
 
         // Headers por defecto para todas las requests (incluye header para ngrok)
         const DEFAULT_HEADERS = {
@@ -1025,7 +1025,7 @@
         async function loadClientes() {
             showLoading('clientesLoading');
             try {
-                const response = await apiCall(`${API_BASE_URL}/clientes`);
+                const response = await apiCall(`${API_BASE_URL}/Clientes`);
                 if (!response.ok) throw new Error('Error al cargar clientes');
                 
                 allClientes = await response.json();
@@ -1067,45 +1067,137 @@
             document.getElementById('clienteModal').style.display = 'block';
         }
 
-        async function editCliente(id) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/clientes/${id}`);
-                if (!response.ok) throw new Error('Error al cargar cliente');
-                
-                const cliente = await response.json();
-                
-                currentEditId = id;
-                currentEditType = 'cliente';
-                document.getElementById('clienteModalTitle').textContent = 'Editar Cliente';
-                
-                document.getElementById('nombreCompleto').value = cliente.nombreCompleto;
-                document.getElementById('contactoCliente').value = cliente.contacto || '';
-                document.getElementById('direccionCliente').value = cliente.direccion || '';
-                
-                document.getElementById('clienteModal').style.display = 'block';
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('Error al cargar el cliente', 'error');
-            }
+// Versión corregida de editCliente
+// Función para editar cliente
+async function editCliente(id) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/Clientes/${id}`, {
+            headers: DEFAULT_HEADERS
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Error ${response.status}: No se pudo cargar el cliente`);
         }
+        
+        const cliente = await response.json();
+        
+        // Configurar modal y formulario
+        currentEditId = id;
+        currentEditType = 'cliente';
+        document.getElementById('clienteModalTitle').textContent = 'Editar Cliente';
+        
+        // Rellenar campos
+        document.getElementById('nombreCompleto').value = cliente.nombreCompleto || '';
+        document.getElementById('contactoCliente').value = cliente.contacto || '';
+        document.getElementById('direccionCliente').value = cliente.direccion || '';
+        
+        // Guardar idUsuario para preservarlo
+        document.getElementById('clienteForm').dataset.idUsuario = cliente.idUsuario;
+        
+        // Mostrar modal
+        document.getElementById('clienteModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error al editar cliente:', error);
+        showAlert(error.message, 'error');
+    }
+}
 
-        async function deleteCliente(id) {
-            if (!confirm('¿Está seguro de que desea eliminar este cliente?')) return;
+// Evento submit del formulario
+document.getElementById('clienteForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    try {
+        // Datos del formulario
+        const formData = {
+            NombreCompleto: document.getElementById('nombreCompleto').value.trim(),
+            Contacto: document.getElementById('contactoCliente').value.trim() || null,
+            Direccion: document.getElementById('direccionCliente').value.trim() || null,
+            IdUsuario: this.dataset.idUsuario ? parseInt(this.dataset.idUsuario, 10) : null
+        };
+        
+        // Si es edición, incluir IdCliente
+        if (currentEditId) {
+            formData.IdCliente = parseInt(currentEditId, 10);
+        }
+        
+        // Determinar URL y método
+        const url = `${API_BASE_URL}/Clientes${currentEditId ? `/${currentEditId}` : ''}`;
+        const method = currentEditId ? 'PUT' : 'POST';
+        
+        // Realizar llamada a API
+        const response = await apiCall(url, {
+            method: method,
+            body: JSON.stringify(formData)
+        });
+        
+        if (!response.ok) {
+            const contentType = response.headers.get('content-type');
+            const errorMsg = contentType && contentType.includes('application/json') ? 
+                (await response.json()).title || `Error ${response.status}` : 
+                await response.text() || `Error ${response.status}`;
+            throw new Error(errorMsg);
+        }
+        
+        // Éxito
+        showAlert(
+            `Cliente ${currentEditId ? 'actualizado' : 'creado'} exitosamente`, 
+            'success'
+        );
+        closeClienteModal();
+        await loadClientes();
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert(error.message, 'error');
+    }
+});
+
+async function deleteCliente(id) {
+    try {
+        // Pedir confirmación antes de eliminar
+        if (!confirm('¿Está seguro de que desea eliminar este cliente? Esta acción no se puede deshacer.')) {
+            return;
+        }
+        
+        console.log(`Eliminando cliente con ID: ${id}`);
+        
+        // Realizar solicitud DELETE a la API
+        const response = await fetch(`${API_BASE_URL}/Clientes/${id}`, {
+            method: 'DELETE',
+            headers: DEFAULT_HEADERS
+        });
+        
+        // Verificar si la respuesta fue exitosa
+        if (!response.ok) {
+            // Intentar obtener detalles del error
+            let errorMessage = `Error ${response.status}`;
             
             try {
-                const response = await fetch(`${API_BASE_URL}/clientes/${id}`, {
-                    method: 'DELETE'
-                });
-                
-                if (!response.ok) throw new Error('Error al eliminar cliente');
-                
-                showAlert('Cliente eliminado exitosamente', 'success');
-                await loadClientes();
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('Error al eliminar el cliente', 'error');
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await response.json();
+                    errorMessage = errorData.title || errorData.message || errorMessage;
+                } else {
+                    const errorText = await response.text();
+                    if (errorText) errorMessage = errorText;
+                }
+            } catch (e) {
+                // Si hay error al leer la respuesta, usar mensaje genérico
+                console.error('Error al leer respuesta:', e);
             }
+            
+            throw new Error(errorMessage);
         }
+        
+        // Mostrar mensaje de éxito
+        showAlert('Cliente eliminado exitosamente', 'success');
+        
+        // Recargar la lista de clientes
+        await loadClientes();
+    } catch (error) {
+        console.error('Error al eliminar cliente:', error);
+        showAlert(`Error: ${error.message}`, 'error');
+    }
+}
 
         function closeClienteModal() {
             document.getElementById('clienteModal').style.display = 'none';
@@ -1458,7 +1550,7 @@
         async function loadClientesForSelect(selectId = 'clienteSelect') {
             try {
                 if (allClientes.length === 0) {
-                    const response = await apiCall(`${API_BASE_URL}/clientes`);
+                    const response = await apiCall(`${API_BASE_URL}/Clientes`);
                     if (response.ok) {
                         allClientes = await response.json();
                     }
@@ -1702,45 +1794,85 @@
             }
         });
 
-        document.getElementById('clienteForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+document.getElementById('clienteForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    try {
+        // Primero verificamos si estamos editando y necesitamos obtener el cliente actual
+        let clienteExistente = null;
+        
+        if (currentEditId) {
+            // Obtener los datos actuales del cliente para preservar valores como idUsuario
+            console.log(`Obteniendo datos actuales del cliente ${currentEditId} antes de actualizar`);
+            const getResponse = await apiCall(`${API_BASE_URL}/Clientes/${currentEditId}`, {
+                method: 'GET'
+            });
             
-            const formData = {
-                nombreCompleto: document.getElementById('nombreCompleto').value,
-                contacto: document.getElementById('contactoCliente').value || null,
-                direccion: document.getElementById('direccionCliente').value || null,
-                idUsuario: null // Por ahora no vinculamos con usuarios
-            };
-            
-            try {
-                const url = currentEditId ? 
-                    `${API_BASE_URL}/clientes/${currentEditId}` : 
-                    `${API_BASE_URL}/clientes`;
-                
-                const method = currentEditId ? 'PUT' : 'POST';
-                
-                if (currentEditId) {
-                    formData.idCliente = currentEditId;
-                }
-                
-                const response = await apiCall(url, {
-                    method: method,
-                    body: JSON.stringify(formData)
-                });
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText || 'Error al guardar el cliente');
-                }
-                
-                showAlert(currentEditId ? 'Cliente actualizado exitosamente' : 'Cliente creado exitosamente', 'success');
-                closeClienteModal();
-                await loadClientes();
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert(error.message || 'Error al guardar el cliente', 'error');
+            if (!getResponse.ok) {
+                throw new Error(`Error al obtener datos actuales del cliente: ${getResponse.status}`);
             }
+            
+            clienteExistente = await getResponse.json();
+            console.log('Datos actuales del cliente:', clienteExistente);
+        }
+        
+        // Recopilar datos del formulario con primera letra mayúscula para coincidir con el modelo C#
+        const formData = {
+            NombreCompleto: document.getElementById('nombreCompleto').value.trim(),
+            Contacto: document.getElementById('contactoCliente').value.trim() || null,
+            Direccion: document.getElementById('direccionCliente').value.trim() || null,
+            // Preservar el IdUsuario existente si estamos editando
+            IdUsuario: clienteExistente ? clienteExistente.idUsuario : null
+        };
+        
+        // CORRECCIÓN CRÍTICA: Usar 'Clientes' con 'C' mayúscula, igual que en el GET
+        const url = currentEditId ? 
+            `${API_BASE_URL}/Clientes/${currentEditId}` : 
+            `${API_BASE_URL}/Clientes`;
+        
+        const method = currentEditId ? 'PUT' : 'POST';
+        
+        // Incluir el IdCliente solo para las actualizaciones
+        if (currentEditId) {
+            formData.IdCliente = parseInt(currentEditId, 10); // Asegurar que sea numérico
+        }
+        
+        console.log(`Enviando solicitud ${method} a: ${url}`);
+        console.log('Datos a enviar:', formData);
+        
+        // Realizar la llamada a la API
+        const response = await apiCall(url, {
+            method: method,
+            body: JSON.stringify(formData)
         });
+        
+        // Manejo de errores más detallado
+        if (!response.ok) {
+            let errorMessage = `Error ${response.status}`;
+            
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const errorData = await response.json();
+                errorMessage = errorData.title || errorData.message || errorMessage;
+            } else {
+                const errorText = await response.text();
+                if (errorText) errorMessage = errorText;
+            }
+            
+            throw new Error(errorMessage);
+        }
+        
+        showAlert(
+            currentEditId ? 'Cliente actualizado exitosamente' : 'Cliente creado exitosamente', 
+            'success'
+        );
+        closeClienteModal();
+        await loadClientes();
+    } catch (error) {
+        console.error('Error al guardar cliente:', error);
+        showAlert(error.message || 'Error al guardar el cliente', 'error');
+    }
+});
 
         document.getElementById('servicioForm').addEventListener('submit', async function(e) {
             e.preventDefault();
