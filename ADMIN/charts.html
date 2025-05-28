@@ -343,41 +343,24 @@
             }
         }
 
-        .availability-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .availability-slot {
+        .payment-summary {
             background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
             padding: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #667eea;
         }
 
-        .availability-slot:hover {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.05);
-        }
-
-        .availability-slot.selected {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-        }
-
-        .slot-time {
-            font-weight: bold;
-            color: #333;
+        .payment-info {
+            display: flex;
+            justify-content: space-between;
             margin-bottom: 0.5rem;
         }
 
-        .slot-employee {
-            color: #666;
-            font-size: 0.9rem;
+        .payment-total {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #667eea;
         }
     </style>
 </head>
@@ -397,29 +380,6 @@
         </div>
 
         <div class="tab-content">
-            <!-- Dashboard/Estadísticas -->
-            <div id="dashboard" class="tab-pane">
-                <h2>📊 Dashboard</h2>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-number" id="totalCitas">0</div>
-                        <div class="stat-label">Total Citas</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="citasPendientes">0</div>
-                        <div class="stat-label">Citas Pendientes</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="totalClientes">0</div>
-                        <div class="stat-label">Total Clientes</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="totalEmpleados">0</div>
-                        <div class="stat-label">Total Empleados</div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Tab Citas -->
             <div id="citas" class="tab-pane active">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
@@ -592,6 +552,8 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Cita ID</th>
+                                <th>Cliente</th>
+                                <th>Servicio</th>
                                 <th>Tipo de Pago</th>
                                 <th>Valor</th>
                                 <th>Fecha Cita</th>
@@ -799,11 +761,18 @@
         <div class="modal-content">
             <span class="close" onclick="closePagoModal()">&times;</span>
             <h2 id="pagoModalTitle">Registrar Pago</h2>
+            
+            <!-- Resumen de pagos existentes (solo cuando se edita) -->
+            <div id="paymentSummary" class="payment-summary" style="display: none;">
+                <h3>Resumen de Pagos de la Cita</h3>
+                <div id="paymentSummaryContent"></div>
+            </div>
+
             <form id="pagoForm">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="citaSelectPago">Cita:</label>
-                        <select id="citaSelectPago" required>
+                        <select id="citaSelectPago" required onchange="loadCitaInfo()">
                             <option value="">Seleccione una cita</option>
                         </select>
                     </div>
@@ -821,6 +790,7 @@
                     <div class="form-group">
                         <label for="valorPago">Valor:</label>
                         <input type="number" id="valorPago" required min="0" step="0.01" placeholder="0.00">
+                        <small id="citaInfo" style="color: #666; font-size: 0.9rem;"></small>
                     </div>
                 </div>
                 <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
@@ -832,25 +802,19 @@
     </div>
 
     <script>
-    
+        const API_BASE_URL = 'https://c966-2800-e2-c180-4c8-293e-3ea4-3f17-83a1.ngrok-free.app/api'; 
 
-        // Configuración de la API
-        const API_BASE_URL = 'https://d9c2-190-0-245-162.ngrok-free.app/api'; 
-
-        // Headers por defecto para todas las requests (incluye header para ngrok)
         const DEFAULT_HEADERS = {
             'Content-Type': 'application/json',
             'ngrok-skip-browser-warning': 'true'
         };
 
-        // Función auxiliar para hacer llamadas a la API con headers por defecto
         async function apiCall(url, options = {}) {
             const defaultOptions = {
                 headers: DEFAULT_HEADERS,
                 ...options
             };
             
-            // Si hay body, mantener Content-Type, si no, usar solo el header de ngrok
             if (!options.body) {
                 defaultOptions.headers = {
                     'ngrok-skip-browser-warning': 'true'
@@ -860,7 +824,6 @@
             return await fetch(url, defaultOptions);
         }
 
-        // Variables globales
         let currentEditId = null;
         let currentEditType = null;
         let allCitas = [];
@@ -868,26 +831,22 @@
         let allServicios = [];
         let allEmpleados = [];
         let allPagos = [];
+        let allCitasForPagos = [];
+        let currentCitaInfo = null; // Para almacenar info de la cita seleccionada
 
-        // Función para mostrar/ocultar tabs
         function showTab(tabName) {
-            // Ocultar todos los tabs
             const tabPanes = document.querySelectorAll('.tab-pane');
             tabPanes.forEach(pane => pane.classList.remove('active'));
 
-            // Remover clase active de todos los botones
             const tabButtons = document.querySelectorAll('.nav-tab');
             tabButtons.forEach(btn => btn.classList.remove('active'));
 
-            // Mostrar tab seleccionado
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
 
-            // Cargar datos del tab
             loadTabData(tabName);
         }
 
-        // Función para cargar datos según el tab
         async function loadTabData(tabName) {
             switch(tabName) {
                 case 'citas':
@@ -936,12 +895,12 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${cita.idCita}</td>
-                    <td>${cita.nombreCliente}</td>
-                    <td>${cita.nombreServicio}</td>
+                    <td>${cita.nombreCliente || cita.nombreCompletoCliente || 'N/A'}</td>
+                    <td>${cita.nombreServicio || cita.descripcionServicio || 'N/A'}</td>
                     <td>${cita.nombreEmpleado || 'Sin asignar'}</td>
                     <td>${formatDateTime(cita.fechaInicio)}</td>
-                    <td><span class="status ${cita.estado.toLowerCase()}">${cita.estado}</span></td>
-                    <td>$${cita.precio.toFixed(2)}</td>
+                    <td><span class="status ${(cita.estado || '').toLowerCase()}">${cita.estado || 'N/A'}</span></td>
+                    <td>${(cita.precio || 0).toFixed(2)}</td>
                     <td class="actions">
                         <button class="btn btn-sm" onclick="editCita(${cita.idCita})">✏️ Editar</button>
                         <button class="btn btn-sm btn-danger" onclick="deleteCita(${cita.idCita})">🗑️ Eliminar</button>
@@ -957,7 +916,6 @@
             document.getElementById('citaModalTitle').textContent = 'Nueva Cita';
             document.getElementById('citaForm').reset();
             
-            // Cargar selectores
             await loadClientesForSelect('clienteSelectCita');
             await loadServiciosForSelect('servicioSelectCita');
             await loadEmpleadosForSelect('empleadoSelectCita');
@@ -976,12 +934,10 @@
                 currentEditType = 'cita';
                 document.getElementById('citaModalTitle').textContent = 'Editar Cita';
                 
-                // Cargar selectores
                 await loadClientesForSelect('clienteSelectCita');
                 await loadServiciosForSelect('servicioSelectCita');
                 await loadEmpleadosForSelect('empleadoSelectCita');
                 
-                // Llenar formulario
                 document.getElementById('clienteSelectCita').value = cita.idCliente;
                 document.getElementById('servicioSelectCita').value = cita.idServicio;
                 document.getElementById('empleadoSelectCita').value = cita.idEmpleado || '';
@@ -1067,137 +1023,62 @@
             document.getElementById('clienteModal').style.display = 'block';
         }
 
-// Versión corregida de editCliente
-// Función para editar cliente
-async function editCliente(id) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/Clientes/${id}`, {
-            headers: DEFAULT_HEADERS
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Error ${response.status}: No se pudo cargar el cliente`);
+        async function editCliente(id) {
+            try {
+                const response = await apiCall(`${API_BASE_URL}/Clientes/${id}`);
+                if (!response.ok) throw new Error(`Error ${response.status}: No se pudo cargar el cliente`);
+                
+                const cliente = await response.json();
+                
+                currentEditId = id;
+                currentEditType = 'cliente';
+                document.getElementById('clienteModalTitle').textContent = 'Editar Cliente';
+                
+                document.getElementById('nombreCompleto').value = cliente.nombreCompleto || '';
+                document.getElementById('contactoCliente').value = cliente.contacto || '';
+                document.getElementById('direccionCliente').value = cliente.direccion || '';
+                
+                document.getElementById('clienteForm').dataset.idUsuario = cliente.idUsuario;
+                
+                document.getElementById('clienteModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error al editar cliente:', error);
+                showAlert(error.message, 'error');
+            }
         }
-        
-        const cliente = await response.json();
-        
-        // Configurar modal y formulario
-        currentEditId = id;
-        currentEditType = 'cliente';
-        document.getElementById('clienteModalTitle').textContent = 'Editar Cliente';
-        
-        // Rellenar campos
-        document.getElementById('nombreCompleto').value = cliente.nombreCompleto || '';
-        document.getElementById('contactoCliente').value = cliente.contacto || '';
-        document.getElementById('direccionCliente').value = cliente.direccion || '';
-        
-        // Guardar idUsuario para preservarlo
-        document.getElementById('clienteForm').dataset.idUsuario = cliente.idUsuario;
-        
-        // Mostrar modal
-        document.getElementById('clienteModal').style.display = 'block';
-    } catch (error) {
-        console.error('Error al editar cliente:', error);
-        showAlert(error.message, 'error');
-    }
-}
 
-// Evento submit del formulario
-document.getElementById('clienteForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    try {
-        // Datos del formulario
-        const formData = {
-            NombreCompleto: document.getElementById('nombreCompleto').value.trim(),
-            Contacto: document.getElementById('contactoCliente').value.trim() || null,
-            Direccion: document.getElementById('direccionCliente').value.trim() || null,
-            IdUsuario: this.dataset.idUsuario ? parseInt(this.dataset.idUsuario, 10) : null
-        };
-        
-        // Si es edición, incluir IdCliente
-        if (currentEditId) {
-            formData.IdCliente = parseInt(currentEditId, 10);
-        }
-        
-        // Determinar URL y método
-        const url = `${API_BASE_URL}/Clientes${currentEditId ? `/${currentEditId}` : ''}`;
-        const method = currentEditId ? 'PUT' : 'POST';
-        
-        // Realizar llamada a API
-        const response = await apiCall(url, {
-            method: method,
-            body: JSON.stringify(formData)
-        });
-        
-        if (!response.ok) {
-            const contentType = response.headers.get('content-type');
-            const errorMsg = contentType && contentType.includes('application/json') ? 
-                (await response.json()).title || `Error ${response.status}` : 
-                await response.text() || `Error ${response.status}`;
-            throw new Error(errorMsg);
-        }
-        
-        // Éxito
-        showAlert(
-            `Cliente ${currentEditId ? 'actualizado' : 'creado'} exitosamente`, 
-            'success'
-        );
-        closeClienteModal();
-        await loadClientes();
-    } catch (error) {
-        console.error('Error:', error);
-        showAlert(error.message, 'error');
-    }
-});
-
-async function deleteCliente(id) {
-    try {
-        // Pedir confirmación antes de eliminar
-        if (!confirm('¿Está seguro de que desea eliminar este cliente? Esta acción no se puede deshacer.')) {
-            return;
-        }
-        
-        console.log(`Eliminando cliente con ID: ${id}`);
-        
-        // Realizar solicitud DELETE a la API
-        const response = await fetch(`${API_BASE_URL}/Clientes/${id}`, {
-            method: 'DELETE',
-            headers: DEFAULT_HEADERS
-        });
-        
-        // Verificar si la respuesta fue exitosa
-        if (!response.ok) {
-            // Intentar obtener detalles del error
-            let errorMessage = `Error ${response.status}`;
+        async function deleteCliente(id) {
+            if (!confirm('¿Está seguro de que desea eliminar este cliente?')) return;
             
             try {
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    const errorData = await response.json();
-                    errorMessage = errorData.title || errorData.message || errorMessage;
-                } else {
-                    const errorText = await response.text();
-                    if (errorText) errorMessage = errorText;
+                const response = await apiCall(`${API_BASE_URL}/Clientes/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    let errorMessage = `Error ${response.status}`;
+                    try {
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            const errorData = await response.json();
+                            errorMessage = errorData.title || errorData.message || errorMessage;
+                        } else {
+                            const errorText = await response.text();
+                            if (errorText) errorMessage = errorText;
+                        }
+                    } catch (e) {
+                        console.error('Error al leer respuesta:', e);
+                    }
+                    throw new Error(errorMessage);
                 }
-            } catch (e) {
-                // Si hay error al leer la respuesta, usar mensaje genérico
-                console.error('Error al leer respuesta:', e);
+                
+                showAlert('Cliente eliminado exitosamente', 'success');
+                await loadClientes();
+            } catch (error) {
+                console.error('Error al eliminar cliente:', error);
+                showAlert(`Error: ${error.message}`, 'error');
             }
-            
-            throw new Error(errorMessage);
         }
-        
-        // Mostrar mensaje de éxito
-        showAlert('Cliente eliminado exitosamente', 'success');
-        
-        // Recargar la lista de clientes
-        await loadClientes();
-    } catch (error) {
-        console.error('Error al eliminar cliente:', error);
-        showAlert(`Error: ${error.message}`, 'error');
-    }
-}
 
         function closeClienteModal() {
             document.getElementById('clienteModal').style.display = 'none';
@@ -1232,7 +1113,7 @@ async function deleteCliente(id) {
                     <td>${servicio.idServicio}</td>
                     <td>${servicio.descripcion}</td>
                     <td>${servicio.duracionEstimada}</td>
-                    <td>$${servicio.precio.toFixed(2)}</td>
+                    <td>${servicio.precio.toFixed(2)}</td>
                     <td>${servicio.categoria || '-'}</td>
                     <td class="actions">
                         <button class="btn btn-sm" onclick="editServicio(${servicio.idServicio})">✏️ Editar</button>
@@ -1253,7 +1134,7 @@ async function deleteCliente(id) {
 
         async function editServicio(id) {
             try {
-                const response = await fetch(`${API_BASE_URL}/servicios/${id}`);
+                const response = await apiCall(`${API_BASE_URL}/servicios/${id}`);
                 if (!response.ok) throw new Error('Error al cargar servicio');
                 
                 const servicio = await response.json();
@@ -1278,7 +1159,7 @@ async function deleteCliente(id) {
             if (!confirm('¿Está seguro de que desea eliminar este servicio?')) return;
             
             try {
-                const response = await fetch(`${API_BASE_URL}/servicios/${id}`, {
+                const response = await apiCall(`${API_BASE_URL}/servicios/${id}`, {
                     method: 'DELETE'
                 });
                 
@@ -1345,7 +1226,7 @@ async function deleteCliente(id) {
 
         async function editEmpleado(id) {
             try {
-                const response = await fetch(`${API_BASE_URL}/empleados/${id}`);
+                const response = await apiCall(`${API_BASE_URL}/empleados/${id}`);
                 if (!response.ok) throw new Error('Error al cargar empleado');
                 
                 const empleado = await response.json();
@@ -1369,7 +1250,7 @@ async function deleteCliente(id) {
             if (!confirm('¿Está seguro de que desea eliminar este empleado?')) return;
             
             try {
-                const response = await fetch(`${API_BASE_URL}/empleados/${id}`, {
+                const response = await apiCall(`${API_BASE_URL}/empleados/${id}`, {
                     method: 'DELETE'
                 });
                 
@@ -1389,11 +1270,11 @@ async function deleteCliente(id) {
             currentEditType = null;
         }
 
-        // ===== GESTIÓN DE PAGOS =====
+        // ===== GESTIÓN DE PAGOS MEJORADA =====
         async function loadPagos() {
             showLoading('pagosLoading');
             try {
-                const response = await fetch(`${API_BASE_URL}/pagos`);
+                const response = await apiCall(`${API_BASE_URL}/pagos`);
                 if (!response.ok) throw new Error('Error al cargar pagos');
                 
                 allPagos = await response.json();
@@ -1415,10 +1296,12 @@ async function deleteCliente(id) {
                 row.innerHTML = `
                     <td>${pago.idPago}</td>
                     <td>${pago.idCita}</td>
+                    <td>${pago.nombreCliente || 'N/A'}</td>
+                    <td>${pago.servicioDescripcion || 'N/A'}</td>
                     <td>${pago.tipoPago}</td>
-                    <td>$${pago.valorPago ? pago.valorPago.toFixed(2) : '0.00'}</td>
-                    <td>${formatDateTime(pago.fechaCita)}</td>
-                    <td><span class="status ${pago.estadoCita.toLowerCase()}">${pago.estadoCita}</span></td>
+                    <td>${pago.valorPago ? pago.valorPago.toFixed(2) : 'N/A'}</td>
+                    <td>${new Date(pago.fechaCita).toLocaleDateString('es-ES')}</td>
+                    <td><span class="status ${(pago.estadoCita || '').toLowerCase()}">${pago.estadoCita || 'N/A'}</span></td>
                     <td class="actions">
                         <button class="btn btn-sm" onclick="editPago(${pago.idPago})">✏️ Editar</button>
                         <button class="btn btn-sm btn-danger" onclick="deletePago(${pago.idPago})">🗑️ Eliminar</button>
@@ -1431,19 +1314,90 @@ async function deleteCliente(id) {
         async function openCreatePagoModal() {
             currentEditId = null;
             currentEditType = 'pago';
+            currentCitaInfo = null;
             document.getElementById('pagoModalTitle').textContent = 'Registrar Pago';
             document.getElementById('pagoForm').reset();
+            document.getElementById('paymentSummary').style.display = 'none';
+            document.getElementById('citaInfo').textContent = '';
             
-            // Cargar citas para el selector
             await loadCitasForSelect();
             
             document.getElementById('pagoModal').style.display = 'block';
         }
 
+        async function loadCitasForSelect() {
+            try {
+                // Cargar citas frescas cada vez
+                const response = await apiCall(`${API_BASE_URL}/citas`);
+                if (!response.ok) throw new Error('Error al cargar citas');
+                
+                allCitasForPagos = await response.json();
+                const select = document.getElementById('citaSelectPago');
+                select.innerHTML = '<option value="">Seleccione una cita</option>';
+                
+                allCitasForPagos.forEach(cita => {
+                    const option = document.createElement('option');
+                    option.value = cita.idCita;
+                    option.textContent = `ID: ${cita.idCita} - ${cita.nombreCliente || cita.nombreCompletoCliente} - ${cita.nombreServicio || cita.descripcionServicio} - ${(cita.precio || 0).toFixed(2)}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error al cargar citas:', error);
+                showAlert('Error al cargar las citas disponibles', 'error');
+            }
+        }
+
+        // Función para cargar información de la cita seleccionada
+        async function loadCitaInfo() {
+            const citaId = document.getElementById('citaSelectPago').value;
+            const citaInfoDiv = document.getElementById('citaInfo');
+            
+            if (!citaId) {
+                citaInfoDiv.textContent = '';
+                currentCitaInfo = null;
+                return;
+            }
+
+            try {
+                // Buscar la cita en el array cargado
+                currentCitaInfo = allCitasForPagos.find(cita => cita.idCita == citaId);
+                
+                if (currentCitaInfo) {
+                    // Obtener pagos existentes para esta cita
+                    const pagosResponse = await apiCall(`${API_BASE_URL}/pagos/cita/${citaId}`);
+                    let pagosExistentes = [];
+                    let totalPagado = 0;
+                    
+                    if (pagosResponse.ok) {
+                        pagosExistentes = await pagosResponse.json();
+                        totalPagado = pagosExistentes.reduce((sum, pago) => sum + (pago.valorPago || 0), 0);
+                    }
+                    
+                    const precioCita = currentCitaInfo.precio || 0;
+                    const saldoPendiente = precioCita - totalPagado;
+                    
+                    citaInfoDiv.innerHTML = `
+                        <strong>Precio del servicio:</strong> ${precioCita.toFixed(2)}<br>
+                        <strong>Total pagado:</strong> ${totalPagado.toFixed(2)}<br>
+                        <strong>Saldo pendiente:</strong> ${saldoPendiente.toFixed(2)}
+                    `;
+                    
+                    // Sugerir el saldo pendiente como valor del pago
+                    if (saldoPendiente > 0) {
+                        document.getElementById('valorPago').value = saldoPendiente.toFixed(2);
+                    }
+                }
+            } catch (error) {
+                console.error('Error al cargar información de la cita:', error);
+                citaInfoDiv.textContent = '';
+            }
+        }
+
         async function editPago(id) {
             try {
-                const response = await fetch(`${API_BASE_URL}/pagos/${id}`);
-                if (!response.ok) throw new Error('Error al cargar pago');
+                // CORRECCIÓN: Usar apiCall en lugar de fetch directo
+                const response = await apiCall(`${API_BASE_URL}/pagos/${id}`);
+                if (!response.ok) throw new Error(`Error ${response.status}: No se pudo cargar el pago`);
                 
                 const pago = await response.json();
                 
@@ -1451,17 +1405,57 @@ async function deleteCliente(id) {
                 currentEditType = 'pago';
                 document.getElementById('pagoModalTitle').textContent = 'Editar Pago';
                 
-                // Cargar citas para el selector
+                // Cargar citas disponibles primero
                 await loadCitasForSelect();
                 
+                // Llenar el formulario con los datos del pago
                 document.getElementById('citaSelectPago').value = pago.idCita;
                 document.getElementById('tipoPago').value = pago.tipoPago;
                 document.getElementById('valorPago').value = pago.valorPago || '';
                 
+                // Cargar información de la cita
+                await loadCitaInfo();
+                
+                // Mostrar resumen de pagos existentes
+                await showPaymentSummary(pago.idCita, id);
+                
                 document.getElementById('pagoModal').style.display = 'block';
             } catch (error) {
-                console.error('Error:', error);
-                showAlert('Error al cargar el pago', 'error');
+                console.error('Error al editar pago:', error);
+                showAlert(`Error al cargar el pago: ${error.message}`, 'error');
+            }
+        }
+
+        async function showPaymentSummary(citaId, excludePaymentId = null) {
+            try {
+                const response = await apiCall(`${API_BASE_URL}/pagos/cita/${citaId}`);
+                if (!response.ok) return;
+                
+                const pagos = await response.json();
+                const filteredPagos = excludePaymentId ? 
+                    pagos.filter(p => p.idPago !== excludePaymentId) : pagos;
+                
+                if (filteredPagos.length > 0) {
+                    const totalPagado = filteredPagos.reduce((sum, pago) => sum + (pago.valorPago || 0), 0);
+                    
+                    let summaryHTML = `<div class="payment-info"><span>Total pagado anteriormente:</span><span class="payment-total">${totalPagado.toFixed(2)}</span></div>`;
+                    summaryHTML += '<div style="margin-top: 0.5rem;"><strong>Pagos existentes:</strong></div>';
+                    
+                    filteredPagos.forEach(pago => {
+                        summaryHTML += `<div class="payment-info">
+                            <span>${pago.tipoPago}</span>
+                            <span>${(pago.valorPago || 0).toFixed(2)}</span>
+                        </div>`;
+                    });
+                    
+                    document.getElementById('paymentSummaryContent').innerHTML = summaryHTML;
+                    document.getElementById('paymentSummary').style.display = 'block';
+                } else {
+                    document.getElementById('paymentSummary').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error al cargar resumen de pagos:', error);
+                document.getElementById('paymentSummary').style.display = 'none';
             }
         }
 
@@ -1469,7 +1463,7 @@ async function deleteCliente(id) {
             if (!confirm('¿Está seguro de que desea eliminar este pago?')) return;
             
             try {
-                const response = await fetch(`${API_BASE_URL}/pagos/${id}`, {
+                const response = await apiCall(`${API_BASE_URL}/pagos/${id}`, {
                     method: 'DELETE'
                 });
                 
@@ -1485,65 +1479,55 @@ async function deleteCliente(id) {
 
         function closePagoModal() {
             document.getElementById('pagoModal').style.display = 'none';
+            document.getElementById('paymentSummary').style.display = 'none';
             currentEditId = null;
             currentEditType = null;
+            currentCitaInfo = null;
         }
 
-        // ===== GESTIÓN DE DISPONIBILIDAD =====
-        async function consultarDisponibilidad() {
-            const servicioId = document.getElementById('servicioSelect').value;
-            const fecha = document.getElementById('fechaConsulta').value;
-
-            if (!servicioId || !fecha) {
-                showAlert('Por favor seleccione un servicio y una fecha', 'error');
-                return;
-            }
-
-            showLoading('disponibilidadLoading');
+        // Función para verificar si el pago completa la cita y cambiar su estado
+        async function checkAndUpdateCitaStatus(citaId, nuevoPago) {
             try {
-                const response = await fetch(`${API_BASE_URL}/disponibilidad?idServicio=${servicioId}&fecha=${fecha}`);
-                if (!response.ok) throw new Error('Error al consultar disponibilidad');
+                if (!currentCitaInfo) return;
                 
-                const disponibilidad = await response.json();
-                displayDisponibilidad(disponibilidad);
+                // Obtener todos los pagos de la cita (incluyendo el nuevo)
+                const response = await apiCall(`${API_BASE_URL}/pagos/cita/${citaId}`);
+                if (!response.ok) return;
+                
+                const pagos = await response.json();
+                const totalPagado = pagos.reduce((sum, pago) => sum + (pago.valorPago || 0), 0);
+                const precioCita = currentCitaInfo.precio || 0;
+                
+                // Si el total pagado es igual o mayor al precio de la cita, marcar como completada
+                if (totalPagado >= precioCita && currentCitaInfo.estado !== 'Completada') {
+                    const updateData = {
+                        idCita: citaId,
+                        idCliente: currentCitaInfo.idCliente,
+                        idServicio: currentCitaInfo.idServicio,
+                        idEmpleado: currentCitaInfo.idEmpleado,
+                        fechaInicio: currentCitaInfo.fechaInicio,
+                        fechaFin: currentCitaInfo.fechaFin,
+                        estado: 'Completada',
+                        notas: currentCitaInfo.notas
+                    };
+                    
+                    const updateResponse = await apiCall(`${API_BASE_URL}/citas/${citaId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(updateData)
+                    });
+                    
+                    if (updateResponse.ok) {
+                        showAlert('¡Pago registrado! La cita ha sido marcada como completada automáticamente.', 'success');
+                        // Recargar citas para reflejar el cambio
+                        if (document.getElementById('citas').classList.contains('active')) {
+                            await loadCitas();
+                        }
+                    }
+                }
             } catch (error) {
-                console.error('Error:', error);
-                showAlert('Error al consultar la disponibilidad', 'error');
-            } finally {
-                hideLoading('disponibilidadLoading');
+                console.error('Error al actualizar estado de cita:', error);
+                // No mostrar error al usuario ya que el pago se registró correctamente
             }
-        }
-
-        function displayDisponibilidad(disponibilidad) {
-            const grid = document.getElementById('disponibilidadGrid');
-            grid.innerHTML = '';
-
-            if (disponibilidad.length === 0) {
-                grid.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">No hay horarios disponibles para la fecha seleccionada.</p>';
-                return;
-            }
-
-            disponibilidad.forEach(slot => {
-                const slotElement = document.createElement('div');
-                slotElement.className = 'availability-slot';
-                slotElement.innerHTML = `
-                    <div class="slot-time">${formatTime(slot.fechaInicio)} - ${formatTime(slot.fechaFin)}</div>
-                    <div class="slot-employee">👨‍💼 ${slot.nombreEmpleado}</div>
-                `;
-                slotElement.addEventListener('click', () => selectAvailabilitySlot(slot, slotElement));
-                grid.appendChild(slotElement);
-            });
-        }
-
-        function selectAvailabilitySlot(slot, element) {
-            // Remover selección anterior
-            document.querySelectorAll('.availability-slot').forEach(el => el.classList.remove('selected'));
-            
-            // Seleccionar nuevo slot
-            element.classList.add('selected');
-            
-            // Opcional: Pre-llenar el formulario de cita con esta información
-            console.log('Slot seleccionado:', slot);
         }
 
         // ===== FUNCIONES AUXILIARES =====
@@ -1616,31 +1600,9 @@ async function deleteCliente(id) {
             }
         }
 
-        async function loadCitasForSelect() {
-            try {
-                if (allCitas.length === 0) {
-                    const response = await apiCall(`${API_BASE_URL}/citas`);
-                    if (response.ok) {
-                        allCitas = await response.json();
-                    }
-                }
-
-                const select = document.getElementById('citaSelectPago');
-                select.innerHTML = '<option value="">Seleccione una cita</option>';
-                
-                allCitas.forEach(cita => {
-                    const option = document.createElement('option');
-                    option.value = cita.idCita;
-                    option.textContent = `#${cita.idCita} - ${cita.nombreCliente} - ${cita.nombreServicio}`;
-                    select.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error al cargar citas:', error);
-            }
-        }
-
         // Funciones de formato
         function formatDateTime(dateTimeString) {
+            if (!dateTimeString) return 'N/A';
             const date = new Date(dateTimeString);
             return date.toLocaleString('es-ES', {
                 year: 'numeric',
@@ -1651,40 +1613,36 @@ async function deleteCliente(id) {
             });
         }
 
-        function formatTime(dateTimeString) {
-            const date = new Date(dateTimeString);
-            return date.toLocaleString('es-ES', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-
         function formatDateTimeForInput(dateTimeString) {
+            if (!dateTimeString) return '';
             const date = new Date(dateTimeString);
             return date.toISOString().slice(0, 16);
         }
 
         // Funciones de loading
         function showLoading(loadingId) {
-            document.getElementById(loadingId).style.display = 'block';
+            const loadingElement = document.getElementById(loadingId);
+            if (loadingElement) {
+                loadingElement.style.display = 'block';
+            }
         }
 
         function hideLoading(loadingId) {
-            document.getElementById(loadingId).style.display = 'none';
+            const loadingElement = document.getElementById(loadingId);
+            if (loadingElement) {
+                loadingElement.style.display = 'none';
+            }
         }
 
         // Función para mostrar alertas
         function showAlert(message, type = 'success') {
-            // Crear elemento de alerta
             const alert = document.createElement('div');
             alert.className = `alert alert-${type === 'success' ? 'success' : 'error'}`;
             alert.textContent = message;
             
-            // Insertar al inicio del container
             const container = document.querySelector('.container');
             container.insertBefore(alert, container.firstChild);
             
-            // Remover después de 5 segundos
             setTimeout(() => {
                 if (alert.parentNode) {
                     alert.parentNode.removeChild(alert);
@@ -1694,332 +1652,335 @@ async function deleteCliente(id) {
 
         // Funciones de búsqueda
         function searchCitas(searchTerm) {
+            if (!allCitas) return;
             const filteredCitas = allCitas.filter(cita => 
-                cita.nombreCliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                cita.nombreServicio.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (cita.nombreEmpleado && cita.nombreEmpleado.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                cita.estado.toLowerCase().includes(searchTerm.toLowerCase())
+                (cita.nombreCliente || cita.nombreCompletoCliente || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (cita.nombreServicio || cita.descripcionServicio || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (cita.nombreEmpleado || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (cita.estado || '').toLowerCase().includes(searchTerm.toLowerCase())
             );
             displayCitas(filteredCitas);
         }
 
         function searchClientes(searchTerm) {
+            if (!allClientes) return;
             const filteredClientes = allClientes.filter(cliente => 
-                cliente.nombreCompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (cliente.contacto && cliente.contacto.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                (cliente.direccion && cliente.direccion.toLowerCase().includes(searchTerm.toLowerCase()))
+                (cliente.nombreCompleto || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (cliente.contacto || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (cliente.direccion || '').toLowerCase().includes(searchTerm.toLowerCase())
             );
             displayClientes(filteredClientes);
         }
 
         function searchServicios(searchTerm) {
+            if (!allServicios) return;
             const filteredServicios = allServicios.filter(servicio => 
-                servicio.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (servicio.categoria && servicio.categoria.toLowerCase().includes(searchTerm.toLowerCase()))
+                (servicio.descripcion || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (servicio.categoria || '').toLowerCase().includes(searchTerm.toLowerCase())
             );
             displayServicios(filteredServicios);
         }
 
         function searchEmpleados(searchTerm) {
+            if (!allEmpleados) return;
             const filteredEmpleados = allEmpleados.filter(empleado => 
-                empleado.nombreCompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (empleado.especialidad && empleado.especialidad.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                (empleado.contacto && empleado.contacto.toLowerCase().includes(searchTerm.toLowerCase()))
+                (empleado.nombreCompleto || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (empleado.especialidad || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (empleado.contacto || '').toLowerCase().includes(searchTerm.toLowerCase())
             );
             displayEmpleados(filteredEmpleados);
         }
 
         function searchPagos(searchTerm) {
+            if (!allPagos) return;
             const filteredPagos = allPagos.filter(pago => 
-                pago.tipoPago.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                pago.estadoCita.toLowerCase().includes(searchTerm.toLowerCase())
+                pago.idPago.toString().includes(searchTerm.toLowerCase()) ||
+                pago.idCita.toString().includes(searchTerm.toLowerCase()) ||
+                (pago.tipoPago || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (pago.estadoCita || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (pago.nombreCliente || '').toLowerCase().includes(searchTerm.toLowerCase())
             );
             displayPagos(filteredPagos);
         }
 
         // Funciones de filtro
         function filterCitasByEstado(estado) {
+            if (!allCitas) return;
             const filteredCitas = estado ? allCitas.filter(cita => cita.estado === estado) : allCitas;
             displayCitas(filteredCitas);
         }
 
         function filterPagosByTipo(tipo) {
+            if (!allPagos) return;
             const filteredPagos = tipo ? allPagos.filter(pago => pago.tipoPago === tipo) : allPagos;
             displayPagos(filteredPagos);
         }
 
         // Event Listeners para formularios
-        document.getElementById('citaForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                idCliente: parseInt(document.getElementById('clienteSelectCita').value),
-                idServicio: parseInt(document.getElementById('servicioSelectCita').value),
-                idEmpleado: document.getElementById('empleadoSelectCita').value ? 
-                    parseInt(document.getElementById('empleadoSelectCita').value) : null,
-                fechaInicio: document.getElementById('fechaInicio').value,
-                fechaFin: document.getElementById('fechaFin').value,
-                estado: document.getElementById('estadoCita').value,
-                notas: document.getElementById('notasCita').value || null
-            };
-            
-            try {
-                const url = currentEditId ? 
-                    `${API_BASE_URL}/citas/${currentEditId}` : 
-                    `${API_BASE_URL}/citas`;
-                
-                const method = currentEditId ? 'PUT' : 'POST';
-                
-                // Para PUT, necesitamos incluir el ID en el cuerpo
-                if (currentEditId) {
-                    formData.idCita = currentEditId;
-                }
-                
-                const response = await apiCall(url, {
-                    method: method,
-                    body: JSON.stringify(formData)
-                });
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText || 'Error al guardar la cita');
-                }
-                
-                showAlert(currentEditId ? 'Cita actualizada exitosamente' : 'Cita creada exitosamente', 'success');
-                closeCitaModal();
-                await loadCitas();
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert(error.message || 'Error al guardar la cita', 'error');
-            }
-        });
-
-document.getElementById('clienteForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    try {
-        // Primero verificamos si estamos editando y necesitamos obtener el cliente actual
-        let clienteExistente = null;
-        
-        if (currentEditId) {
-            // Obtener los datos actuales del cliente para preservar valores como idUsuario
-            console.log(`Obteniendo datos actuales del cliente ${currentEditId} antes de actualizar`);
-            const getResponse = await apiCall(`${API_BASE_URL}/Clientes/${currentEditId}`, {
-                method: 'GET'
-            });
-            
-            if (!getResponse.ok) {
-                throw new Error(`Error al obtener datos actuales del cliente: ${getResponse.status}`);
-            }
-            
-            clienteExistente = await getResponse.json();
-            console.log('Datos actuales del cliente:', clienteExistente);
-        }
-        
-        // Recopilar datos del formulario con primera letra mayúscula para coincidir con el modelo C#
-        const formData = {
-            NombreCompleto: document.getElementById('nombreCompleto').value.trim(),
-            Contacto: document.getElementById('contactoCliente').value.trim() || null,
-            Direccion: document.getElementById('direccionCliente').value.trim() || null,
-            // Preservar el IdUsuario existente si estamos editando
-            IdUsuario: clienteExistente ? clienteExistente.idUsuario : null
-        };
-        
-        // CORRECCIÓN CRÍTICA: Usar 'Clientes' con 'C' mayúscula, igual que en el GET
-        const url = currentEditId ? 
-            `${API_BASE_URL}/Clientes/${currentEditId}` : 
-            `${API_BASE_URL}/Clientes`;
-        
-        const method = currentEditId ? 'PUT' : 'POST';
-        
-        // Incluir el IdCliente solo para las actualizaciones
-        if (currentEditId) {
-            formData.IdCliente = parseInt(currentEditId, 10); // Asegurar que sea numérico
-        }
-        
-        console.log(`Enviando solicitud ${method} a: ${url}`);
-        console.log('Datos a enviar:', formData);
-        
-        // Realizar la llamada a la API
-        const response = await apiCall(url, {
-            method: method,
-            body: JSON.stringify(formData)
-        });
-        
-        // Manejo de errores más detallado
-        if (!response.ok) {
-            let errorMessage = `Error ${response.status}`;
-            
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-                const errorData = await response.json();
-                errorMessage = errorData.title || errorData.message || errorMessage;
-            } else {
-                const errorText = await response.text();
-                if (errorText) errorMessage = errorText;
-            }
-            
-            throw new Error(errorMessage);
-        }
-        
-        showAlert(
-            currentEditId ? 'Cliente actualizado exitosamente' : 'Cliente creado exitosamente', 
-            'success'
-        );
-        closeClienteModal();
-        await loadClientes();
-    } catch (error) {
-        console.error('Error al guardar cliente:', error);
-        showAlert(error.message || 'Error al guardar el cliente', 'error');
-    }
-});
-
-        document.getElementById('servicioForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                descripcion: document.getElementById('descripcionServicio').value,
-                duracionEstimada: parseInt(document.getElementById('duracionEstimada').value),
-                precio: parseFloat(document.getElementById('precioServicio').value),
-                categoria: document.getElementById('categoriaServicio').value || null
-            };
-            
-            try {
-                const url = currentEditId ? 
-                    `${API_BASE_URL}/servicios/${currentEditId}` : 
-                    `${API_BASE_URL}/servicios`;
-                
-                const method = currentEditId ? 'PUT' : 'POST';
-                
-                if (currentEditId) {
-                    formData.idServicio = currentEditId;
-                }
-                
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText || 'Error al guardar el servicio');
-                }
-                
-                showAlert(currentEditId ? 'Servicio actualizado exitosamente' : 'Servicio creado exitosamente', 'success');
-                closeServicioModal();
-                await loadServicios();
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert(error.message || 'Error al guardar el servicio', 'error');
-            }
-        });
-
-        document.getElementById('empleadoForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                nombreCompleto: document.getElementById('nombreEmpleado').value,
-                especialidad: document.getElementById('especialidadEmpleado').value || null,
-                contacto: document.getElementById('contactoEmpleado').value || null
-            };
-            
-            try {
-                const url = currentEditId ? 
-                    `${API_BASE_URL}/empleados/${currentEditId}` : 
-                    `${API_BASE_URL}/empleados`;
-                
-                const method = currentEditId ? 'PUT' : 'POST';
-                
-                if (currentEditId) {
-                    formData.idEmpleado = currentEditId;
-                }
-                
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText || 'Error al guardar el empleado');
-                }
-                
-                showAlert(currentEditId ? 'Empleado actualizado exitosamente' : 'Empleado creado exitosamente', 'success');
-                closeEmpleadoModal();
-                await loadEmpleados();
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert(error.message || 'Error al guardar el empleado', 'error');
-            }
-        });
-
-        document.getElementById('pagoForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                idCita: parseInt(document.getElementById('citaSelectPago').value),
-                tipoPago: document.getElementById('tipoPago').value,
-                valorPago: parseFloat(document.getElementById('valorPago').value) || null
-            };
-            
-            try {
-                const url = currentEditId ? 
-                    `${API_BASE_URL}/pagos/${currentEditId}` : 
-                    `${API_BASE_URL}/pagos`;
-                
-                const method = currentEditId ? 'PUT' : 'POST';
-                
-                if (currentEditId) {
-                    formData.idPago = currentEditId;
-                }
-                
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText || 'Error al guardar el pago');
-                }
-                
-                showAlert(currentEditId ? 'Pago actualizado exitosamente' : 'Pago registrado exitosamente', 'success');
-                closePagoModal();
-                await loadPagos();
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert(error.message || 'Error al guardar el pago', 'error');
-            }
-        });
-
-        // Cerrar modales al hacer clic fuera
-        window.addEventListener('click', function(event) {
-            const modals = ['citaModal', 'clienteModal', 'servicioModal', 'empleadoModal', 'pagoModal'];
-            modals.forEach(modalId => {
-                const modal = document.getElementById(modalId);
-                if (event.target === modal) {
-                    modal.style.display = 'none';
-                    currentEditId = null;
-                    currentEditType = null;
-                }
-            });
-        });
-
-        // Cargar datos iniciales al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
-            // Establecer fecha mínima para consulta de disponibilidad (hoy)
+            // Formulario de citas
+            document.getElementById('citaForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    idCliente: parseInt(document.getElementById('clienteSelectCita').value),
+                    idServicio: parseInt(document.getElementById('servicioSelectCita').value),
+                    idEmpleado: document.getElementById('empleadoSelectCita').value ? 
+                        parseInt(document.getElementById('empleadoSelectCita').value) : null,
+                    fechaInicio: document.getElementById('fechaInicio').value,
+                    fechaFin: document.getElementById('fechaFin').value,
+                    estado: document.getElementById('estadoCita').value,
+                    notas: document.getElementById('notasCita').value || null
+                };
+                
+                try {
+                    const url = currentEditId ? 
+                        `${API_BASE_URL}/citas/${currentEditId}` : 
+                        `${API_BASE_URL}/citas`;
+                    
+                    const method = currentEditId ? 'PUT' : 'POST';
+                    
+                    if (currentEditId) {
+                        formData.idCita = currentEditId;
+                    }
+                    
+                    const response = await apiCall(url, {
+                        method: method,
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText || 'Error al guardar la cita');
+                    }
+                    
+                    showAlert(currentEditId ? 'Cita actualizada exitosamente' : 'Cita creada exitosamente', 'success');
+                    closeCitaModal();
+                    await loadCitas();
+                } catch (error) {
+                    console.error('Error:', error);
+                    showAlert(error.message || 'Error al guardar la cita', 'error');
+                }
+            });
+
+            // Formulario de clientes
+            document.getElementById('clienteForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                try {
+                    let clienteExistente = null;
+                    
+                    if (currentEditId) {
+                        const getResponse = await apiCall(`${API_BASE_URL}/Clientes/${currentEditId}`);
+                        if (!getResponse.ok) {
+                            throw new Error(`Error al obtener datos actuales del cliente: ${getResponse.status}`);
+                        }
+                        clienteExistente = await getResponse.json();
+                    }
+                    
+                    const formData = {
+                        NombreCompleto: document.getElementById('nombreCompleto').value.trim(),
+                        Contacto: document.getElementById('contactoCliente').value.trim() || null,
+                        Direccion: document.getElementById('direccionCliente').value.trim() || null,
+                        IdUsuario: clienteExistente ? clienteExistente.idUsuario : null
+                    };
+                    
+                    const url = currentEditId ? 
+                        `${API_BASE_URL}/Clientes/${currentEditId}` : 
+                        `${API_BASE_URL}/Clientes`;
+                    
+                    const method = currentEditId ? 'PUT' : 'POST';
+                    
+                    if (currentEditId) {
+                        formData.IdCliente = parseInt(currentEditId, 10);
+                    }
+                    
+                    const response = await apiCall(url, {
+                        method: method,
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    if (!response.ok) {
+                        let errorMessage = `Error ${response.status}`;
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            const errorData = await response.json();
+                            errorMessage = errorData.title || errorData.message || errorMessage;
+                        } else {
+                            const errorText = await response.text();
+                            if (errorText) errorMessage = errorText;
+                        }
+                        throw new Error(errorMessage);
+                    }
+                    
+                    showAlert(
+                        currentEditId ? 'Cliente actualizado exitosamente' : 'Cliente creado exitosamente', 
+                        'success'
+                    );
+                    closeClienteModal();
+                    await loadClientes();
+                } catch (error) {
+                    console.error('Error al guardar cliente:', error);
+                    showAlert(error.message || 'Error al guardar el cliente', 'error');
+                }
+            });
+
+            // Formulario de servicios
+            document.getElementById('servicioForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    descripcion: document.getElementById('descripcionServicio').value,
+                    duracionEstimada: parseInt(document.getElementById('duracionEstimada').value),
+                    precio: parseFloat(document.getElementById('precioServicio').value),
+                    categoria: document.getElementById('categoriaServicio').value || null
+                };
+                
+                try {
+                    const url = currentEditId ? 
+                        `${API_BASE_URL}/servicios/${currentEditId}` : 
+                        `${API_BASE_URL}/servicios`;
+                    
+                    const method = currentEditId ? 'PUT' : 'POST';
+                    
+                    if (currentEditId) {
+                        formData.idServicio = currentEditId;
+                    }
+                    
+                    const response = await apiCall(url, {
+                        method: method,
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText || 'Error al guardar el servicio');
+                    }
+                    
+                    showAlert(currentEditId ? 'Servicio actualizado exitosamente' : 'Servicio creado exitosamente', 'success');
+                    closeServicioModal();
+                    await loadServicios();
+                } catch (error) {
+                    console.error('Error:', error);
+                    showAlert(error.message || 'Error al guardar el servicio', 'error');
+                }
+            });
+
+            // Formulario de empleados
+            document.getElementById('empleadoForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    nombreCompleto: document.getElementById('nombreEmpleado').value,
+                    especialidad: document.getElementById('especialidadEmpleado').value || null,
+                    contacto: document.getElementById('contactoEmpleado').value || null
+                };
+                
+                try {
+                    const url = currentEditId ? 
+                        `${API_BASE_URL}/empleados/${currentEditId}` : 
+                        `${API_BASE_URL}/empleados`;
+                    
+                    const method = currentEditId ? 'PUT' : 'POST';
+                    
+                    if (currentEditId) {
+                        formData.idEmpleado = currentEditId;
+                    }
+                    
+                    const response = await apiCall(url, {
+                        method: method,
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText || 'Error al guardar el empleado');
+                    }
+                    
+                    showAlert(currentEditId ? 'Empleado actualizado exitosamente' : 'Empleado creado exitosamente', 'success');
+                    closeEmpleadoModal();
+                    await loadEmpleados();
+                } catch (error) {
+                    console.error('Error:', error);
+                    showAlert(error.message || 'Error al guardar el empleado', 'error');
+                }
+            });
+
+            // Formulario de pagos (MEJORADO)
+            document.getElementById('pagoForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const valorPago = parseFloat(document.getElementById('valorPago').value);
+                const citaId = parseInt(document.getElementById('citaSelectPago').value);
+                
+                const formData = {
+                    idCita: citaId,
+                    tipoPago: document.getElementById('tipoPago').value,
+                    valorPago: valorPago || null
+                };
+                
+                try {
+                    const url = currentEditId ? 
+                        `${API_BASE_URL}/pagos/${currentEditId}` : 
+                        `${API_BASE_URL}/pagos`;
+                    
+                    const method = currentEditId ? 'PUT' : 'POST';
+                    
+                    if (currentEditId) {
+                        formData.idPago = currentEditId;
+                    }
+                    
+                    const response = await apiCall(url, {
+                        method: method,
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText || 'Error al guardar el pago');
+                    }
+                    
+                    const action = currentEditId ? 'actualizado' : 'registrado';
+                    
+                    // Si es un nuevo pago, verificar si completa la cita
+                    if (!currentEditId && valorPago > 0) {
+                        await checkAndUpdateCitaStatus(citaId, valorPago);
+                    } else {
+                        showAlert(`Pago ${action} exitosamente`, 'success');
+                    }
+                    
+                    closePagoModal();
+                    await loadPagos();
+                } catch (error) {
+                    console.error('Error:', error);
+                    showAlert(error.message || 'Error al guardar el pago', 'error');
+                }
+            });
+
+            // Cerrar modales al hacer clic fuera
+            window.addEventListener('click', function(event) {
+                const modals = ['citaModal', 'clienteModal', 'servicioModal', 'empleadoModal', 'pagoModal'];
+                modals.forEach(modalId => {
+                    const modal = document.getElementById(modalId);
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
+                        currentEditId = null;
+                        currentEditType = null;
+                        if (modalId === 'pagoModal') {
+                            currentCitaInfo = null;
+                            document.getElementById('paymentSummary').style.display = 'none';
+                        }
+                    }
+                });
+            });
+
+            // Cargar datos iniciales
             const today = new Date().toISOString().split('T')[0];
-            document.getElementById('fechaConsulta').min = today;
-            document.getElementById('fechaConsulta').value = today;
+            const fechaConsulta = document.getElementById('fechaConsulta');
+            if (fechaConsulta) {
+                fechaConsulta.min = today;
+                fechaConsulta.value = today;
+            }
             
             // Cargar tab inicial
             loadTabData('citas');

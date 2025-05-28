@@ -25,6 +25,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+app.UseCors(c => c.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod()); ///////7 permitir CORS
 
 // Configuración en entorno de desarrollo
 if (app.Environment.IsDevelopment())
