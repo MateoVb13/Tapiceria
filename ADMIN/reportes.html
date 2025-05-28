@@ -1,0 +1,1964 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - Sistema de Gestión de Tapicería</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            text-align: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+            margin-bottom: 0;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            flex: 1;
+            min-width: 150px;
+            padding: 1rem;
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .nav-tab:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-tab.active {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: inset 0 -3px 0 #fff;
+        }
+
+        .tab-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 0 0 10px 10px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            min-height: 700px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .report-title {
+            font-size: 1.8rem;
+            color: #333;
+            margin: 0;
+        }
+
+        .report-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: #212529;
+        }
+
+        .filters-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            border: 1px solid #e9ecef;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        input, select {
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            border-left: 4px solid;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card.revenue { border-left-color: #28a745; }
+        .stat-card.appointments { border-left-color: #007bff; }
+        .stat-card.clients { border-left-color: #17a2b8; }
+        .stat-card.services { border-left-color: #ffc107; }
+        .stat-card.pending { border-left-color: #fd7e14; }
+
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card.revenue .stat-number { color: #28a745; }
+        .stat-card.appointments .stat-number { color: #007bff; }
+        .stat-card.clients .stat-number { color: #17a2b8; }
+        .stat-card.services .stat-number { color: #ffc107; }
+        .stat-card.pending .stat-number { color: #fd7e14; }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        .chart-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: 400px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .table-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e1e5e9;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background: rgba(102, 126, 234, 0.03);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b3d7ff;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        .export-options {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 0.5rem;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .report-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .report-controls {
+                justify-content: center;
+            }
+            
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .export-options {
+                justify-content: center;
+            }
+        }
+
+        .trend-indicator {
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .trend-up {
+            color: #28a745;
+        }
+
+        .trend-down {
+            color: #dc3545;
+        }
+
+        .date-range-info {
+            background: #e3f2fd;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #1565c0;
+            margin-bottom: 1rem;
+            border-left: 4px solid #2196f3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        📊 Sistema de Reportes - Tapicería
+    </div>
+
+    <div class="container">
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('dashboard')">📈 Dashboard</button>
+            <button class="nav-tab" onclick="showTab('ventas')">💰 Ventas</button>
+            <button class="nav-tab" onclick="showTab('citas')">📅 Citas</button>
+            <button class="nav-tab" onclick="showTab('clientes')">👥 Clientes</button>
+            <button class="nav-tab" onclick="showTab('servicios')">🔧 Servicios</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Dashboard General -->
+            <div id="dashboard" class="tab-pane active">
+                <div class="report-header">
+                    <h2 class="report-title">📈 Dashboard General</h2>
+                    <div class="report-controls">
+                        <div class="export-options">
+                            <button class="btn btn-success" onclick="exportReport('dashboard', 'pdf')">
+                                📄 Exportar PDF
+                            </button>
+                            <button class="btn btn-info" onclick="exportReport('dashboard', 'excel')">
+                                📊 Exportar Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filters-section">
+                    <div class="filters-grid">
+                        <div class="form-group">
+                            <label>Fecha Desde:</label>
+                            <input type="date" id="dashboardDateFrom">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha Hasta:</label>
+                            <input type="date" id="dashboardDateTo">
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button class="btn" onclick="loadDashboard()">🔍 Actualizar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="dashboardDateInfo" class="date-range-info"></div>
+
+                <div class="loading" id="dashboardLoading">
+                    <div class="spinner"></div>
+                    <p>Cargando datos del dashboard...</p>
+                </div>
+
+                <div class="stats-grid" id="dashboardStats">
+                    <!-- Se llenarán dinámicamente -->
+                </div>
+
+                <div class="chart-container">
+                    <h3 class="chart-title">📊 Ingresos por Mes</h3>
+                    <canvas id="revenueChart" class="chart-canvas"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h3 class="chart-title">📈 Citas por Estado</h3>
+                    <canvas id="appointmentsChart" class="chart-canvas"></canvas>
+                </div>
+            </div>
+
+            <!-- Reporte de Ventas -->
+            <div id="ventas" class="tab-pane">
+                <div class="report-header">
+                    <h2 class="report-title">💰 Reporte de Ventas</h2>
+                    <div class="report-controls">
+                        <div class="export-options">
+                            <button class="btn btn-success" onclick="exportReport('ventas', 'pdf')">
+                                📄 Exportar PDF
+                            </button>
+                            <button class="btn btn-info" onclick="exportReport('ventas', 'excel')">
+                                📊 Exportar Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filters-section">
+                    <div class="filters-grid">
+                        <div class="form-group">
+                            <label>Fecha Desde:</label>
+                            <input type="date" id="ventasDateFrom">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha Hasta:</label>
+                            <input type="date" id="ventasDateTo">
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo de Pago:</label>
+                            <select id="ventasTipoPago">
+                                <option value="">Todos</option>
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Tarjeta">Tarjeta</option>
+                                <option value="Transferencia">Transferencia</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button class="btn" onclick="loadVentasReport()">🔍 Generar Reporte</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="loading" id="ventasLoading">
+                    <div class="spinner"></div>
+                    <p>Generando reporte de ventas...</p>
+                </div>
+
+                <div id="ventasContent">
+                    <div class="stats-grid" id="ventasStats">
+                        <!-- Stats de ventas -->
+                    </div>
+
+                    <div class="chart-container">
+                        <h3 class="chart-title">💳 Ventas por Tipo de Pago</h3>
+                        <canvas id="salesByPaymentChart" class="chart-canvas"></canvas>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="table-header">📋 Detalle de Ventas</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Cliente</th>
+                                    <th>Servicio</th>
+                                    <th>Tipo Pago</th>
+                                    <th>Valor</th>
+                                    <th>Estado Cita</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ventasTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reporte de Citas -->
+            <div id="citas" class="tab-pane">
+                <div class="report-header">
+                    <h2 class="report-title">📅 Reporte de Citas</h2>
+                    <div class="report-controls">
+                        <div class="export-options">
+                            <button class="btn btn-success" onclick="exportReport('citas', 'pdf')">
+                                📄 Exportar PDF
+                            </button>
+                            <button class="btn btn-info" onclick="exportReport('citas', 'excel')">
+                                📊 Exportar Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filters-section">
+                    <div class="filters-grid">
+                        <div class="form-group">
+                            <label>Fecha Desde:</label>
+                            <input type="date" id="citasDateFrom">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha Hasta:</label>
+                            <input type="date" id="citasDateTo">
+                        </div>
+                        <div class="form-group">
+                            <label>Estado:</label>
+                            <select id="citasEstado">
+                                <option value="">Todos</option>
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Confirmada">Confirmada</option>
+                                <option value="Completada">Completada</option>
+                                <option value="Cancelada">Cancelada</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Empleado:</label>
+                            <select id="citasEmpleado">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button class="btn" onclick="loadCitasReport()">🔍 Generar Reporte</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="loading" id="citasLoading">
+                    <div class="spinner"></div>
+                    <p>Generando reporte de citas...</p>
+                </div>
+
+                <div id="citasContent">
+                    <div class="stats-grid" id="citasStats">
+                        <!-- Stats de citas -->
+                    </div>
+
+                    <div class="chart-container">
+                        <h3 class="chart-title">📊 Citas por Empleado</h3>
+                        <canvas id="appointmentsByEmployeeChart" class="chart-canvas"></canvas>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="table-header">📋 Detalle de Citas</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Cliente</th>
+                                    <th>Servicio</th>
+                                    <th>Empleado</th>
+                                    <th>Estado</th>
+                                    <th>Precio</th>
+                                </tr>
+                            </thead>
+                            <tbody id="citasTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reporte de Clientes -->
+            <div id="clientes" class="tab-pane">
+                <div class="report-header">
+                    <h2 class="report-title">👥 Reporte de Clientes</h2>
+                    <div class="report-controls">
+                        <div class="export-options">
+                            <button class="btn btn-success" onclick="exportReport('clientes', 'pdf')">
+                                📄 Exportar PDF
+                            </button>
+                            <button class="btn btn-info" onclick="exportReport('clientes', 'excel')">
+                                📊 Exportar Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filters-section">
+                    <div class="filters-grid">
+                        <div class="form-group">
+                            <label>Período de Análisis:</label>
+                            <select id="clientesPeriodo">
+                                <option value="30">Últimos 30 días</option>
+                                <option value="90">Últimos 3 meses</option>
+                                <option value="180">Últimos 6 meses</option>
+                                <option value="365">Último año</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button class="btn" onclick="loadClientesReport()">🔍 Generar Reporte</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="loading" id="clientesLoading">
+                    <div class="spinner"></div>
+                    <p>Generando reporte de clientes...</p>
+                </div>
+
+                <div id="clientesContent">
+                    <div class="stats-grid" id="clientesStats">
+                        <!-- Stats de clientes -->
+                    </div>
+
+                    <div class="chart-container">
+                        <h3 class="chart-title">🏆 Top 10 Clientes por Gasto</h3>
+                        <canvas id="topClientsChart" class="chart-canvas"></canvas>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="table-header">📋 Análisis Detallado de Clientes</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Total Citas</th>
+                                    <th>Total Gastado</th>
+                                    <th>Última Cita</th>
+                                    <th>Servicios Favoritos</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientesTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reporte de Servicios -->
+            <div id="servicios" class="tab-pane">
+                <div class="report-header">
+                    <h2 class="report-title">🔧 Reporte de Servicios</h2>
+                    <div class="report-controls">
+                        <div class="export-options">
+                            <button class="btn btn-success" onclick="exportReport('servicios', 'pdf')">
+                                📄 Exportar PDF
+                            </button>
+                            <button class="btn btn-info" onclick="exportReport('servicios', 'excel')">
+                                📊 Exportar Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filters-section">
+                    <div class="filters-grid">
+                        <div class="form-group">
+                            <label>Fecha Desde:</label>
+                            <input type="date" id="serviciosDateFrom">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha Hasta:</label>
+                            <input type="date" id="serviciosDateTo">
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button class="btn" onclick="loadServiciosReport()">🔍 Generar Reporte</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="loading" id="serviciosLoading">
+                    <div class="spinner"></div>
+                    <p>Generando reporte de servicios...</p>
+                </div>
+
+                <div id="serviciosContent">
+                    <div class="stats-grid" id="serviciosStats">
+                        <!-- Stats de servicios -->
+                    </div>
+
+                    <div class="chart-container">
+                        <h3 class="chart-title">🏆 Servicios Más Populares</h3>
+                        <canvas id="popularServicesChart" class="chart-canvas"></canvas>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="table-header">📋 Análisis Detallado de Servicios</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Servicio</th>
+                                    <th>Total Citas</th>
+                                    <th>Ingresos Generados</th>
+                                    <th>Promedio por Servicio</th>
+                                    <th>Categoría</th>
+                                </tr>
+                            </thead>
+                            <tbody id="serviciosTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <!-- jsPDF CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- SheetJS CDN para Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        const API_BASE_URL = 'https://ddf2-190-90-17-227.ngrok-free.app/api';
+        
+        const DEFAULT_HEADERS = {
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true'
+        };
+
+        async function apiCall(url, options = {}) {
+            const defaultOptions = {
+                headers: DEFAULT_HEADERS,
+                ...options
+            };
+            
+            if (!options.body) {
+                defaultOptions.headers = {
+                    'ngrok-skip-browser-warning': 'true'
+                };
+            }
+            
+            return await fetch(url, defaultOptions);
+        }
+
+        // Variables globales para datos
+        let currentData = {
+            citas: [],
+            pagos: [],
+            clientes: [],
+            servicios: [],
+            empleados: []
+        };
+
+        let charts = {};
+
+        function showTab(tabName) {
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            tabPanes.forEach(pane => pane.classList.remove('active'));
+
+            const tabButtons = document.querySelectorAll('.nav-tab');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            loadTabData(tabName);
+        }
+
+        async function loadTabData(tabName) {
+            switch(tabName) {
+                case 'dashboard':
+                    await loadDashboard();
+                    break;
+                case 'ventas':
+                    await loadVentasReport();
+                    break;
+                case 'citas':
+                    await loadCitasReport();
+                    break;
+                case 'clientes':
+                    await loadClientesReport();
+                    break;
+                case 'servicios':
+                    await loadServiciosReport();
+                    break;
+            }
+        }
+
+        // ===== FUNCIONES BASE DE DATOS =====
+        async function loadAllData() {
+            try {
+                const [citasRes, pagosRes, clientesRes, serviciosRes, empleadosRes] = await Promise.all([
+                    apiCall(`${API_BASE_URL}/citas`),
+                    apiCall(`${API_BASE_URL}/pagos`),
+                    apiCall(`${API_BASE_URL}/Clientes`),
+                    apiCall(`${API_BASE_URL}/servicios`),
+                    apiCall(`${API_BASE_URL}/empleados`)
+                ]);
+
+                if (citasRes.ok) currentData.citas = await citasRes.json();
+                if (pagosRes.ok) currentData.pagos = await pagosRes.json();
+                if (clientesRes.ok) currentData.clientes = await clientesRes.json();
+                if (serviciosRes.ok) currentData.servicios = await serviciosRes.json();
+                if (empleadosRes.ok) currentData.empleados = await empleadosRes.json();
+
+                // Enriquecer datos de pagos con información de citas
+                currentData.pagos = currentData.pagos.map(pago => {
+                    const cita = currentData.citas.find(c => c.idCita === pago.idCita);
+                    if (cita) {
+                        const cliente = currentData.clientes.find(cl => cl.idCliente === cita.idCliente);
+                        const servicio = currentData.servicios.find(s => s.idServicio === cita.idServicio);
+                        return {
+                            ...pago,
+                            nombreCliente: cliente ? cliente.nombreCompleto : `Cliente ID: ${cita.idCliente}`,
+                            servicioDescripcion: servicio ? servicio.descripcion : `Servicio ID: ${cita.idServicio}`,
+                            fechaCita: cita.fechaInicio,
+                            estadoCita: cita.estado
+                        };
+                    }
+                    return pago;
+                });
+
+            } catch (error) {
+                console.error('Error al cargar datos:', error);
+                showAlert('Error al cargar datos del sistema', 'error');
+            }
+        }
+
+        // ===== DASHBOARD PRINCIPAL =====
+        async function loadDashboard() {
+            showLoading('dashboardLoading');
+            await loadAllData();
+
+            const dateFrom = document.getElementById('dashboardDateFrom').value;
+            const dateTo = document.getElementById('dashboardDateTo').value;
+
+            updateDateRangeInfo('dashboardDateInfo', dateFrom, dateTo);
+
+            const filteredData = filterDataByDate(currentData, dateFrom, dateTo);
+            
+            displayDashboardStats(filteredData);
+            createRevenueChart(filteredData.pagos);
+            createAppointmentsChart(filteredData.citas);
+
+            hideLoading('dashboardLoading');
+        }
+
+        function displayDashboardStats(data) {
+            const totalRevenue = data.pagos.reduce((sum, pago) => sum + (pago.valorPago || 0), 0);
+            const totalAppointments = data.citas.length;
+            const totalClients = data.clientes.length;
+            const totalServices = data.servicios.length;
+            const pendingAppointments = data.citas.filter(c => c.estado === 'Pendiente').length;
+
+            const statsHTML = `
+                <div class="stat-card revenue">
+                    <div class="stat-number">${totalRevenue.toFixed(2)}</div>
+                    <div class="stat-label">Ingresos Totales</div>
+                </div>
+                <div class="stat-card appointments">
+                    <div class="stat-number">${totalAppointments}</div>
+                    <div class="stat-label">Total Citas</div>
+                </div>
+                <div class="stat-card clients">
+                    <div class="stat-number">${totalClients}</div>
+                    <div class="stat-label">Clientes Registrados</div>
+                </div>
+                <div class="stat-card services">
+                    <div class="stat-number">${totalServices}</div>
+                    <div class="stat-label">Servicios Disponibles</div>
+                </div>
+                <div class="stat-card pending">
+                    <div class="stat-number">${pendingAppointments}</div>
+                    <div class="stat-label">Citas Pendientes</div>
+                </div>
+            `;
+
+            document.getElementById('dashboardStats').innerHTML = statsHTML;
+        }
+
+        function createRevenueChart(pagos) {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            
+            if (charts.revenue) {
+                charts.revenue.destroy();
+            }
+
+            // Agrupar pagos por mes
+            const monthlyRevenue = {};
+            pagos.forEach(pago => {
+                const month = new Date(pago.fechaCita).toLocaleDateString('es-ES', { year: 'numeric', month: 'short' });
+                monthlyRevenue[month] = (monthlyRevenue[month] || 0) + (pago.valorPago || 0);
+            });
+
+            const labels = Object.keys(monthlyRevenue).sort();
+            const data = labels.map(month => monthlyRevenue[month]);
+
+            charts.revenue = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Ingresos ($)',
+                        data: data,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createAppointmentsChart(citas) {
+            const ctx = document.getElementById('appointmentsChart').getContext('2d');
+            
+            if (charts.appointments) {
+                charts.appointments.destroy();
+            }
+
+            const statusCount = {};
+            citas.forEach(cita => {
+                const status = cita.estado || 'Sin Estado';
+                statusCount[status] = (statusCount[status] || 0) + 1;
+            });
+
+            const colors = {
+                'Pendiente': '#ffc107',
+                'Confirmada': '#007bff',
+                'Completada': '#28a745',
+                'Cancelada': '#dc3545',
+                'Sin Estado': '#6c757d'
+            };
+
+            charts.appointments = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusCount),
+                    datasets: [{
+                        data: Object.values(statusCount),
+                        backgroundColor: Object.keys(statusCount).map(status => colors[status] || '#6c757d'),
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ===== REPORTE DE VENTAS =====
+        async function loadVentasReport() {
+            showLoading('ventasLoading');
+            await loadAllData();
+
+            const dateFrom = document.getElementById('ventasDateFrom').value;
+            const dateTo = document.getElementById('ventasDateTo').value;
+            const tipoPago = document.getElementById('ventasTipoPago').value;
+
+            let filteredPagos = filterDataByDate({ pagos: currentData.pagos }, dateFrom, dateTo).pagos;
+            
+            if (tipoPago) {
+                filteredPagos = filteredPagos.filter(pago => pago.tipoPago === tipoPago);
+            }
+
+            displayVentasStats(filteredPagos);
+            createSalesByPaymentChart(filteredPagos);
+            displayVentasTable(filteredPagos);
+
+            hideLoading('ventasLoading');
+        }
+
+        function displayVentasStats(pagos) {
+            const totalVentas = pagos.reduce((sum, pago) => sum + (pago.valorPago || 0), 0);
+            const numTransacciones = pagos.length;
+            const promedioVenta = numTransacciones > 0 ? totalVentas / numTransacciones : 0;
+            
+            const ventasEfectivo = pagos.filter(p => p.tipoPago === 'Efectivo').reduce((sum, p) => sum + (p.valorPago || 0), 0);
+            const ventasTarjeta = pagos.filter(p => p.tipoPago === 'Tarjeta').reduce((sum, p) => sum + (p.valorPago || 0), 0);
+
+            const statsHTML = `
+                <div class="stat-card revenue">
+                    <div class="stat-number">${totalVentas.toFixed(2)}</div>
+                    <div class="stat-label">Total Ventas</div>
+                </div>
+                <div class="stat-card appointments">
+                    <div class="stat-number">${numTransacciones}</div>
+                    <div class="stat-label">Transacciones</div>
+                </div>
+                <div class="stat-card clients">
+                    <div class="stat-number">${promedioVenta.toFixed(2)}</div>
+                    <div class="stat-label">Promedio por Venta</div>
+                </div>
+                <div class="stat-card services">
+                    <div class="stat-number">${ventasEfectivo.toFixed(2)}</div>
+                    <div class="stat-label">Ventas Efectivo</div>
+                </div>
+                <div class="stat-card pending">
+                    <div class="stat-number">${ventasTarjeta.toFixed(2)}</div>
+                    <div class="stat-label">Ventas Tarjeta</div>
+                </div>
+            `;
+
+            document.getElementById('ventasStats').innerHTML = statsHTML;
+        }
+
+        function createSalesByPaymentChart(pagos) {
+            const ctx = document.getElementById('salesByPaymentChart').getContext('2d');
+            
+            if (charts.salesByPayment) {
+                charts.salesByPayment.destroy();
+            }
+
+            const paymentSales = {};
+            pagos.forEach(pago => {
+                const tipo = pago.tipoPago || 'Sin Tipo';
+                paymentSales[tipo] = (paymentSales[tipo] || 0) + (pago.valorPago || 0);
+            });
+
+            const colors = ['#667eea', '#764ba2', '#28a745', '#ffc107', '#dc3545'];
+
+            charts.salesByPayment = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(paymentSales),
+                    datasets: [{
+                        label: 'Ventas ($)',
+                        data: Object.values(paymentSales),
+                        backgroundColor: colors.slice(0, Object.keys(paymentSales).length),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayVentasTable(pagos) {
+            const tbody = document.getElementById('ventasTableBody');
+            tbody.innerHTML = '';
+
+            pagos.forEach(pago => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(pago.fechaCita).toLocaleDateString('es-ES')}</td>
+                    <td>${pago.nombreCliente || 'N/A'}</td>
+                    <td>${pago.servicioDescripcion || 'N/A'}</td>
+                    <td>${pago.tipoPago}</td>
+                    <td>${(pago.valorPago || 0).toFixed(2)}</td>
+                    <td><span class="status ${(pago.estadoCita || '').toLowerCase()}">${pago.estadoCita || 'N/A'}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            if (pagos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="no-data">No hay datos para mostrar</td></tr>';
+            }
+        }
+
+        // ===== REPORTE DE CITAS =====
+        async function loadCitasReport() {
+            showLoading('citasLoading');
+            await loadAllData();
+
+            const dateFrom = document.getElementById('citasDateFrom').value;
+            const dateTo = document.getElementById('citasDateTo').value;
+            const estado = document.getElementById('citasEstado').value;
+            const empleadoId = document.getElementById('citasEmpleado').value;
+
+            let filteredCitas = filterDataByDate({ citas: currentData.citas }, dateFrom, dateTo).citas;
+            
+            if (estado) {
+                filteredCitas = filteredCitas.filter(cita => cita.estado === estado);
+            }
+            
+            if (empleadoId) {
+                filteredCitas = filteredCitas.filter(cita => cita.idEmpleado == empleadoId);
+            }
+
+            displayCitasStats(filteredCitas);
+            createAppointmentsByEmployeeChart(filteredCitas);
+            displayCitasTable(filteredCitas);
+
+            hideLoading('citasLoading');
+        }
+
+        function displayCitasStats(citas) {
+            const totalCitas = citas.length;
+            const citasCompletadas = citas.filter(c => c.estado === 'Completada').length;
+            const citasPendientes = citas.filter(c => c.estado === 'Pendiente').length;
+            const citasCanceladas = citas.filter(c => c.estado === 'Cancelada').length;
+            const tasaCompletado = totalCitas > 0 ? ((citasCompletadas / totalCitas) * 100).toFixed(1) : 0;
+
+            const statsHTML = `
+                <div class="stat-card appointments">
+                    <div class="stat-number">${totalCitas}</div>
+                    <div class="stat-label">Total Citas</div>
+                </div>
+                <div class="stat-card revenue">
+                    <div class="stat-number">${citasCompletadas}</div>
+                    <div class="stat-label">Completadas</div>
+                </div>
+                <div class="stat-card pending">
+                    <div class="stat-number">${citasPendientes}</div>
+                    <div class="stat-label">Pendientes</div>
+                </div>
+                <div class="stat-card clients">
+                    <div class="stat-number">${citasCanceladas}</div>
+                    <div class="stat-label">Canceladas</div>
+                </div>
+                <div class="stat-card services">
+                    <div class="stat-number">${tasaCompletado}%</div>
+                    <div class="stat-label">Tasa Completado</div>
+                </div>
+            `;
+
+            document.getElementById('citasStats').innerHTML = statsHTML;
+        }
+
+        function createAppointmentsByEmployeeChart(citas) {
+            const ctx = document.getElementById('appointmentsByEmployeeChart').getContext('2d');
+            
+            if (charts.appointmentsByEmployee) {
+                charts.appointmentsByEmployee.destroy();
+            }
+
+            const employeeAppointments = {};
+            citas.forEach(cita => {
+                const empleado = cita.nombreEmpleado || 'Sin Asignar';
+                employeeAppointments[empleado] = (employeeAppointments[empleado] || 0) + 1;
+            });
+
+            const colors = ['#667eea', '#764ba2', '#28a745', '#ffc107', '#dc3545', '#17a2b8'];
+
+            charts.appointmentsByEmployee = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(employeeAppointments),
+                    datasets: [{
+                        label: 'Citas',
+                        data: Object.values(employeeAppointments),
+                        backgroundColor: colors.slice(0, Object.keys(employeeAppointments).length),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayCitasTable(citas) {
+            const tbody = document.getElementById('citasTableBody');
+            tbody.innerHTML = '';
+
+            citas.forEach(cita => {
+                const cliente = currentData.clientes.find(c => c.idCliente === cita.idCliente);
+                const servicio = currentData.servicios.find(s => s.idServicio === cita.idServicio);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(cita.fechaInicio).toLocaleDateString('es-ES')}</td>
+                    <td>${cliente ? cliente.nombreCompleto : 'N/A'}</td>
+                    <td>${servicio ? servicio.descripcion : 'N/A'}</td>
+                    <td>${cita.nombreEmpleado || 'Sin Asignar'}</td>
+                    <td><span class="status ${(cita.estado || '').toLowerCase()}">${cita.estado || 'N/A'}</span></td>
+                    <td>${(cita.precio || servicio?.precio || 0).toFixed(2)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            if (citas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="no-data">No hay datos para mostrar</td></tr>';
+            }
+        }
+
+        // ===== REPORTE DE CLIENTES =====
+        async function loadClientesReport() {
+            showLoading('clientesLoading');
+            await loadAllData();
+
+            const periodo = parseInt(document.getElementById('clientesPeriodo').value);
+            const fechaLimite = new Date();
+            fechaLimite.setDate(fechaLimite.getDate() - periodo);
+
+            // Filtrar citas del período
+            const citasPeriodo = currentData.citas.filter(cita => 
+                new Date(cita.fechaInicio) >= fechaLimite
+            );
+
+            const pagosPeriodo = currentData.pagos.filter(pago => 
+                new Date(pago.fechaCita) >= fechaLimite
+            );
+
+            displayClientesStats(citasPeriodo, pagosPeriodo);
+            createTopClientsChart(pagosPeriodo);
+            displayClientesTable(citasPeriodo, pagosPeriodo);
+
+            hideLoading('clientesLoading');
+        }
+
+        function displayClientesStats(citas, pagos) {
+            const clientesUnicos = new Set(citas.map(c => c.idCliente)).size;
+            const clientesNuevos = currentData.clientes.length;
+            const promedioGastoPorCliente = clientesUnicos > 0 ? 
+                pagos.reduce((sum, p) => sum + (p.valorPago || 0), 0) / clientesUnicos : 0;
+            const clientesRecurrentes = citas.reduce((acc, cita) => {
+                acc[cita.idCliente] = (acc[cita.idCliente] || 0) + 1;
+                return acc;
+            }, {});
+            const clientesConVariasCitas = Object.values(clientesRecurrentes).filter(count => count > 1).length;
+
+            const statsHTML = `
+                <div class="stat-card clients">
+                    <div class="stat-number">${clientesUnicos}</div>
+                    <div class="stat-label">Clientes Activos</div>
+                </div>
+                <div class="stat-card appointments">
+                    <div class="stat-number">${clientesNuevos}</div>
+                    <div class="stat-label">Total Registrados</div>
+                </div>
+                <div class="stat-card revenue">
+                    <div class="stat-number">${promedioGastoPorCliente.toFixed(2)}</div>
+                    <div class="stat-label">Gasto Promedio</div>
+                </div>
+                <div class="stat-card services">
+                    <div class="stat-number">${clientesConVariasCitas}</div>
+                    <div class="stat-label">Clientes Recurrentes</div>
+                </div>
+                <div class="stat-card pending">
+                    <div class="stat-number">${((clientesConVariasCitas / clientesUnicos) * 100).toFixed(1)}%</div>
+                    <div class="stat-label">Tasa Retención</div>
+                </div>
+            `;
+
+            document.getElementById('clientesStats').innerHTML = statsHTML;
+        }
+
+        function createTopClientsChart(pagos) {
+            const ctx = document.getElementById('topClientsChart').getContext('2d');
+            
+            if (charts.topClients) {
+                charts.topClients.destroy();
+            }
+
+            // Agrupar gastos por cliente
+            const clienteGastos = {};
+            pagos.forEach(pago => {
+                const clienteNombre = pago.nombreCliente || 'Cliente Desconocido';
+                clienteGastos[clienteNombre] = (clienteGastos[clienteNombre] || 0) + (pago.valorPago || 0);
+            });
+
+            // Obtener top 10
+            const sortedClientes = Object.entries(clienteGastos)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 10);
+
+            const labels = sortedClientes.map(([cliente]) => cliente.length > 20 ? cliente.substring(0, 20) + '...' : cliente);
+            const data = sortedClientes.map(([, gasto]) => gasto);
+
+            charts.topClients = new Chart(ctx, {
+                type: 'horizontalBar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Gasto Total ($)',
+                        data: data,
+                        backgroundColor: '#667eea',
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(0);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayClientesTable(citas, pagos) {
+            const tbody = document.getElementById('clientesTableBody');
+            tbody.innerHTML = '';
+
+            // Agrupar datos por cliente
+            const clienteAnalisis = {};
+            
+            citas.forEach(cita => {
+                const cliente = currentData.clientes.find(c => c.idCliente === cita.idCliente);
+                const servicio = currentData.servicios.find(s => s.idServicio === cita.idServicio);
+                const clienteNombre = cliente ? cliente.nombreCompleto : 'Cliente Desconocido';
+                
+                if (!clienteAnalisis[clienteNombre]) {
+                    clienteAnalisis[clienteNombre] = {
+                        totalCitas: 0,
+                        totalGastado: 0,
+                        ultimaCita: null,
+                        servicios: {}
+                    };
+                }
+                
+                clienteAnalisis[clienteNombre].totalCitas++;
+                
+                if (!clienteAnalisis[clienteNombre].ultimaCita || 
+                    new Date(cita.fechaInicio) > new Date(clienteAnalisis[clienteNombre].ultimaCita)) {
+                    clienteAnalisis[clienteNombre].ultimaCita = cita.fechaInicio;
+                }
+                
+                if (servicio) {
+                    const servicioNombre = servicio.descripcion;
+                    clienteAnalisis[clienteNombre].servicios[servicioNombre] = 
+                        (clienteAnalisis[clienteNombre].servicios[servicioNombre] || 0) + 1;
+                }
+            });
+
+            // Agregar gastos
+            pagos.forEach(pago => {
+                const clienteNombre = pago.nombreCliente || 'Cliente Desconocido';
+                if (clienteAnalisis[clienteNombre]) {
+                    clienteAnalisis[clienteNombre].totalGastado += (pago.valorPago || 0);
+                }
+            });
+
+            // Mostrar en tabla
+            Object.entries(clienteAnalisis).forEach(([cliente, datos]) => {
+                const serviciosFavoritos = Object.entries(datos.servicios)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 2)
+                    .map(([servicio]) => servicio)
+                    .join(', ');
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${cliente}</td>
+                    <td>${datos.totalCitas}</td>
+                    <td>${datos.totalGastado.toFixed(2)}</td>
+                    <td>${datos.ultimaCita ? new Date(datos.ultimaCita).toLocaleDateString('es-ES') : 'N/A'}</td>
+                    <td>${serviciosFavoritos || 'N/A'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            if (Object.keys(clienteAnalisis).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="no-data">No hay datos para mostrar</td></tr>';
+            }
+        }
+
+        // ===== REPORTE DE SERVICIOS =====
+        async function loadServiciosReport() {
+            showLoading('serviciosLoading');
+            await loadAllData();
+
+            const dateFrom = document.getElementById('serviciosDateFrom').value;
+            const dateTo = document.getElementById('serviciosDateTo').value;
+
+            const filteredCitas = filterDataByDate({ citas: currentData.citas }, dateFrom, dateTo).citas;
+            const filteredPagos = filterDataByDate({ pagos: currentData.pagos }, dateFrom, dateTo).pagos;
+
+            displayServiciosStats(filteredCitas, filteredPagos);
+            createPopularServicesChart(filteredCitas);
+            displayServiciosTable(filteredCitas, filteredPagos);
+
+            hideLoading('serviciosLoading');
+        }
+
+        function displayServiciosStats(citas, pagos) {
+            const serviciosUsados = new Set(citas.map(c => c.idServicio)).size;
+            const totalServicios = currentData.servicios.length;
+            const ingresosTotales = pagos.reduce((sum, p) => sum + (p.valorPago || 0), 0);
+            const promedioIngresoPorServicio = serviciosUsados > 0 ? ingresosTotales / serviciosUsados : 0;
+            
+            // Servicio más popular
+            const servicioCount = {};
+            citas.forEach(cita => {
+                servicioCount[cita.idServicio] = (servicioCount[cita.idServicio] || 0) + 1;
+            });
+            const servicioMasPopular = Object.keys(servicioCount).reduce((a, b) => 
+                servicioCount[a] > servicioCount[b] ? a : b, Object.keys(servicioCount)[0]);
+            const servicio = currentData.servicios.find(s => s.idServicio == servicioMasPopular);
+
+            const statsHTML = `
+                <div class="stat-card services">
+                    <div class="stat-number">${serviciosUsados}</div>
+                    <div class="stat-label">Servicios Activos</div>
+                </div>
+                <div class="stat-card appointments">
+                    <div class="stat-number">${totalServicios}</div>
+                    <div class="stat-label">Total Servicios</div>
+                </div>
+                <div class="stat-card revenue">
+                    <div class="stat-number">${ingresosTotales.toFixed(2)}</div>
+                    <div class="stat-label">Ingresos Totales</div>
+                </div>
+                <div class="stat-card clients">
+                    <div class="stat-number">${promedioIngresoPorServicio.toFixed(2)}</div>
+                    <div class="stat-label">Promedio por Servicio</div>
+                </div>
+                <div class="stat-card pending">
+                    <div class="stat-number">${servicioCount[servicioMasPopular] || 0}</div>
+                    <div class="stat-label">Más Solicitado</div>
+                    <div style="font-size: 0.7rem; margin-top: 0.25rem; color: #666;">
+                        ${servicio ? servicio.descripcion.substring(0, 20) + '...' : 'N/A'}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('serviciosStats').innerHTML = statsHTML;
+        }
+
+        function createPopularServicesChart(citas) {
+            const ctx = document.getElementById('popularServicesChart').getContext('2d');
+            
+            if (charts.popularServices) {
+                charts.popularServices.destroy();
+            }
+
+            // Contar servicios
+            const servicioCount = {};
+            citas.forEach(cita => {
+                const servicio = currentData.servicios.find(s => s.idServicio === cita.idServicio);
+                const servicioNombre = servicio ? servicio.descripcion : `Servicio ${cita.idServicio}`;
+                servicioCount[servicioNombre] = (servicioCount[servicioNombre] || 0) + 1;
+            });
+
+            // Obtener top servicios
+            const sortedServicios = Object.entries(servicioCount)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 8);
+
+            const labels = sortedServicios.map(([servicio]) => 
+                servicio.length > 25 ? servicio.substring(0, 25) + '...' : servicio);
+            const data = sortedServicios.map(([, count]) => count);
+
+            charts.popularServices = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#667eea', '#764ba2', '#28a745', '#ffc107', 
+                            '#dc3545', '#17a2b8', '#6c757d', '#fd7e14'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayServiciosTable(citas, pagos) {
+            const tbody = document.getElementById('serviciosTableBody');
+            tbody.innerHTML = '';
+
+            // Analizar cada servicio
+            const servicioAnalisis = {};
+            
+            // Contar citas por servicio
+            citas.forEach(cita => {
+                const servicio = currentData.servicios.find(s => s.idServicio === cita.idServicio);
+                if (servicio) {
+                    if (!servicioAnalisis[servicio.descripcion]) {
+                        servicioAnalisis[servicio.descripcion] = {
+                            totalCitas: 0,
+                            ingresoGenerado: 0,
+                            categoria: servicio.categoria || 'Sin Categoría',
+                            precioBase: servicio.precio
+                        };
+                    }
+                    servicioAnalisis[servicio.descripcion].totalCitas++;
+                }
+            });
+
+            // Calcular ingresos por servicio
+            pagos.forEach(pago => {
+                const servicioNombre = pago.servicioDescripcion;
+                if (servicioNombre && servicioAnalisis[servicioNombre]) {
+                    servicioAnalisis[servicioNombre].ingresoGenerado += (pago.valorPago || 0);
+                }
+            });
+
+            // Mostrar en tabla
+            Object.entries(servicioAnalisis).forEach(([servicio, datos]) => {
+                const promedioIngreso = datos.totalCitas > 0 ? datos.ingresoGenerado / datos.totalCitas : 0;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${servicio}</td>
+                    <td>${datos.totalCitas}</td>
+                    <td>${datos.ingresoGenerado.toFixed(2)}</td>
+                    <td>${promedioIngreso.toFixed(2)}</td>
+                    <td>${datos.categoria}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            if (Object.keys(servicioAnalisis).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="no-data">No hay datos para mostrar</td></tr>';
+            }
+        }
+
+        // ===== FUNCIONES AUXILIARES =====
+        function filterDataByDate(data, dateFrom, dateTo) {
+            const from = dateFrom ? new Date(dateFrom) : new Date('1900-01-01');
+            const to = dateTo ? new Date(dateTo + 'T23:59:59') : new Date('2100-12-31');
+
+            return {
+                citas: data.citas ? data.citas.filter(cita => {
+                    const citaDate = new Date(cita.fechaInicio);
+                    return citaDate >= from && citaDate <= to;
+                }) : [],
+                pagos: data.pagos ? data.pagos.filter(pago => {
+                    const pagoDate = new Date(pago.fechaCita);
+                    return pagoDate >= from && pagoDate <= to;
+                }) : [],
+                clientes: data.clientes || [],
+                servicios: data.servicios || [],
+                empleados: data.empleados || []
+            };
+        }
+
+        function updateDateRangeInfo(elementId, dateFrom, dateTo) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            let rangeText = '';
+            if (dateFrom && dateTo) {
+                rangeText = `📅 Período: ${new Date(dateFrom).toLocaleDateString('es-ES')} - ${new Date(dateTo).toLocaleDateString('es-ES')}`;
+            } else if (dateFrom) {
+                rangeText = `📅 Desde: ${new Date(dateFrom).toLocaleDateString('es-ES')}`;
+            } else if (dateTo) {
+                rangeText = `📅 Hasta: ${new Date(dateTo).toLocaleDateString('es-ES')}`;
+            } else {
+                rangeText = '📅 Mostrando todos los datos disponibles';
+            }
+
+            element.textContent = rangeText;
+            element.style.display = 'block';
+        }
+
+        function showLoading(loadingId) {
+            const loadingElement = document.getElementById(loadingId);
+            if (loadingElement) {
+                loadingElement.style.display = 'block';
+            }
+        }
+
+        function hideLoading(loadingId) {
+            const loadingElement = document.getElementById(loadingId);
+            if (loadingElement) {
+                loadingElement.style.display = 'none';
+            }
+        }
+
+        function showAlert(message, type = 'success') {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type === 'success' ? 'success' : 'error'}`;
+            alert.innerHTML = `
+                <span>${type === 'success' ? '✅' : '❌'}</span>
+                ${message}
+            `;
+            
+            const container = document.querySelector('.container');
+            container.insertBefore(alert, container.firstChild);
+            
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 5000);
+        }
+
+        // ===== FUNCIONES DE EXPORTACIÓN =====
+        async function exportReport(reportType, format) {
+            try {
+                showAlert('Preparando exportación...', 'info');
+                
+                if (format === 'pdf') {
+                    await exportToPDF(reportType);
+                } else if (format === 'excel') {
+                    await exportToExcel(reportType);
+                }
+                
+                showAlert(`Reporte exportado exitosamente como ${format.toUpperCase()}`, 'success');
+            } catch (error) {
+                console.error('Error al exportar:', error);
+                showAlert('Error al exportar el reporte', 'error');
+            }
+        }
+
+        async function exportToPDF(reportType) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Configurar fuente
+            doc.setFont('helvetica');
+            
+            // Título del reporte
+            const titles = {
+                dashboard: 'Dashboard General',
+                ventas: 'Reporte de Ventas',
+                citas: 'Reporte de Citas',
+                clientes: 'Reporte de Clientes',
+                servicios: 'Reporte de Servicios'
+            };
+            
+            doc.setFontSize(20);
+            doc.text(titles[reportType] || 'Reporte', 20, 30);
+            
+            // Fecha de generación
+            doc.setFontSize(12);
+            doc.text(`Generado el: ${new Date().toLocaleDateString('es-ES')}`, 20, 45);
+            
+            let yPosition = 65;
+            
+            // Obtener estadísticas según el tipo de reporte
+            const statsContainer = document.getElementById(`${reportType}Stats`);
+            if (statsContainer) {
+                const statCards = statsContainer.querySelectorAll('.stat-card');
+                
+                doc.setFontSize(16);
+                doc.text('Estadísticas Principales:', 20, yPosition);
+                yPosition += 15;
+                
+                doc.setFontSize(12);
+                statCards.forEach((card, index) => {
+                    const number = card.querySelector('.stat-number').textContent;
+                    const label = card.querySelector('.stat-label').textContent;
+                    
+                    doc.text(`• ${label}: ${number}`, 25, yPosition);
+                    yPosition += 8;
+                    
+                    if (yPosition > 270) {
+                        doc.addPage();
+                        yPosition = 30;
+                    }
+                });
+            }
+            
+            // Obtener datos de tabla si existe
+            const tableBody = document.getElementById(`${reportType}TableBody`);
+            if (tableBody && tableBody.children.length > 0) {
+                yPosition += 10;
+                
+                if (yPosition > 250) {
+                    doc.addPage();
+                    yPosition = 30;
+                }
+                
+                doc.setFontSize(16);
+                doc.text('Datos Detallados:', 20, yPosition);
+                yPosition += 15;
+                
+                doc.setFontSize(10);
+                const rows = Array.from(tableBody.children).slice(0, 20); // Limitar a 20 filas
+                
+                rows.forEach((row, index) => {
+                    const cells = Array.from(row.children);
+                    const rowText = cells.map(cell => cell.textContent.trim()).join(' | ');
+                    
+                    if (rowText && !rowText.includes('No hay datos')) {
+                        doc.text(`${index + 1}. ${rowText}`, 20, yPosition);
+                        yPosition += 6;
+                        
+                        if (yPosition > 280) {
+                            doc.addPage();
+                            yPosition = 30;
+                        }
+                    }
+                });
+            }
+            
+            // Descargar PDF
+            const fileName = `reporte-${reportType}-${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(fileName);
+        }
+
+        async function exportToExcel(reportType) {
+            const wb = XLSX.utils.book_new();
+            
+            // Hoja de estadísticas
+            const statsContainer = document.getElementById(`${reportType}Stats`);
+            if (statsContainer) {
+                const statCards = statsContainer.querySelectorAll('.stat-card');
+                const statsData = [];
+                
+                statCards.forEach(card => {
+                    const number = card.querySelector('.stat-number').textContent;
+                    const label = card.querySelector('.stat-label').textContent;
+                    statsData.push({
+                        'Métrica': label,
+                        'Valor': number
+                    });
+                });
+                
+                const wsStats = XLSX.utils.json_to_sheet(statsData);
+                XLSX.utils.book_append_sheet(wb, wsStats, 'Estadísticas');
+            }
+            
+            // Hoja de datos detallados
+            const tableBody = document.getElementById(`${reportType}TableBody`);
+            if (tableBody && tableBody.children.length > 0) {
+                const table = tableBody.closest('table');
+                const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent.trim());
+                
+                const detailData = [];
+                Array.from(tableBody.children).forEach(row => {
+                    const cells = Array.from(row.children);
+                    if (cells.length > 0 && !cells[0].textContent.includes('No hay datos')) {
+                        const rowData = {};
+                        cells.forEach((cell, index) => {
+                            rowData[headers[index] || `Columna${index + 1}`] = cell.textContent.trim();
+                        });
+                        detailData.push(rowData);
+                    }
+                });
+                
+                if (detailData.length > 0) {
+                    const wsDetail = XLSX.utils.json_to_sheet(detailData);
+                    XLSX.utils.book_append_sheet(wb, wsDetail, 'Datos Detallados');
+                }
+            }
+            
+            // Información del reporte
+            const reportInfo = [
+                { 'Campo': 'Tipo de Reporte', 'Valor': reportType.charAt(0).toUpperCase() + reportType.slice(1) },
+                { 'Campo': 'Fecha de Generación', 'Valor': new Date().toLocaleString('es-ES') },
+                { 'Campo': 'Sistema', 'Valor': 'Sistema de Gestión de Tapicería' }
+            ];
+            
+            const wsInfo = XLSX.utils.json_to_sheet(reportInfo);
+            XLSX.utils.book_append_sheet(wb, wsInfo, 'Información');
+            
+            // Descargar archivo
+            const fileName = `reporte-${reportType}-${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+
+        // ===== CARGAR EMPLEADOS PARA SELECT =====
+        async function loadEmpleadosForSelect() {
+            try {
+                if (currentData.empleados.length === 0) {
+                    await loadAllData();
+                }
+
+                const select = document.getElementById('citasEmpleado');
+                select.innerHTML = '<option value="">Todos</option>';
+                
+                currentData.empleados.forEach(empleado => {
+                    const option = document.createElement('option');
+                    option.value = empleado.idEmpleado;
+                    option.textContent = empleado.nombreCompleto;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error al cargar empleados:', error);
+            }
+        }
+
+        // ===== INICIALIZACIÓN =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar fechas por defecto
+            const today = new Date().toISOString().split('T')[0];
+            const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+            
+            // Dashboard
+            document.getElementById('dashboardDateFrom').value = firstDayOfMonth;
+            document.getElementById('dashboardDateTo').value = today;
+            
+            // Ventas
+            document.getElementById('ventasDateFrom').value = firstDayOfMonth;
+            document.getElementById('ventasDateTo').value = today;
+            
+            // Citas
+            document.getElementById('citasDateFrom').value = firstDayOfMonth;
+            document.getElementById('citasDateTo').value = today;
+            
+            // Servicios
+            document.getElementById('serviciosDateFrom').value = firstDayOfMonth;
+            document.getElementById('serviciosDateTo').value = today;
+            
+            // Cargar empleados para el filtro de citas
+            loadEmpleadosForSelect();
+            
+            // Cargar dashboard inicial
+            loadDashboard();
+        });
+
+        // ===== MANEJO DE ERRORES GLOBALES =====
+        window.addEventListener('error', function(e) {
+            console.error('Error global:', e.error);
+            showAlert('Ha ocurrido un error inesperado. Por favor, actualice la página.', 'error');
+        });
+
+        // ===== RESPONSIVE CHARTS =====
+        window.addEventListener('resize', function() {
+            Object.values(charts).forEach(chart => {
+                if (chart && typeof chart.resize === 'function') {
+                    chart.resize();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

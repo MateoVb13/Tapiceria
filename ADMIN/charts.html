@@ -1,1990 +1,2107 @@
-<!DOCTYPE html>
+
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión de Tapicería</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Gestión de Tapicería</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
 
-        .header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 1rem;
-            text-align: center;
-            color: white;
-            font-size: 1.5rem;
-            font-weight: bold;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
+.header {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 1rem;
+    text-align: center;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
 
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
+.container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
 
-        .nav-tabs {
-            display: flex;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px 10px 0 0;
-            overflow: hidden;
-            margin-bottom: 0;
-        }
+.nav-tabs {
+    display: flex;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px 10px 0 0;
+    overflow: hidden;
+    margin-bottom: 0;
+}
 
-        .nav-tab {
-            flex: 1;
-            padding: 1rem;
-            background: transparent;
-            border: none;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
+.nav-tab {
+    flex: 1;
+    padding: 1rem;
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
 
-        .nav-tab:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
+.nav-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
 
-        .nav-tab.active {
-            background: rgba(255, 255, 255, 0.2);
-            box-shadow: inset 0 -3px 0 #fff;
-        }
+.nav-tab.active {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: inset 0 -3px 0 #fff;
+}
 
-        .tab-content {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 0 0 10px 10px;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            min-height: 600px;
-        }
+.tab-content {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 0 0 10px 10px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    min-height: 600px;
+}
 
-        .tab-pane {
-            display: none;
-        }
+.tab-pane {
+    display: none;
+}
 
-        .tab-pane.active {
-            display: block;
-        }
+.tab-pane.active {
+    display: block;
+}
 
-        .form-group {
-            margin-bottom: 1rem;
-        }
+.form-group {
+    margin-bottom: 1rem;
+}
 
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
 
-        .form-row.single {
-            grid-template-columns: 1fr;
-        }
+.form-row.single {
+    grid-template-columns: 1fr;
+}
 
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #333;
-        }
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+}
 
-        input, select, textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: white;
-        }
+input, select, textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+}
 
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
 
-        .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+.btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
 
-        .btn-secondary {
-            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-        }
+.btn-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+}
 
-        .btn-danger {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-        }
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
 
-        .btn-success {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        }
+.btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
 
-        .table-container {
-            overflow-x: auto;
-            margin-top: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
+.table-container {
+    overflow-x: auto;
+    margin-top: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-        }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
 
-        th, td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid #e1e5e9;
-        }
+th, td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e1e5e9;
+}
 
-        th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            letter-spacing: 0.5px;
-        }
+th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+}
 
-        tr:hover {
-            background: rgba(102, 126, 234, 0.05);
-        }
+tr:hover {
+    background: rgba(102, 126, 234, 0.05);
+}
 
-        .status {
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
+.status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
 
-        .status.pendiente { background: #fff3cd; color: #856404; }
-        .status.confirmada { background: #d4edda; color: #155724; }
-        .status.completada { background: #cce7ff; color: #004085; }
-        .status.cancelada { background: #f8d7da; color: #721c24; }
+.status.pendiente { background: #fff3cd; color: #856404; }
+.status.confirmada { background: #d4edda; color: #155724; }
+.status.completada { background: #cce7ff; color: #004085; }
+.status.cancelada { background: #f8d7da; color: #721c24; }
 
-        .actions {
-            display: flex;
-            gap: 0.5rem;
-        }
+.actions {
+    display: flex;
+    gap: 0.5rem;
+}
 
-        .btn-sm {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.8rem;
-        }
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+}
 
-        .alert {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            font-weight: 500;
-        }
+.alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
 
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
 
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
 
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-        }
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+}
 
-        .modal-content {
-            background-color: white;
-            margin: 5% auto;
-            padding: 2rem;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            position: relative;
-        }
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 2rem;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
 
-        .close {
-            position: absolute;
-            right: 1rem;
-            top: 1rem;
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
+.close {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
 
-        .close:hover {
-            color: #333;
-        }
+.close:hover {
+    color: #333;
+}
 
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 2rem;
-        }
+.loading {
+    display: none;
+    text-align: center;
+    padding: 2rem;
+}
 
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
-        .search-container {
-            margin-bottom: 1rem;
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
+.search-container {
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
 
-        .search-input {
-            flex: 1;
-            max-width: 300px;
-        }
+.search-input {
+    flex: 1;
+    max-width: 300px;
+}
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
 
-        .stat-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
 
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 0.5rem;
-        }
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 0.5rem;
+}
 
-        .stat-label {
-            color: #666;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+.stat-label {
+    color: #666;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
-        @media (max-width: 768px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            
-            .nav-tabs {
-                flex-direction: column;
-            }
-            
-            .actions {
-                flex-direction: column;
-            }
-            
-            .container {
-                padding: 0 0.5rem;
-            }
-        }
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .nav-tabs {
+        flex-direction: column;
+    }
+    
+    .actions {
+        flex-direction: column;
+    }
+    
+    .container {
+        padding: 0 0.5rem;
+    }
+}
 
-        .payment-summary {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            border-left: 4px solid #667eea;
-        }
+.payment-summary {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border-left: 4px solid #667eea;
+}
 
-        .payment-info {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-        }
+.payment-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
 
-        .payment-total {
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: #667eea;
-        }
-    </style>
+.payment-total {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #667eea;
+}
+</style>
 </head>
 <body>
-    <div class="header">
-        🪑 Sistema de Gestión de Tapicería
-    </div>
+<div class="header">
+🪑 Sistema de Gestión de Tapicería
+</div>
 
-    <div class="container">
-        <div class="nav-tabs">
-            <button class="nav-tab active" onclick="showTab('citas')">📅 Citas</button>
-            <button class="nav-tab" onclick="showTab('clientes')">👥 Clientes</button>
-            <button class="nav-tab" onclick="showTab('servicios')">🔧 Servicios</button>
-            <button class="nav-tab" onclick="showTab('empleados')">👨‍💼 Empleados</button>
-            <button class="nav-tab" onclick="showTab('pagos')">💰 Pagos</button>
-            <button class="nav-tab" onclick="showTab('disponibilidad')">🕒 Disponibilidad</button>
+<div class="container">
+<div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('citas')">📅 Citas</button>
+    <button class="nav-tab" onclick="showTab('clientes')">👥 Clientes</button>
+    <button class="nav-tab" onclick="showTab('servicios')">🔧 Servicios</button>
+    <button class="nav-tab" onclick="showTab('empleados')">👨‍💼 Empleados</button>
+    <button class="nav-tab" onclick="showTab('pagos')">💰 Pagos</button>
+</div>
+
+<div class="tab-content">
+    <!-- Tab Citas -->
+    <div id="citas" class="tab-pane active">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2>📅 Gestión de Citas</h2>
+            <button class="btn" onclick="openCreateCitaModal()">➕ Nueva Cita</button>
         </div>
 
-        <div class="tab-content">
-            <!-- Tab Citas -->
-            <div id="citas" class="tab-pane active">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <h2>📅 Gestión de Citas</h2>
-                    <button class="btn" onclick="openCreateCitaModal()">➕ Nueva Cita</button>
-                </div>
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="🔍 Buscar citas..." onkeyup="searchCitas(this.value)">
+            <select id="filterEstado" onchange="filterCitasByEstado(this.value)">
+                <option value="">Todos los estados</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="Confirmada">Confirmada</option>
+                <option value="Completada">Completada</option>
+                <option value="Cancelada">Cancelada</option>
+            </select>
+        </div>
 
-                <div class="search-container">
-                    <input type="text" class="search-input" placeholder="🔍 Buscar citas..." onkeyup="searchCitas(this.value)">
-                    <select id="filterEstado" onchange="filterCitasByEstado(this.value)">
-                        <option value="">Todos los estados</option>
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="Confirmada">Confirmada</option>
-                        <option value="Completada">Completada</option>
-                        <option value="Cancelada">Cancelada</option>
-                    </select>
-                </div>
+        <div class="loading" id="citasLoading">
+            <div class="spinner"></div>
+            <p>Cargando citas...</p>
+        </div>
 
-                <div class="loading" id="citasLoading">
-                    <div class="spinner"></div>
-                    <p>Cargando citas...</p>
-                </div>
-
-                <div class="table-container">
-                    <table id="citasTable">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Cliente</th>
-                                <th>Servicio</th>
-                                <th>Empleado</th>
-                                <th>Fecha/Hora</th>
-                                <th>Estado</th>
-                                <th>Precio</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="citasTableBody">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Tab Clientes -->
-            <div id="clientes" class="tab-pane">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <h2>👥 Gestión de Clientes</h2>
-                    <button class="btn" onclick="openCreateClienteModal()">➕ Nuevo Cliente</button>
-                </div>
-
-                <div class="search-container">
-                    <input type="text" class="search-input" placeholder="🔍 Buscar clientes..." onkeyup="searchClientes(this.value)">
-                </div>
-
-                <div class="loading" id="clientesLoading">
-                    <div class="spinner"></div>
-                    <p>Cargando clientes...</p>
-                </div>
-
-                <div class="table-container">
-                    <table id="clientesTable">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre Completo</th>
-                                <th>Contacto</th>
-                                <th>Dirección</th>
-                                <th>Usuario Asociado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="clientesTableBody">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Tab Servicios -->
-            <div id="servicios" class="tab-pane">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <h2>🔧 Gestión de Servicios</h2>
-                    <button class="btn" onclick="openCreateServicioModal()">➕ Nuevo Servicio</button>
-                </div>
-
-                <div class="search-container">
-                    <input type="text" class="search-input" placeholder="🔍 Buscar servicios..." onkeyup="searchServicios(this.value)">
-                </div>
-
-                <div class="loading" id="serviciosLoading">
-                    <div class="spinner"></div>
-                    <p>Cargando servicios...</p>
-                </div>
-
-                <div class="table-container">
-                    <table id="serviciosTable">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Descripción</th>
-                                <th>Duración (min)</th>
-                                <th>Precio</th>
-                                <th>Categoría</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="serviciosTableBody">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Tab Empleados -->
-            <div id="empleados" class="tab-pane">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <h2>👨‍💼 Gestión de Empleados</h2>
-                    <button class="btn" onclick="openCreateEmpleadoModal()">➕ Nuevo Empleado</button>
-                </div>
-
-                <div class="search-container">
-                    <input type="text" class="search-input" placeholder="🔍 Buscar empleados..." onkeyup="searchEmpleados(this.value)">
-                </div>
-
-                <div class="loading" id="empleadosLoading">
-                    <div class="spinner"></div>
-                    <p>Cargando empleados...</p>
-                </div>
-
-                <div class="table-container">
-                    <table id="empleadosTable">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre Completo</th>
-                                <th>Especialidad</th>
-                                <th>Contacto</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="empleadosTableBody">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Tab Pagos -->
-            <div id="pagos" class="tab-pane">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <h2>💰 Gestión de Pagos</h2>
-                    <button class="btn" onclick="openCreatePagoModal()">➕ Registrar Pago</button>
-                </div>
-
-                <div class="search-container">
-                    <input type="text" class="search-input" placeholder="🔍 Buscar pagos..." onkeyup="searchPagos(this.value)">
-                    <select id="filterTipoPago" onchange="filterPagosByTipo(this.value)">
-                        <option value="">Todos los tipos</option>
-                        <option value="Efectivo">Efectivo</option>
-                        <option value="Tarjeta">Tarjeta</option>
-                        <option value="Transferencia">Transferencia</option>
-                    </select>
-                </div>
-
-                <div class="loading" id="pagosLoading">
-                    <div class="spinner"></div>
-                    <p>Cargando pagos...</p>
-                </div>
-
-                <div class="table-container">
-                    <table id="pagosTable">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Cita ID</th>
-                                <th>Cliente</th>
-                                <th>Servicio</th>
-                                <th>Tipo de Pago</th>
-                                <th>Valor</th>
-                                <th>Fecha Cita</th>
-                                <th>Estado Cita</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pagosTableBody">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Tab Disponibilidad -->
-            <div id="disponibilidad" class="tab-pane">
-                <h2>🕒 Consultar Disponibilidad</h2>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="servicioSelect">Servicio:</label>
-                        <select id="servicioSelect" required>
-                            <option value="">Seleccione un servicio</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="fechaConsulta">Fecha:</label>
-                        <input type="date" id="fechaConsulta" required>
-                    </div>
-                </div>
-
-                <button class="btn" onclick="consultarDisponibilidad()">🔍 Consultar Disponibilidad</button>
-
-                <div class="loading" id="disponibilidadLoading">
-                    <div class="spinner"></div>
-                    <p>Consultando disponibilidad...</p>
-                </div>
-
-                <div id="disponibilidadResults" style="margin-top: 2rem;">
-                    <h3>Horarios Disponibles</h3>
-                    <div id="disponibilidadGrid" class="availability-grid">
-                        <!-- Se llenará dinámicamente -->
-                    </div>
-                </div>
-            </div>
+        <div class="table-container">
+            <table id="citasTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Servicio</th>
+                        <th>Empleado</th>
+                        <th>Fecha/Hora</th>
+                        <th>Estado</th>
+                        <th>Precio</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="citasTableBody">
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Modal para Crear/Editar Cita -->
-    <div id="citaModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeCitaModal()">&times;</span>
-            <h2 id="citaModalTitle">Nueva Cita</h2>
-            <form id="citaForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="clienteSelectCita">Cliente:</label>
-                        <select id="clienteSelectCita" required>
-                            <option value="">Seleccione un cliente</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="servicioSelectCita">Servicio:</label>
-                        <select id="servicioSelectCita" required>
-                            <option value="">Seleccione un servicio</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="empleadoSelectCita">Empleado (Opcional):</label>
-                        <select id="empleadoSelectCita">
-                            <option value="">Sin asignar</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="estadoCita">Estado:</label>
-                        <select id="estadoCita" required>
-                            <option value="Pendiente">Pendiente</option>
-                            <option value="Confirmada">Confirmada</option>
-                            <option value="Completada">Completada</option>
-                            <option value="Cancelada">Cancelada</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="fechaInicio">Fecha y Hora Inicio:</label>
-                        <input type="datetime-local" id="fechaInicio" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="fechaFin">Fecha y Hora Fin:</label>
-                        <input type="datetime-local" id="fechaFin" required>
-                    </div>
-                </div>
-                <div class="form-row single">
-                    <div class="form-group">
-                        <label for="notasCita">Notas:</label>
-                        <textarea id="notasCita" rows="3" placeholder="Observaciones adicionales..."></textarea>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-                    <button type="button" class="btn btn-secondary" onclick="closeCitaModal()">Cancelar</button>
-                    <button type="submit" class="btn">Guardar</button>
-                </div>
-            </form>
+    <!-- Tab Clientes -->
+    <div id="clientes" class="tab-pane">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2>👥 Gestión de Clientes</h2>
+            <button class="btn" onclick="openCreateClienteModal()">➕ Nuevo Cliente</button>
+        </div>
+
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="🔍 Buscar clientes..." onkeyup="searchClientes(this.value)">
+        </div>
+
+        <div class="loading" id="clientesLoading">
+            <div class="spinner"></div>
+            <p>Cargando clientes...</p>
+        </div>
+
+        <div class="table-container">
+            <table id="clientesTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Completo</th>
+                        <th>Contacto</th>
+                        <th>Dirección</th>
+                        <th>Usuario Asociado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="clientesTableBody">
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Modal para Crear/Editar Cliente -->
-    <div id="clienteModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeClienteModal()">&times;</span>
-            <h2 id="clienteModalTitle">Nuevo Cliente</h2>
-            <form id="clienteForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="nombreCompleto">Nombre Completo:</label>
-                        <input type="text" id="nombreCompleto" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="contactoCliente">Contacto:</label>
-                        <input type="text" id="contactoCliente" placeholder="Teléfono o email">
-                    </div>
-                </div>
-                <div class="form-row single">
-                    <div class="form-group">
-                        <label for="direccionCliente">Dirección:</label>
-                        <input type="text" id="direccionCliente" placeholder="Dirección completa">
-                    </div>
-                </div>
-                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-                    <button type="button" class="btn btn-secondary" onclick="closeClienteModal()">Cancelar</button>
-                    <button type="submit" class="btn">Guardar</button>
-                </div>
-            </form>
+    <!-- Tab Servicios -->
+    <div id="servicios" class="tab-pane">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2>🔧 Gestión de Servicios</h2>
+            <button class="btn" onclick="openCreateServicioModal()">➕ Nuevo Servicio</button>
+        </div>
+
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="🔍 Buscar servicios..." onkeyup="searchServicios(this.value)">
+        </div>
+
+        <div class="loading" id="serviciosLoading">
+            <div class="spinner"></div>
+            <p>Cargando servicios...</p>
+        </div>
+
+        <div class="table-container">
+            <table id="serviciosTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Descripción</th>
+                        <th>Duración (min)</th>
+                        <th>Precio</th>
+                        <th>Categoría</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="serviciosTableBody">
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Modal para Crear/Editar Servicio -->
-    <div id="servicioModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeServicioModal()">&times;</span>
-            <h2 id="servicioModalTitle">Nuevo Servicio</h2>
-            <form id="servicioForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="descripcionServicio">Descripción:</label>
-                        <input type="text" id="descripcionServicio" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="duracionEstimada">Duración (minutos):</label>
-                        <input type="number" id="duracionEstimada" required min="1">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="precioServicio">Precio:</label>
-                        <input type="number" id="precioServicio" required min="0" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label for="categoriaServicio">Categoría:</label>
-                        <input type="text" id="categoriaServicio" placeholder="Ej: Tapicería, Reparación">
-                    </div>
-                </div>
-                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-                    <button type="button" class="btn btn-secondary" onclick="closeServicioModal()">Cancelar</button>
-                    <button type="submit" class="btn">Guardar</button>
-                </div>
-            </form>
+    <!-- Tab Empleados -->
+    <div id="empleados" class="tab-pane">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2>👨‍💼 Gestión de Empleados</h2>
+            <button class="btn" onclick="openCreateEmpleadoModal()">➕ Nuevo Empleado</button>
+        </div>
+
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="🔍 Buscar empleados..." onkeyup="searchEmpleados(this.value)">
+        </div>
+
+        <div class="loading" id="empleadosLoading">
+            <div class="spinner"></div>
+            <p>Cargando empleados...</p>
+        </div>
+
+        <div class="table-container">
+            <table id="empleadosTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Completo</th>
+                        <th>Especialidad</th>
+                        <th>Contacto</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="empleadosTableBody">
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Modal para Crear/Editar Empleado -->
-    <div id="empleadoModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeEmpleadoModal()">&times;</span>
-            <h2 id="empleadoModalTitle">Nuevo Empleado</h2>
-            <form id="empleadoForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="nombreEmpleado">Nombre Completo:</label>
-                        <input type="text" id="nombreEmpleado" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="especialidadEmpleado">Especialidad:</label>
-                        <input type="text" id="especialidadEmpleado" placeholder="Ej: Tapicería moderna, Clásica">
-                    </div>
-                </div>
-                <div class="form-row single">
-                    <div class="form-group">
-                        <label for="contactoEmpleado">Contacto:</label>
-                        <input type="text" id="contactoEmpleado" placeholder="Teléfono o email">
-                    </div>
-                </div>
-                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-                    <button type="button" class="btn btn-secondary" onclick="closeEmpleadoModal()">Cancelar</button>
-                    <button type="submit" class="btn">Guardar</button>
-                </div>
-            </form>
+    <!-- Tab Pagos -->
+    <div id="pagos" class="tab-pane">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2>💰 Gestión de Pagos</h2>
+            <button class="btn" onclick="openCreatePagoModal()">➕ Registrar Pago</button>
+        </div>
+
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="🔍 Buscar pagos..." onkeyup="searchPagos(this.value)">
+            <select id="filterTipoPago" onchange="filterPagosByTipo(this.value)">
+                <option value="">Todos los tipos</option>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Tarjeta">Tarjeta</option>
+                <option value="Transferencia">Transferencia</option>
+            </select>
+        </div>
+
+        <div class="loading" id="pagosLoading">
+            <div class="spinner"></div>
+            <p>Cargando pagos...</p>
+        </div>
+
+        <div class="table-container">
+            <table id="pagosTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cita ID</th>
+                        <th>Cliente</th>
+                        <th>Servicio</th>
+                        <th>Tipo de Pago</th>
+                        <th>Valor</th>
+                        <th>Fecha Cita</th>
+                        <th>Estado Cita</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="pagosTableBody">
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Modal para Crear/Editar Pago -->
-    <div id="pagoModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closePagoModal()">&times;</span>
-            <h2 id="pagoModalTitle">Registrar Pago</h2>
+    <!-- Tab Disponibilidad -->
+    <div id="disponibilidad" class="tab-pane">
+        <h2>🕒 Consultar Disponibilidad</h2>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="servicioSelectDisp">Servicio:</label>
+                <select id="servicioSelectDisp" required>
+                    <option value="">Seleccione un servicio</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="fechaConsulta">Fecha:</label>
+                <input type="date" id="fechaConsulta" required>
+            </div>
+        </div>
+
+        <div class="availability-filters">
+            <button class="btn" onclick="consultarDisponibilidad()">🔍 Consultar Disponibilidad</button>
+            <select id="empleadoFiltro" onchange="filterAvailabilityByEmployee(this.value)" style="display: none;">
+                <option value="">Todos los empleados</option>
+            </select>
+            <select id="horaFiltro" onchange="filterAvailabilityByTime(this.value)" style="display: none;">
+                <option value="">Todos los horarios</option>
+                <option value="morning">Mañana (6:00-12:00)</option>
+                <option value="afternoon">Tarde (12:00-18:00)</option>
+                <option value="evening">Noche (18:00-22:00)</option>
+            </select>
+        </div>
+
+        <div class="loading" id="disponibilidadLoading">
+            <div class="spinner"></div>
+            <p>Consultando disponibilidad...</p>
+        </div>
+
+        <!-- Resumen de disponibilidad -->
+        <div id="availabilitySummary" class="availability-summary" style="display: none;">
+            <h3>📊 Resumen de Disponibilidad</h3>
+            <div class="summary-stats">
+                <div class="summary-stat">
+                    <div class="number" id="totalSlots">0</div>
+                    <div class="label">Horarios Totales</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="number" id="availableSlots">0</div>
+                    <div class="label">Disponibles</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="number" id="busySlots">0</div>
+                    <div class="label">Ocupados</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="number" id="employeesAvailable">0</div>
+                    <div class="label">Empleados</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del slot seleccionado -->
+        <div id="selectedSlotInfo" class="selected-slot-info">
+            <h4>✅ Horario Seleccionado</h4>
+            <div id="selectedSlotDetails"></div>
+            <button class="btn create-appointment-btn" onclick="createAppointmentFromSlot()">
+                📅 Crear Cita con este Horario
+            </button>
+        </div>
+
+        <div id="disponibilidadResults" style="margin-top: 2rem;">
+            <h3>Horarios de Trabajo</h3>
+            <div id="disponibilidadGrid" class="availability-grid">
+                <!-- Se llenará dinámicamente -->
+            </div>
             
-            <!-- Resumen de pagos existentes (solo cuando se edita) -->
-            <div id="paymentSummary" class="payment-summary" style="display: none;">
-                <h3>Resumen de Pagos de la Cita</h3>
-                <div id="paymentSummaryContent"></div>
+            <!-- Mensaje cuando no hay disponibilidad -->
+            <div id="noAvailability" class="no-availability" style="display: none;">
+                <div class="no-availability-icon">📅</div>
+                <h3>No hay horarios disponibles</h3>
+                <p>No se encontraron horarios disponibles para el servicio y fecha seleccionados.</p>
+                <p><strong>Sugerencias:</strong></p>
+                <ul style="text-align: left; display: inline-block; margin-top: 1rem;">
+                    <li>Intenta con una fecha diferente</li>
+                    <li>Verifica que haya empleados disponibles</li>
+                    <li>Considera servicios con menor duración</li>
+                </ul>
             </div>
-
-            <form id="pagoForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="citaSelectPago">Cita:</label>
-                        <select id="citaSelectPago" required onchange="loadCitaInfo()">
-                            <option value="">Seleccione una cita</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="tipoPago">Tipo de Pago:</label>
-                        <select id="tipoPago" required>
-                            <option value="">Seleccione tipo</option>
-                            <option value="Efectivo">Efectivo</option>
-                            <option value="Tarjeta">Tarjeta</option>
-                            <option value="Transferencia">Transferencia</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row single">
-                    <div class="form-group">
-                        <label for="valorPago">Valor:</label>
-                        <input type="number" id="valorPago" required min="0" step="0.01" placeholder="0.00">
-                        <small id="citaInfo" style="color: #666; font-size: 0.9rem;"></small>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-                    <button type="button" class="btn btn-secondary" onclick="closePagoModal()">Cancelar</button>
-                    <button type="submit" class="btn">Guardar</button>
-                </div>
-            </form>
         </div>
     </div>
+</div>
+</div>
 
-    <script>
-        const API_BASE_URL = 'https://c966-2800-e2-c180-4c8-293e-3ea4-3f17-83a1.ngrok-free.app/api'; 
+<!-- Modal para Crear/Editar Cita -->
+<div id="citaModal" class="modal">
+<div class="modal-content">
+    <span class="close" onclick="closeCitaModal()">&times;</span>
+    <h2 id="citaModalTitle">Nueva Cita</h2>
+    <form id="citaForm">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="clienteSelectCita">Cliente:</label>
+                <select id="clienteSelectCita" required>
+                    <option value="">Seleccione un cliente</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="servicioSelectCita">Servicio:</label>
+                <select id="servicioSelectCita" required>
+                    <option value="">Seleccione un servicio</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="empleadoSelectCita">Empleado (Opcional):</label>
+                <select id="empleadoSelectCita">
+                    <option value="">Sin asignar</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="estadoCita">Estado:</label>
+                <select id="estadoCita" required>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Confirmada">Confirmada</option>
+                    <option value="Completada">Completada</option>
+                    <option value="Cancelada">Cancelada</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="fechaInicio">Fecha y Hora Inicio:</label>
+                <input type="datetime-local" id="fechaInicio" required>
+            </div>
+            <div class="form-group">
+                <label for="fechaFin">Fecha y Hora Fin:</label>
+                <input type="datetime-local" id="fechaFin" required>
+            </div>
+        </div>
+        <div class="form-row single">
+            <div class="form-group">
+                <label for="notasCita">Notas:</label>
+                <textarea id="notasCita" rows="3" placeholder="Observaciones adicionales..."></textarea>
+            </div>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+            <button type="button" class="btn btn-secondary" onclick="closeCitaModal()">Cancelar</button>
+            <button type="submit" class="btn">Guardar</button>
+        </div>
+    </form>
+</div>
+</div>
 
-        const DEFAULT_HEADERS = {
-            'Content-Type': 'application/json',
+<!-- Modal para Crear/Editar Cliente -->
+<div id="clienteModal" class="modal">
+<div class="modal-content">
+    <span class="close" onclick="closeClienteModal()">&times;</span>
+    <h2 id="clienteModalTitle">Nuevo Cliente</h2>
+    <form id="clienteForm">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="nombreCompleto">Nombre Completo:</label>
+                <input type="text" id="nombreCompleto" required>
+            </div>
+            <div class="form-group">
+                <label for="contactoCliente">Contacto:</label>
+                <input type="text" id="contactoCliente" placeholder="Teléfono o email">
+            </div>
+        </div>
+        <div class="form-row single">
+            <div class="form-group">
+                <label for="direccionCliente">Dirección:</label>
+                <input type="text" id="direccionCliente" placeholder="Dirección completa">
+            </div>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+            <button type="button" class="btn btn-secondary" onclick="closeClienteModal()">Cancelar</button>
+            <button type="submit" class="btn">Guardar</button>
+        </div>
+    </form>
+</div>
+</div>
+
+<!-- Modal para Crear/Editar Servicio -->
+<div id="servicioModal" class="modal">
+<div class="modal-content">
+    <span class="close" onclick="closeServicioModal()">&times;</span>
+    <h2 id="servicioModalTitle">Nuevo Servicio</h2>
+    <form id="servicioForm">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="descripcionServicio">Descripción:</label>
+                <input type="text" id="descripcionServicio" required>
+            </div>
+            <div class="form-group">
+                <label for="duracionEstimada">Duración (minutos):</label>
+                <input type="number" id="duracionEstimada" required min="1">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="precioServicio">Precio:</label>
+                <input type="number" id="precioServicio" required min="0" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="categoriaServicio">Categoría:</label>
+                <input type="text" id="categoriaServicio" placeholder="Ej: Tapicería, Reparación">
+            </div>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+            <button type="button" class="btn btn-secondary" onclick="closeServicioModal()">Cancelar</button>
+            <button type="submit" class="btn">Guardar</button>
+        </div>
+    </form>
+</div>
+</div>
+
+<!-- Modal para Crear/Editar Empleado -->
+<div id="empleadoModal" class="modal">
+<div class="modal-content">
+    <span class="close" onclick="closeEmpleadoModal()">&times;</span>
+    <h2 id="empleadoModalTitle">Nuevo Empleado</h2>
+    <form id="empleadoForm">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="nombreEmpleado">Nombre Completo:</label>
+                <input type="text" id="nombreEmpleado" required>
+            </div>
+            <div class="form-group">
+                <label for="especialidadEmpleado">Especialidad:</label>
+                <input type="text" id="especialidadEmpleado" placeholder="Ej: Tapicería moderna, Clásica">
+            </div>
+        </div>
+        <div class="form-row single">
+            <div class="form-group">
+                <label for="contactoEmpleado">Contacto:</label>
+                <input type="text" id="contactoEmpleado" placeholder="Teléfono o email">
+            </div>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+            <button type="button" class="btn btn-secondary" onclick="closeEmpleadoModal()">Cancelar</button>
+            <button type="submit" class="btn">Guardar</button>
+        </div>
+    </form>
+</div>
+</div>
+
+<!-- Modal para Crear/Editar Pago -->
+<div id="pagoModal" class="modal">
+<div class="modal-content">
+    <span class="close" onclick="closePagoModal()">&times;</span>
+    <h2 id="pagoModalTitle">Registrar Pago</h2>
+    
+    <!-- Resumen de pagos existentes (solo cuando se edita) -->
+    <div id="paymentSummary" class="payment-summary" style="display: none;">
+        <h3>Resumen de Pagos de la Cita</h3>
+        <div id="paymentSummaryContent"></div>
+    </div>
+
+    <form id="pagoForm">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="citaSelectPago">Cita:</label>
+                <select id="citaSelectPago" required onchange="loadCitaInfo()">
+                    <option value="">Seleccione una cita</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="tipoPago">Tipo de Pago:</label>
+                <select id="tipoPago" required>
+                    <option value="">Seleccione tipo</option>
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Tarjeta">Tarjeta</option>
+                    <option value="Transferencia">Transferencia</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row single">
+            <div class="form-group">
+                <label for="valorPago">Valor:</label>
+                <input type="number" id="valorPago" required min="0" step="0.01" placeholder="0.00">
+                <small id="citaInfo" style="color: #666; font-size: 0.9rem;"></small>
+            </div>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+            <button type="button" class="btn btn-secondary" onclick="closePagoModal()">Cancelar</button>
+            <button type="submit" class="btn">Guardar</button>
+        </div>
+    </form>
+</div>
+</div>
+
+<script>
+const API_BASE_URL = 'https://ddf2-190-90-17-227.ngrok-free.app/api'; 
+
+const DEFAULT_HEADERS = {
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true'
+};
+
+async function apiCall(url, options = {}) {
+    const defaultOptions = {
+        headers: DEFAULT_HEADERS,
+        ...options
+    };
+    
+    if (!options.body) {
+        defaultOptions.headers = {
             'ngrok-skip-browser-warning': 'true'
         };
+    }
+    
+    return await fetch(url, defaultOptions);
+}
 
-        async function apiCall(url, options = {}) {
-            const defaultOptions = {
-                headers: DEFAULT_HEADERS,
-                ...options
+let currentEditId = null;
+let currentEditType = null;
+let allCitas = [];
+let allClientes = [];
+let allServicios = [];
+let allEmpleados = [];
+let allPagos = [];
+let allCitasForPagos = [];
+let currentCitaInfo = null; // Para almacenar info de la cita seleccionada
+
+function showTab(tabName) {
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    tabPanes.forEach(pane => pane.classList.remove('active'));
+
+    const tabButtons = document.querySelectorAll('.nav-tab');
+    tabButtons.forEach(btn => btn.classList.remove('active'));
+
+    document.getElementById(tabName).classList.add('active');
+    event.target.classList.add('active');
+
+    loadTabData(tabName);
+}
+
+async function loadTabData(tabName) {
+    switch(tabName) {
+        case 'citas':
+            await loadCitas();
+            break;
+        case 'clientes':
+            await loadClientes();
+            break;
+        case 'servicios':
+            await loadServicios();
+            break;
+        case 'empleados':
+            await loadEmpleados();
+            break;
+        case 'pagos':
+            await loadPagos();
+            break;
+        case 'disponibilidad':
+            await loadServiciosForAvailability();
+            break;
+    }
+}
+
+// ===== GESTIÓN DE CITAS =====
+async function loadCitas() {
+    showLoading('citasLoading');
+    try {
+        const response = await apiCall(`${API_BASE_URL}/citas`);
+        if (!response.ok) throw new Error('Error al cargar citas');
+        
+        allCitas = await response.json();
+        displayCitas(allCitas);
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Error al cargar las citas', 'error');
+    } finally {
+        hideLoading('citasLoading');
+    }
+}
+
+function displayCitas(citas) {
+    const tbody = document.getElementById('citasTableBody');
+    tbody.innerHTML = '';
+
+    citas.forEach(cita => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${cita.idCita}</td>
+            <td>${cita.nombreCliente || cita.nombreCompletoCliente || 'N/A'}</td>
+            <td>${cita.nombreServicio || cita.descripcionServicio || 'N/A'}</td>
+            <td>${cita.nombreEmpleado || 'Sin asignar'}</td>
+            <td>${formatDateTime(cita.fechaInicio)}</td>
+            <td><span class="status ${(cita.estado || '').toLowerCase()}">${cita.estado || 'N/A'}</span></td>
+            <td>${(cita.precio || 0).toFixed(2)}</td>
+            <td class="actions">
+                <button class="btn btn-sm" onclick="editCita(${cita.idCita})">✏️ Editar</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteCita(${cita.idCita})">🗑️ Eliminar</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+async function openCreateCitaModal() {
+    currentEditId = null;
+    currentEditType = 'cita';
+    document.getElementById('citaModalTitle').textContent = 'Nueva Cita';
+    document.getElementById('citaForm').reset();
+    
+    await loadClientesForSelect('clienteSelectCita');
+    await loadServiciosForSelect('servicioSelectCita');
+    await loadEmpleadosForSelect('empleadoSelectCita');
+    
+    document.getElementById('citaModal').style.display = 'block';
+}
+
+async function editCita(id) {
+    try {
+        const response = await apiCall(`${API_BASE_URL}/citas/${id}`);
+        if (!response.ok) throw new Error('Error al cargar cita');
+        
+        const cita = await response.json();
+        
+        currentEditId = id;
+        currentEditType = 'cita';
+        document.getElementById('citaModalTitle').textContent = 'Editar Cita';
+        
+        await loadClientesForSelect('clienteSelectCita');
+        await loadServiciosForSelect('servicioSelectCita');
+        await loadEmpleadosForSelect('empleadoSelectCita');
+        
+        document.getElementById('clienteSelectCita').value = cita.idCliente;
+        document.getElementById('servicioSelectCita').value = cita.idServicio;
+        document.getElementById('empleadoSelectCita').value = cita.idEmpleado || '';
+        document.getElementById('estadoCita').value = cita.estado;
+        document.getElementById('fechaInicio').value = formatDateTimeForInput(cita.fechaInicio);
+        document.getElementById('fechaFin').value = formatDateTimeForInput(cita.fechaFin);
+        document.getElementById('notasCita').value = cita.notas || '';
+        
+        document.getElementById('citaModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Error al cargar la cita', 'error');
+    }
+}
+
+async function deleteCita(id) {
+    if (!confirm('¿Está seguro de que desea eliminar esta cita?')) return;
+    
+    try {
+        const response = await apiCall(`${API_BASE_URL}/citas/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) throw new Error('Error al eliminar cita');
+        
+        showAlert('Cita eliminada exitosamente', 'success');
+        await loadCitas();
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Error al eliminar la cita', 'error');
+    }
+}
+
+function closeCitaModal() {
+    document.getElementById('citaModal').style.display = 'none';
+    currentEditId = null;
+    currentEditType = null;
+}
+
+// ===== GESTIÓN DE CLIENTES =====
+async function loadClientes() {
+    showLoading('clientesLoading');
+    try {
+        const response = await apiCall(`${API_BASE_URL}/Clientes`);
+        if (!response.ok) throw new Error('Error al cargar clientes');
+        
+        allClientes = await response.json();
+        displayClientes(allClientes);
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Error al cargar los clientes', 'error');
+    } finally {
+        hideLoading('clientesLoading');
+    }
+}
+
+function displayClientes(clientes) {
+    const tbody = document.getElementById('clientesTableBody');
+    tbody.innerHTML = '';
+
+    clientes.forEach(cliente => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${cliente.idCliente}</td>
+            <td>${cliente.nombreCompleto}</td>
+            <td>${cliente.contacto || '-'}</td>
+            <td>${cliente.direccion || '-'}</td>
+            <td>${cliente.nombreUsuario || 'Sin usuario'}</td>
+            <td class="actions">
+                <button class="btn btn-sm" onclick="editCliente(${cliente.idCliente})">✏️ Editar</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteCliente(${cliente.idCliente})">🗑️ Eliminar</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function openCreateClienteModal() {
+    currentEditId = null;
+    currentEditType = 'cliente';
+    document.getElementById('clienteModalTitle').textContent = 'Nuevo Cliente';
+    document.getElementById('clienteForm').reset();
+    document.getElementById('clienteModal').style.display = 'block';
+}
+
+async function editCliente(id) {
+    try {
+        const response = await apiCall(`${API_BASE_URL}/Clientes/${id}`);
+        if (!response.ok) throw new Error(`Error ${response.status}: No se pudo cargar el cliente`);
+        
+        const cliente = await response.json();
+        
+        currentEditId = id;
+        currentEditType = 'cliente';
+        document.getElementById('clienteModalTitle').textContent = 'Editar Cliente';
+        
+        document.getElementById('nombreCompleto').value = cliente.nombreCompleto || '';
+        document.getElementById('contactoCliente').value = cliente.contacto || '';
+        document.getElementById('direccionCliente').value = cliente.direccion || '';
+        
+        document.getElementById('clienteForm').dataset.idUsuario = cliente.idUsuario;
+        
+        document.getElementById('clienteModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error al editar cliente:', error);
+        showAlert(error.message, 'error');
+    }
+}
+
+async function deleteCliente(id) {
+    if (!confirm('¿Está seguro de que desea eliminar este cliente?')) return;
+    
+    try {
+        const response = await apiCall(`${API_BASE_URL}/Clientes/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+            let errorMessage = `Error ${response.status}`;
+            try {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await response.json();
+                    errorMessage = errorData.title || errorData.message || errorMessage;
+                } else {
+                    const errorText = await response.text();
+                    if (errorText) errorMessage = errorText;
+                }
+            } catch (e) {
+                console.error('Error al leer respuesta:', e);
+            }
+            throw new Error(errorMessage);
+        }
+        
+        showAlert('Cliente eliminado exitosamente', 'success');
+        await loadClientes();
+    } catch (error) {
+        console.error('Error al eliminar cliente:', error);
+        showAlert(`Error: ${error.message}`, 'error');
+    }
+}
+
+function closeClienteModal() {
+    document.getElementById('clienteModal').style.display = 'none';
+    currentEditId = null;
+    currentEditType = null;
+}
+
+// ===== GESTIÓN DE SERVICIOS =====
+async function loadServicios() {
+    showLoading('serviciosLoading');
+    try {
+        const response = await apiCall(`${API_BASE_URL}/servicios`);
+        if (!response.ok) throw new Error('Error al cargar servicios');
+        
+        allServicios = await response.json();
+        displayServicios(allServicios);
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Error al cargar los servicios', 'error');
+    } finally {
+        hideLoading('serviciosLoading');
+    }
+}
+
+function displayServicios(servicios) {
+    const tbody = document.getElementById('serviciosTableBody');
+    tbody.innerHTML = '';
+
+    servicios.forEach(servicio => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${servicio.idServicio}</td>
+            <td>${servicio.descripcion}</td>
+            <td>${servicio.duracionEstimada}</td>
+            <td>${servicio.precio.toFixed(2)}</td>
+            <td>${servicio.categoria || '-'}</td>
+            <td class="actions">
+                <button class="btn btn-sm" onclick="editServicio(${servicio.idServicio})">✏️ Editar</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteServicio(${servicio.idServicio})">🗑️ Eliminar</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function openCreateServicioModal() {
+    currentEditId = null;
+    currentEditType = 'servicio';
+    document.getElementById('servicioModalTitle').textContent = 'Nuevo Servicio';
+    document.getElementById('servicioForm').reset();
+    document.getElementById('servicioModal').style.display = 'block';
+}
+
+async function editServicio(id) {
+    try {
+        const response = await apiCall(`${API_BASE_URL}/servicios/${id}`);
+        if (!response.ok) throw new Error('Error al cargar servicio');
+        
+        const servicio = await response.json();
+        
+        currentEditId = id;
+        currentEditType = 'servicio';
+        document.getElementById('servicioModalTitle').textContent = 'Editar Servicio';
+        
+        document.getElementById('descripcionServicio').value = servicio.descripcion;
+        document.getElementById('duracionEstimada').value = servicio.duracionEstimada;
+        document.getElementById('precioServicio').value = servicio.precio;
+        document.getElementById('categoriaServicio').value = servicio.categoria || '';
+        
+        document.getElementById('servicioModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Error al cargar el servicio', 'error');
+    }
+}
+
+async function deleteServicio(id) {
+    if (!confirm('¿Está seguro de que desea eliminar este servicio?')) return;
+    
+    try {
+        const response = await apiCall(`${API_BASE_URL}/servicios/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) throw new Error('Error al eliminar servicio');
+        
+        showAlert('Servicio eliminado exitosamente', 'success');
+        await loadServicios();
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Error al eliminar el servicio', 'error');
+    }
+}
+
+function closeServicioModal() {
+    document.getElementById('servicioModal').style.display = 'none';
+    currentEditId = null;
+    currentEditType = null;
+}
+
+// ===== GESTIÓN DE EMPLEADOS =====
+async function loadEmpleados() {
+    showLoading('empleadosLoading');
+    try {
+        const response = await apiCall(`${API_BASE_URL}/empleados`);
+        if (!response.ok) throw new Error('Error al cargar empleados');
+        
+        allEmpleados = await response.json();
+        displayEmpleados(allEmpleados);
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Error al cargar los empleados', 'error');
+    } finally {
+        hideLoading('empleadosLoading');
+    }
+}
+
+function displayEmpleados(empleados) {
+    const tbody = document.getElementById('empleadosTableBody');
+    tbody.innerHTML = '';
+
+    empleados.forEach(empleado => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${empleado.idEmpleado}</td>
+            <td>${empleado.nombreCompleto}</td>
+            <td>${empleado.especialidad || '-'}</td>
+            <td>${empleado.contacto || '-'}</td>
+            <td class="actions">
+                <button class="btn btn-sm" onclick="editEmpleado(${empleado.idEmpleado})">✏️ Editar</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteEmpleado(${empleado.idEmpleado})">🗑️ Eliminar</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function openCreateEmpleadoModal() {
+    currentEditId = null;
+    currentEditType = 'empleado';
+    document.getElementById('empleadoModalTitle').textContent = 'Nuevo Empleado';
+    document.getElementById('empleadoForm').reset();
+    document.getElementById('empleadoModal').style.display = 'block';
+}
+
+async function editEmpleado(id) {
+    try {
+        const response = await apiCall(`${API_BASE_URL}/empleados/${id}`);
+        if (!response.ok) throw new Error('Error al cargar empleado');
+        
+        const empleado = await response.json();
+        
+        currentEditId = id;
+        currentEditType = 'empleado';
+        document.getElementById('empleadoModalTitle').textContent = 'Editar Empleado';
+        
+        document.getElementById('nombreEmpleado').value = empleado.nombreCompleto;
+        document.getElementById('especialidadEmpleado').value = empleado.especialidad || '';
+        document.getElementById('contactoEmpleado').value = empleado.contacto || '';
+        
+        document.getElementById('empleadoModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Error al cargar el empleado', 'error');
+    }
+}
+
+async function deleteEmpleado(id) {
+    if (!confirm('¿Está seguro de que desea eliminar este empleado?')) return;
+    
+    try {
+        const response = await apiCall(`${API_BASE_URL}/empleados/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) throw new Error('Error al eliminar empleado');
+        
+        showAlert('Empleado eliminado exitosamente', 'success');
+        await loadEmpleados();
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Error al eliminar el empleado', 'error');
+    }
+}
+
+function closeEmpleadoModal() {
+    document.getElementById('empleadoModal').style.display = 'none';
+    currentEditId = null;
+    currentEditType = null;
+}
+
+// ===== GESTIÓN DE PAGOS MEJORADA =====
+async function loadPagos() {
+    showLoading('pagosLoading');
+    try {
+        const response = await apiCall(`${API_BASE_URL}/pagos`);
+        if (!response.ok) throw new Error('Error al cargar pagos');
+        
+        allPagos = await response.json();
+        
+        // Enriquecer los datos de pagos con información de citas, clientes y servicios
+        await enrichPagosData();
+        
+        displayPagos(allPagos);
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Error al cargar los pagos', 'error');
+    } finally {
+        hideLoading('pagosLoading');
+    }
+}
+
+// Función para enriquecer los datos de pagos con información adicional
+async function enrichPagosData() {
+    try {
+        // Cargar datos base si no están disponibles
+        if (allCitas.length === 0) {
+            const citasResponse = await apiCall(`${API_BASE_URL}/citas`);
+            if (citasResponse.ok) {
+                allCitas = await citasResponse.json();
+            }
+        }
+        
+        if (allClientes.length === 0) {
+            const clientesResponse = await apiCall(`${API_BASE_URL}/Clientes`);
+            if (clientesResponse.ok) {
+                allClientes = await clientesResponse.json();
+            }
+        }
+        
+        if (allServicios.length === 0) {
+            const serviciosResponse = await apiCall(`${API_BASE_URL}/servicios`);
+            if (serviciosResponse.ok) {
+                allServicios = await serviciosResponse.json();
+            }
+        }
+        
+        // Enriquecer cada pago con información adicional
+        allPagos = allPagos.map(pago => {
+            // Buscar la cita relacionada
+            const cita = allCitas.find(c => c.idCita === pago.idCita);
+            
+            if (cita) {
+                // Buscar cliente y servicio
+                const cliente = allClientes.find(cl => cl.idCliente === cita.idCliente);
+                const servicio = allServicios.find(s => s.idServicio === cita.idServicio);
+                
+                return {
+                    ...pago,
+                    nombreCliente: cliente ? cliente.nombreCompleto : (cita.nombreCliente || cita.nombreCompletoCliente || `Cliente ID: ${cita.idCliente}`),
+                    servicioDescripcion: servicio ? servicio.descripcion : (cita.nombreServicio || cita.descripcionServicio || `Servicio ID: ${cita.idServicio}`),
+                    fechaCita: cita.fechaInicio,
+                    estadoCita: cita.estado,
+                    precioCita: cita.precio || servicio?.precio || 0
+                };
+            }
+            
+            return {
+                ...pago,
+                nombreCliente: `Cliente ID: ${pago.idCita}`,
+                servicioDescripcion: `Servicio de cita ${pago.idCita}`,
+                fechaCita: pago.fechaCita || new Date(),
+                estadoCita: pago.estadoCita || 'Desconocido'
+            };
+        });
+    } catch (error) {
+        console.error('Error al enriquecer datos de pagos:', error);
+    }
+}
+
+function displayPagos(pagos) {
+    const tbody = document.getElementById('pagosTableBody');
+    tbody.innerHTML = '';
+
+    pagos.forEach(pago => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${pago.idPago}</td>
+            <td>${pago.idCita}</td>
+            <td>${pago.nombreCliente || 'N/A'}</td>
+            <td>${pago.servicioDescripcion || 'N/A'}</td>
+            <td>${pago.tipoPago}</td>
+            <td>${pago.valorPago ? pago.valorPago.toFixed(2) : '0.00'}</td>
+            <td>${new Date(pago.fechaCita).toLocaleDateString('es-ES')}</td>
+            <td><span class="status ${(pago.estadoCita || '').toLowerCase()}">${pago.estadoCita || 'N/A'}</span></td>
+            <td class="actions">
+                <button class="btn btn-sm" onclick="editPago(${pago.idPago})">✏️ Editar</button>
+                <button class="btn btn-sm btn-danger" onclick="deletePago(${pago.idPago})">🗑️ Eliminar</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+async function openCreatePagoModal() {
+    currentEditId = null;
+    currentEditType = 'pago';
+    currentCitaInfo = null;
+    document.getElementById('pagoModalTitle').textContent = 'Registrar Pago';
+    document.getElementById('pagoForm').reset();
+    document.getElementById('paymentSummary').style.display = 'none';
+    document.getElementById('citaInfo').textContent = '';
+    
+    await loadCitasForSelect();
+    
+    document.getElementById('pagoModal').style.display = 'block';
+}
+
+async function loadCitasForSelect() {
+    try {
+        // Cargar citas frescas cada vez
+        const response = await apiCall(`${API_BASE_URL}/citas`);
+        if (!response.ok) throw new Error('Error al cargar citas');
+        
+        allCitasForPagos = await response.json();
+        const select = document.getElementById('citaSelectPago');
+        select.innerHTML = '<option value="">Seleccione una cita</option>';
+        
+        allCitasForPagos.forEach(cita => {
+            const option = document.createElement('option');
+            option.value = cita.idCita;
+            option.textContent = `ID: ${cita.idCita} - ${cita.nombreCliente || cita.nombreCompletoCliente} - ${cita.nombreServicio || cita.descripcionServicio} - ${(cita.precio || 0).toFixed(2)}`;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error al cargar citas:', error);
+        showAlert('Error al cargar las citas disponibles', 'error');
+    }
+}
+
+// Función para cargar información de la cita seleccionada
+async function loadCitaInfo() {
+    const citaId = document.getElementById('citaSelectPago').value;
+    const citaInfoDiv = document.getElementById('citaInfo');
+    
+    if (!citaId) {
+        citaInfoDiv.textContent = '';
+        currentCitaInfo = null;
+        return;
+    }
+
+    try {
+        // Buscar la cita en el array cargado
+        currentCitaInfo = allCitasForPagos.find(cita => cita.idCita == citaId);
+        
+        if (currentCitaInfo) {
+            // Obtener pagos existentes para esta cita
+            const pagosResponse = await apiCall(`${API_BASE_URL}/pagos/cita/${citaId}`);
+            let pagosExistentes = [];
+            let totalPagado = 0;
+            
+            if (pagosResponse.ok) {
+                pagosExistentes = await pagosResponse.json();
+                totalPagado = pagosExistentes.reduce((sum, pago) => sum + (pago.valorPago || 0), 0);
+            }
+            
+            const precioCita = currentCitaInfo.precio || 0;
+            const saldoPendiente = precioCita - totalPagado;
+            
+            citaInfoDiv.innerHTML = `
+                <strong>Precio del servicio:</strong> ${precioCita.toFixed(2)}<br>
+                <strong>Total pagado:</strong> ${totalPagado.toFixed(2)}<br>
+                <strong>Saldo pendiente:</strong> ${saldoPendiente.toFixed(2)}
+            `;
+            
+            // Sugerir el saldo pendiente como valor del pago
+            if (saldoPendiente > 0) {
+                document.getElementById('valorPago').value = saldoPendiente.toFixed(2);
+            }
+        }
+    } catch (error) {
+        console.error('Error al cargar información de la cita:', error);
+        citaInfoDiv.textContent = '';
+    }
+}
+
+async function editPago(id) {
+    try {
+        // CORRECCIÓN: Usar apiCall en lugar de fetch directo
+        const response = await apiCall(`${API_BASE_URL}/pagos/${id}`);
+        if (!response.ok) throw new Error(`Error ${response.status}: No se pudo cargar el pago`);
+        
+        const pago = await response.json();
+        
+        currentEditId = id;
+        currentEditType = 'pago';
+        document.getElementById('pagoModalTitle').textContent = 'Editar Pago';
+        
+        // Cargar citas disponibles primero
+        await loadCitasForSelect();
+        
+        // Llenar el formulario con los datos del pago
+        document.getElementById('citaSelectPago').value = pago.idCita;
+        document.getElementById('tipoPago').value = pago.tipoPago;
+        document.getElementById('valorPago').value = pago.valorPago || '';
+        
+        // Cargar información de la cita
+        await loadCitaInfo();
+        
+        // Mostrar resumen de pagos existentes
+        await showPaymentSummary(pago.idCita, id);
+        
+        document.getElementById('pagoModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error al editar pago:', error);
+        showAlert(`Error al cargar el pago: ${error.message}`, 'error');
+    }
+}
+
+async function showPaymentSummary(citaId, excludePaymentId = null) {
+    try {
+        const response = await apiCall(`${API_BASE_URL}/pagos/cita/${citaId}`);
+        if (!response.ok) return;
+        
+        const pagos = await response.json();
+        const filteredPagos = excludePaymentId ? 
+            pagos.filter(p => p.idPago !== excludePaymentId) : pagos;
+        
+        if (filteredPagos.length > 0) {
+            const totalPagado = filteredPagos.reduce((sum, pago) => sum + (pago.valorPago || 0), 0);
+            
+            let summaryHTML = `<div class="payment-info"><span>Total pagado anteriormente:</span><span class="payment-total">${totalPagado.toFixed(2)}</span></div>`;
+            summaryHTML += '<div style="margin-top: 0.5rem;"><strong>Pagos existentes:</strong></div>';
+            
+            filteredPagos.forEach(pago => {
+                summaryHTML += `<div class="payment-info">
+                    <span>${pago.tipoPago}</span>
+                    <span>${(pago.valorPago || 0).toFixed(2)}</span>
+                </div>`;
+            });
+            
+            document.getElementById('paymentSummaryContent').innerHTML = summaryHTML;
+            document.getElementById('paymentSummary').style.display = 'block';
+        } else {
+            document.getElementById('paymentSummary').style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error al cargar resumen de pagos:', error);
+        document.getElementById('paymentSummary').style.display = 'none';
+    }
+}
+
+async function deletePago(id) {
+    if (!confirm('¿Está seguro de que desea eliminar este pago?')) return;
+    
+    try {
+        const response = await apiCall(`${API_BASE_URL}/pagos/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) throw new Error('Error al eliminar pago');
+        
+        showAlert('Pago eliminado exitosamente', 'success');
+        await loadPagos();
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Error al eliminar el pago', 'error');
+    }
+}
+
+function closePagoModal() {
+    document.getElementById('pagoModal').style.display = 'none';
+    document.getElementById('paymentSummary').style.display = 'none';
+    currentEditId = null;
+    currentEditType = null;
+    currentCitaInfo = null;
+}
+
+// Función para verificar si el pago completa la cita y cambiar su estado
+async function checkAndUpdateCitaStatus(citaId, nuevoPago) {
+    try {
+        if (!currentCitaInfo) return;
+        
+        // Obtener todos los pagos de la cita (incluyendo el nuevo)
+        const response = await apiCall(`${API_BASE_URL}/pagos/cita/${citaId}`);
+        if (!response.ok) return;
+        
+        const pagos = await response.json();
+        const totalPagado = pagos.reduce((sum, pago) => sum + (pago.valorPago || 0), 0);
+        const precioCita = currentCitaInfo.precio || 0;
+        
+        // Si el total pagado es igual o mayor al precio de la cita, marcar como completada
+        if (totalPagado >= precioCita && currentCitaInfo.estado !== 'Completada') {
+            const updateData = {
+                idCita: citaId,
+                idCliente: currentCitaInfo.idCliente,
+                idServicio: currentCitaInfo.idServicio,
+                idEmpleado: currentCitaInfo.idEmpleado,
+                fechaInicio: currentCitaInfo.fechaInicio,
+                fechaFin: currentCitaInfo.fechaFin,
+                estado: 'Completada',
+                notas: currentCitaInfo.notas
             };
             
-            if (!options.body) {
-                defaultOptions.headers = {
-                    'ngrok-skip-browser-warning': 'true'
-                };
-            }
+            const updateResponse = await apiCall(`${API_BASE_URL}/citas/${citaId}`, {
+                method: 'PUT',
+                body: JSON.stringify(updateData)
+            });
             
-            return await fetch(url, defaultOptions);
-        }
-
-        let currentEditId = null;
-        let currentEditType = null;
-        let allCitas = [];
-        let allClientes = [];
-        let allServicios = [];
-        let allEmpleados = [];
-        let allPagos = [];
-        let allCitasForPagos = [];
-        let currentCitaInfo = null; // Para almacenar info de la cita seleccionada
-
-        function showTab(tabName) {
-            const tabPanes = document.querySelectorAll('.tab-pane');
-            tabPanes.forEach(pane => pane.classList.remove('active'));
-
-            const tabButtons = document.querySelectorAll('.nav-tab');
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
-
-            loadTabData(tabName);
-        }
-
-        async function loadTabData(tabName) {
-            switch(tabName) {
-                case 'citas':
+            if (updateResponse.ok) {
+                showAlert('¡Pago registrado! La cita ha sido marcada como completada automáticamente.', 'success');
+                // Recargar citas para reflejar el cambio
+                if (document.getElementById('citas').classList.contains('active')) {
                     await loadCitas();
-                    break;
-                case 'clientes':
-                    await loadClientes();
-                    break;
-                case 'servicios':
-                    await loadServicios();
-                    break;
-                case 'empleados':
-                    await loadEmpleados();
-                    break;
-                case 'pagos':
-                    await loadPagos();
-                    break;
-                case 'disponibilidad':
-                    await loadServiciosForSelect();
-                    break;
+                }
             }
         }
+    } catch (error) {
+        console.error('Error al actualizar estado de cita:', error);
+        // No mostrar error al usuario ya que el pago se registró correctamente
+    }
+}
 
-        // ===== GESTIÓN DE CITAS =====
-        async function loadCitas() {
-            showLoading('citasLoading');
-            try {
-                const response = await apiCall(`${API_BASE_URL}/citas`);
-                if (!response.ok) throw new Error('Error al cargar citas');
-                
-                allCitas = await response.json();
-                displayCitas(allCitas);
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('Error al cargar las citas', 'error');
-            } finally {
-                hideLoading('citasLoading');
-            }
-        }
-
-        function displayCitas(citas) {
-            const tbody = document.getElementById('citasTableBody');
-            tbody.innerHTML = '';
-
-            citas.forEach(cita => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${cita.idCita}</td>
-                    <td>${cita.nombreCliente || cita.nombreCompletoCliente || 'N/A'}</td>
-                    <td>${cita.nombreServicio || cita.descripcionServicio || 'N/A'}</td>
-                    <td>${cita.nombreEmpleado || 'Sin asignar'}</td>
-                    <td>${formatDateTime(cita.fechaInicio)}</td>
-                    <td><span class="status ${(cita.estado || '').toLowerCase()}">${cita.estado || 'N/A'}</span></td>
-                    <td>${(cita.precio || 0).toFixed(2)}</td>
-                    <td class="actions">
-                        <button class="btn btn-sm" onclick="editCita(${cita.idCita})">✏️ Editar</button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteCita(${cita.idCita})">🗑️ Eliminar</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        async function openCreateCitaModal() {
-            currentEditId = null;
-            currentEditType = 'cita';
-            document.getElementById('citaModalTitle').textContent = 'Nueva Cita';
-            document.getElementById('citaForm').reset();
-            
-            await loadClientesForSelect('clienteSelectCita');
-            await loadServiciosForSelect('servicioSelectCita');
-            await loadEmpleadosForSelect('empleadoSelectCita');
-            
-            document.getElementById('citaModal').style.display = 'block';
-        }
-
-        async function editCita(id) {
-            try {
-                const response = await apiCall(`${API_BASE_URL}/citas/${id}`);
-                if (!response.ok) throw new Error('Error al cargar cita');
-                
-                const cita = await response.json();
-                
-                currentEditId = id;
-                currentEditType = 'cita';
-                document.getElementById('citaModalTitle').textContent = 'Editar Cita';
-                
-                await loadClientesForSelect('clienteSelectCita');
-                await loadServiciosForSelect('servicioSelectCita');
-                await loadEmpleadosForSelect('empleadoSelectCita');
-                
-                document.getElementById('clienteSelectCita').value = cita.idCliente;
-                document.getElementById('servicioSelectCita').value = cita.idServicio;
-                document.getElementById('empleadoSelectCita').value = cita.idEmpleado || '';
-                document.getElementById('estadoCita').value = cita.estado;
-                document.getElementById('fechaInicio').value = formatDateTimeForInput(cita.fechaInicio);
-                document.getElementById('fechaFin').value = formatDateTimeForInput(cita.fechaFin);
-                document.getElementById('notasCita').value = cita.notas || '';
-                
-                document.getElementById('citaModal').style.display = 'block';
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('Error al cargar la cita', 'error');
-            }
-        }
-
-        async function deleteCita(id) {
-            if (!confirm('¿Está seguro de que desea eliminar esta cita?')) return;
-            
-            try {
-                const response = await apiCall(`${API_BASE_URL}/citas/${id}`, {
-                    method: 'DELETE'
-                });
-                
-                if (!response.ok) throw new Error('Error al eliminar cita');
-                
-                showAlert('Cita eliminada exitosamente', 'success');
-                await loadCitas();
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('Error al eliminar la cita', 'error');
-            }
-        }
-
-        function closeCitaModal() {
-            document.getElementById('citaModal').style.display = 'none';
-            currentEditId = null;
-            currentEditType = null;
-        }
-
-        // ===== GESTIÓN DE CLIENTES =====
-        async function loadClientes() {
-            showLoading('clientesLoading');
-            try {
-                const response = await apiCall(`${API_BASE_URL}/Clientes`);
-                if (!response.ok) throw new Error('Error al cargar clientes');
-                
+// ===== FUNCIONES AUXILIARES =====
+async function loadClientesForSelect(selectId = 'clienteSelect') {
+    try {
+        if (allClientes.length === 0) {
+            const response = await apiCall(`${API_BASE_URL}/Clientes`);
+            if (response.ok) {
                 allClientes = await response.json();
-                displayClientes(allClientes);
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('Error al cargar los clientes', 'error');
-            } finally {
-                hideLoading('clientesLoading');
             }
         }
 
-        function displayClientes(clientes) {
-            const tbody = document.getElementById('clientesTableBody');
-            tbody.innerHTML = '';
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="">Seleccione un cliente</option>';
+        
+        allClientes.forEach(cliente => {
+            const option = document.createElement('option');
+            option.value = cliente.idCliente;
+            option.textContent = cliente.nombreCompleto;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error al cargar clientes:', error);
+    }
+}
 
-            clientes.forEach(cliente => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${cliente.idCliente}</td>
-                    <td>${cliente.nombreCompleto}</td>
-                    <td>${cliente.contacto || '-'}</td>
-                    <td>${cliente.direccion || '-'}</td>
-                    <td>${cliente.nombreUsuario || 'Sin usuario'}</td>
-                    <td class="actions">
-                        <button class="btn btn-sm" onclick="editCliente(${cliente.idCliente})">✏️ Editar</button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteCliente(${cliente.idCliente})">🗑️ Eliminar</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function openCreateClienteModal() {
-            currentEditId = null;
-            currentEditType = 'cliente';
-            document.getElementById('clienteModalTitle').textContent = 'Nuevo Cliente';
-            document.getElementById('clienteForm').reset();
-            document.getElementById('clienteModal').style.display = 'block';
-        }
-
-        async function editCliente(id) {
-            try {
-                const response = await apiCall(`${API_BASE_URL}/Clientes/${id}`);
-                if (!response.ok) throw new Error(`Error ${response.status}: No se pudo cargar el cliente`);
-                
-                const cliente = await response.json();
-                
-                currentEditId = id;
-                currentEditType = 'cliente';
-                document.getElementById('clienteModalTitle').textContent = 'Editar Cliente';
-                
-                document.getElementById('nombreCompleto').value = cliente.nombreCompleto || '';
-                document.getElementById('contactoCliente').value = cliente.contacto || '';
-                document.getElementById('direccionCliente').value = cliente.direccion || '';
-                
-                document.getElementById('clienteForm').dataset.idUsuario = cliente.idUsuario;
-                
-                document.getElementById('clienteModal').style.display = 'block';
-            } catch (error) {
-                console.error('Error al editar cliente:', error);
-                showAlert(error.message, 'error');
-            }
-        }
-
-        async function deleteCliente(id) {
-            if (!confirm('¿Está seguro de que desea eliminar este cliente?')) return;
-            
-            try {
-                const response = await apiCall(`${API_BASE_URL}/Clientes/${id}`, {
-                    method: 'DELETE'
-                });
-                
-                if (!response.ok) {
-                    let errorMessage = `Error ${response.status}`;
-                    try {
-                        const contentType = response.headers.get('content-type');
-                        if (contentType && contentType.includes('application/json')) {
-                            const errorData = await response.json();
-                            errorMessage = errorData.title || errorData.message || errorMessage;
-                        } else {
-                            const errorText = await response.text();
-                            if (errorText) errorMessage = errorText;
-                        }
-                    } catch (e) {
-                        console.error('Error al leer respuesta:', e);
-                    }
-                    throw new Error(errorMessage);
-                }
-                
-                showAlert('Cliente eliminado exitosamente', 'success');
-                await loadClientes();
-            } catch (error) {
-                console.error('Error al eliminar cliente:', error);
-                showAlert(`Error: ${error.message}`, 'error');
-            }
-        }
-
-        function closeClienteModal() {
-            document.getElementById('clienteModal').style.display = 'none';
-            currentEditId = null;
-            currentEditType = null;
-        }
-
-        // ===== GESTIÓN DE SERVICIOS =====
-        async function loadServicios() {
-            showLoading('serviciosLoading');
-            try {
-                const response = await apiCall(`${API_BASE_URL}/servicios`);
-                if (!response.ok) throw new Error('Error al cargar servicios');
-                
+async function loadServiciosForSelect(selectId = 'servicioSelect') {
+    try {
+        if (allServicios.length === 0) {
+            const response = await apiCall(`${API_BASE_URL}/servicios`);
+            if (response.ok) {
                 allServicios = await response.json();
-                displayServicios(allServicios);
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('Error al cargar los servicios', 'error');
-            } finally {
-                hideLoading('serviciosLoading');
             }
         }
 
-        function displayServicios(servicios) {
-            const tbody = document.getElementById('serviciosTableBody');
-            tbody.innerHTML = '';
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="">Seleccione un servicio</option>';
+        
+        allServicios.forEach(servicio => {
+            const option = document.createElement('option');
+            option.value = servicio.idServicio;
+            option.textContent = servicio.descripcion;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error al cargar servicios:', error);
+    }
+}
 
-            servicios.forEach(servicio => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${servicio.idServicio}</td>
-                    <td>${servicio.descripcion}</td>
-                    <td>${servicio.duracionEstimada}</td>
-                    <td>${servicio.precio.toFixed(2)}</td>
-                    <td>${servicio.categoria || '-'}</td>
-                    <td class="actions">
-                        <button class="btn btn-sm" onclick="editServicio(${servicio.idServicio})">✏️ Editar</button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteServicio(${servicio.idServicio})">🗑️ Eliminar</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function openCreateServicioModal() {
-            currentEditId = null;
-            currentEditType = 'servicio';
-            document.getElementById('servicioModalTitle').textContent = 'Nuevo Servicio';
-            document.getElementById('servicioForm').reset();
-            document.getElementById('servicioModal').style.display = 'block';
-        }
-
-        async function editServicio(id) {
-            try {
-                const response = await apiCall(`${API_BASE_URL}/servicios/${id}`);
-                if (!response.ok) throw new Error('Error al cargar servicio');
-                
-                const servicio = await response.json();
-                
-                currentEditId = id;
-                currentEditType = 'servicio';
-                document.getElementById('servicioModalTitle').textContent = 'Editar Servicio';
-                
-                document.getElementById('descripcionServicio').value = servicio.descripcion;
-                document.getElementById('duracionEstimada').value = servicio.duracionEstimada;
-                document.getElementById('precioServicio').value = servicio.precio;
-                document.getElementById('categoriaServicio').value = servicio.categoria || '';
-                
-                document.getElementById('servicioModal').style.display = 'block';
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('Error al cargar el servicio', 'error');
-            }
-        }
-
-        async function deleteServicio(id) {
-            if (!confirm('¿Está seguro de que desea eliminar este servicio?')) return;
-            
-            try {
-                const response = await apiCall(`${API_BASE_URL}/servicios/${id}`, {
-                    method: 'DELETE'
-                });
-                
-                if (!response.ok) throw new Error('Error al eliminar servicio');
-                
-                showAlert('Servicio eliminado exitosamente', 'success');
-                await loadServicios();
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('Error al eliminar el servicio', 'error');
-            }
-        }
-
-        function closeServicioModal() {
-            document.getElementById('servicioModal').style.display = 'none';
-            currentEditId = null;
-            currentEditType = null;
-        }
-
-        // ===== GESTIÓN DE EMPLEADOS =====
-        async function loadEmpleados() {
-            showLoading('empleadosLoading');
-            try {
-                const response = await apiCall(`${API_BASE_URL}/empleados`);
-                if (!response.ok) throw new Error('Error al cargar empleados');
-                
+async function loadEmpleadosForSelect(selectId = 'empleadoSelect') {
+    try {
+        if (allEmpleados.length === 0) {
+            const response = await apiCall(`${API_BASE_URL}/empleados`);
+            if (response.ok) {
                 allEmpleados = await response.json();
-                displayEmpleados(allEmpleados);
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('Error al cargar los empleados', 'error');
-            } finally {
-                hideLoading('empleadosLoading');
             }
         }
 
-        function displayEmpleados(empleados) {
-            const tbody = document.getElementById('empleadosTableBody');
-            tbody.innerHTML = '';
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="">Sin asignar</option>';
+        
+        allEmpleados.forEach(empleado => {
+            const option = document.createElement('option');
+            option.value = empleado.idEmpleado;
+            option.textContent = empleado.nombreCompleto;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error al cargar empleados:', error);
+    }
+}
 
-            empleados.forEach(empleado => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${empleado.idEmpleado}</td>
-                    <td>${empleado.nombreCompleto}</td>
-                    <td>${empleado.especialidad || '-'}</td>
-                    <td>${empleado.contacto || '-'}</td>
-                    <td class="actions">
-                        <button class="btn btn-sm" onclick="editEmpleado(${empleado.idEmpleado})">✏️ Editar</button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteEmpleado(${empleado.idEmpleado})">🗑️ Eliminar</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
+// Funciones de formato
+function formatDateTime(dateTimeString) {
+    if (!dateTimeString) return 'N/A';
+    const date = new Date(dateTimeString);
+    return date.toLocaleString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function formatDateTimeForInput(dateTimeString) {
+    if (!dateTimeString) return '';
+    const date = new Date(dateTimeString);
+    return date.toISOString().slice(0, 16);
+}
+
+// Funciones de loading
+function showLoading(loadingId) {
+    const loadingElement = document.getElementById(loadingId);
+    if (loadingElement) {
+        loadingElement.style.display = 'block';
+    }
+}
+
+function hideLoading(loadingId) {
+    const loadingElement = document.getElementById(loadingId);
+    if (loadingElement) {
+        loadingElement.style.display = 'none';
+    }
+}
+
+// Función para mostrar alertas
+function showAlert(message, type = 'success') {
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type === 'success' ? 'success' : 'error'}`;
+    alert.textContent = message;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alert, container.firstChild);
+    
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.parentNode.removeChild(alert);
+        }
+    }, 5000);
+}
+
+// Funciones de búsqueda
+function searchCitas(searchTerm) {
+    if (!allCitas) return;
+    const filteredCitas = allCitas.filter(cita => 
+        (cita.nombreCliente || cita.nombreCompletoCliente || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (cita.nombreServicio || cita.descripcionServicio || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (cita.nombreEmpleado || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (cita.estado || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    displayCitas(filteredCitas);
+}
+
+function searchClientes(searchTerm) {
+    if (!allClientes) return;
+    const filteredClientes = allClientes.filter(cliente => 
+        (cliente.nombreCompleto || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (cliente.contacto || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (cliente.direccion || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    displayClientes(filteredClientes);
+}
+
+function searchServicios(searchTerm) {
+    if (!allServicios) return;
+    const filteredServicios = allServicios.filter(servicio => 
+        (servicio.descripcion || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (servicio.categoria || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    displayServicios(filteredServicios);
+}
+
+function searchEmpleados(searchTerm) {
+    if (!allEmpleados) return;
+    const filteredEmpleados = allEmpleados.filter(empleado => 
+        (empleado.nombreCompleto || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (empleado.especialidad || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (empleado.contacto || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    displayEmpleados(filteredEmpleados);
+}
+
+function searchPagos(searchTerm) {
+    if (!allPagos) return;
+    const filteredPagos = allPagos.filter(pago => 
+        pago.idPago.toString().includes(searchTerm.toLowerCase()) ||
+        pago.idCita.toString().includes(searchTerm.toLowerCase()) ||
+        (pago.tipoPago || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (pago.estadoCita || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (pago.nombreCliente || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    displayPagos(filteredPagos);
+}
+
+// Funciones de filtro
+function filterCitasByEstado(estado) {
+    if (!allCitas) return;
+    const filteredCitas = estado ? allCitas.filter(cita => cita.estado === estado) : allCitas;
+    displayCitas(filteredCitas);
+}
+
+function filterPagosByTipo(tipo) {
+    if (!allPagos) return;
+    const filteredPagos = tipo ? allPagos.filter(pago => pago.tipoPago === tipo) : allPagos;
+    displayPagos(filteredPagos);
+}
+
+// Event Listeners para formularios
+document.addEventListener('DOMContentLoaded', function() {
+    // Formulario de citas
+    document.getElementById('citaForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            idCliente: parseInt(document.getElementById('clienteSelectCita').value),
+            idServicio: parseInt(document.getElementById('servicioSelectCita').value),
+            idEmpleado: document.getElementById('empleadoSelectCita').value ? 
+                parseInt(document.getElementById('empleadoSelectCita').value) : null,
+            fechaInicio: document.getElementById('fechaInicio').value,
+            fechaFin: document.getElementById('fechaFin').value,
+            estado: document.getElementById('estadoCita').value,
+            notas: document.getElementById('notasCita').value || null
+        };
+        
+        try {
+            const url = currentEditId ? 
+                `${API_BASE_URL}/citas/${currentEditId}` : 
+                `${API_BASE_URL}/citas`;
+            
+            const method = currentEditId ? 'PUT' : 'POST';
+            
+            if (currentEditId) {
+                formData.idCita = currentEditId;
+            }
+            
+            const response = await apiCall(url, {
+                method: method,
+                body: JSON.stringify(formData)
             });
-        }
-
-        function openCreateEmpleadoModal() {
-            currentEditId = null;
-            currentEditType = 'empleado';
-            document.getElementById('empleadoModalTitle').textContent = 'Nuevo Empleado';
-            document.getElementById('empleadoForm').reset();
-            document.getElementById('empleadoModal').style.display = 'block';
-        }
-
-        async function editEmpleado(id) {
-            try {
-                const response = await apiCall(`${API_BASE_URL}/empleados/${id}`);
-                if (!response.ok) throw new Error('Error al cargar empleado');
-                
-                const empleado = await response.json();
-                
-                currentEditId = id;
-                currentEditType = 'empleado';
-                document.getElementById('empleadoModalTitle').textContent = 'Editar Empleado';
-                
-                document.getElementById('nombreEmpleado').value = empleado.nombreCompleto;
-                document.getElementById('especialidadEmpleado').value = empleado.especialidad || '';
-                document.getElementById('contactoEmpleado').value = empleado.contacto || '';
-                
-                document.getElementById('empleadoModal').style.display = 'block';
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('Error al cargar el empleado', 'error');
-            }
-        }
-
-        async function deleteEmpleado(id) {
-            if (!confirm('¿Está seguro de que desea eliminar este empleado?')) return;
             
-            try {
-                const response = await apiCall(`${API_BASE_URL}/empleados/${id}`, {
-                    method: 'DELETE'
-                });
-                
-                if (!response.ok) throw new Error('Error al eliminar empleado');
-                
-                showAlert('Empleado eliminado exitosamente', 'success');
-                await loadEmpleados();
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('Error al eliminar el empleado', 'error');
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || 'Error al guardar la cita');
             }
-        }
-
-        function closeEmpleadoModal() {
-            document.getElementById('empleadoModal').style.display = 'none';
-            currentEditId = null;
-            currentEditType = null;
-        }
-
-        // ===== GESTIÓN DE PAGOS MEJORADA =====
-        async function loadPagos() {
-            showLoading('pagosLoading');
-            try {
-                const response = await apiCall(`${API_BASE_URL}/pagos`);
-                if (!response.ok) throw new Error('Error al cargar pagos');
-                
-                allPagos = await response.json();
-                displayPagos(allPagos);
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('Error al cargar los pagos', 'error');
-            } finally {
-                hideLoading('pagosLoading');
-            }
-        }
-
-        function displayPagos(pagos) {
-            const tbody = document.getElementById('pagosTableBody');
-            tbody.innerHTML = '';
-
-            pagos.forEach(pago => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${pago.idPago}</td>
-                    <td>${pago.idCita}</td>
-                    <td>${pago.nombreCliente || 'N/A'}</td>
-                    <td>${pago.servicioDescripcion || 'N/A'}</td>
-                    <td>${pago.tipoPago}</td>
-                    <td>${pago.valorPago ? pago.valorPago.toFixed(2) : 'N/A'}</td>
-                    <td>${new Date(pago.fechaCita).toLocaleDateString('es-ES')}</td>
-                    <td><span class="status ${(pago.estadoCita || '').toLowerCase()}">${pago.estadoCita || 'N/A'}</span></td>
-                    <td class="actions">
-                        <button class="btn btn-sm" onclick="editPago(${pago.idPago})">✏️ Editar</button>
-                        <button class="btn btn-sm btn-danger" onclick="deletePago(${pago.idPago})">🗑️ Eliminar</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        async function openCreatePagoModal() {
-            currentEditId = null;
-            currentEditType = 'pago';
-            currentCitaInfo = null;
-            document.getElementById('pagoModalTitle').textContent = 'Registrar Pago';
-            document.getElementById('pagoForm').reset();
-            document.getElementById('paymentSummary').style.display = 'none';
-            document.getElementById('citaInfo').textContent = '';
             
-            await loadCitasForSelect();
-            
-            document.getElementById('pagoModal').style.display = 'block';
+            showAlert(currentEditId ? 'Cita actualizada exitosamente' : 'Cita creada exitosamente', 'success');
+            closeCitaModal();
+            await loadCitas();
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert(error.message || 'Error al guardar la cita', 'error');
         }
+    });
 
-        async function loadCitasForSelect() {
-            try {
-                // Cargar citas frescas cada vez
-                const response = await apiCall(`${API_BASE_URL}/citas`);
-                if (!response.ok) throw new Error('Error al cargar citas');
-                
-                allCitasForPagos = await response.json();
-                const select = document.getElementById('citaSelectPago');
-                select.innerHTML = '<option value="">Seleccione una cita</option>';
-                
-                allCitasForPagos.forEach(cita => {
-                    const option = document.createElement('option');
-                    option.value = cita.idCita;
-                    option.textContent = `ID: ${cita.idCita} - ${cita.nombreCliente || cita.nombreCompletoCliente} - ${cita.nombreServicio || cita.descripcionServicio} - ${(cita.precio || 0).toFixed(2)}`;
-                    select.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error al cargar citas:', error);
-                showAlert('Error al cargar las citas disponibles', 'error');
-            }
-        }
-
-        // Función para cargar información de la cita seleccionada
-        async function loadCitaInfo() {
-            const citaId = document.getElementById('citaSelectPago').value;
-            const citaInfoDiv = document.getElementById('citaInfo');
+    // Formulario de clientes
+    document.getElementById('clienteForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        try {
+            let clienteExistente = null;
             
-            if (!citaId) {
-                citaInfoDiv.textContent = '';
-                currentCitaInfo = null;
-                return;
-            }
-
-            try {
-                // Buscar la cita en el array cargado
-                currentCitaInfo = allCitasForPagos.find(cita => cita.idCita == citaId);
-                
-                if (currentCitaInfo) {
-                    // Obtener pagos existentes para esta cita
-                    const pagosResponse = await apiCall(`${API_BASE_URL}/pagos/cita/${citaId}`);
-                    let pagosExistentes = [];
-                    let totalPagado = 0;
-                    
-                    if (pagosResponse.ok) {
-                        pagosExistentes = await pagosResponse.json();
-                        totalPagado = pagosExistentes.reduce((sum, pago) => sum + (pago.valorPago || 0), 0);
-                    }
-                    
-                    const precioCita = currentCitaInfo.precio || 0;
-                    const saldoPendiente = precioCita - totalPagado;
-                    
-                    citaInfoDiv.innerHTML = `
-                        <strong>Precio del servicio:</strong> ${precioCita.toFixed(2)}<br>
-                        <strong>Total pagado:</strong> ${totalPagado.toFixed(2)}<br>
-                        <strong>Saldo pendiente:</strong> ${saldoPendiente.toFixed(2)}
-                    `;
-                    
-                    // Sugerir el saldo pendiente como valor del pago
-                    if (saldoPendiente > 0) {
-                        document.getElementById('valorPago').value = saldoPendiente.toFixed(2);
-                    }
+            if (currentEditId) {
+                const getResponse = await apiCall(`${API_BASE_URL}/Clientes/${currentEditId}`);
+                if (!getResponse.ok) {
+                    throw new Error(`Error al obtener datos actuales del cliente: ${getResponse.status}`);
                 }
-            } catch (error) {
-                console.error('Error al cargar información de la cita:', error);
-                citaInfoDiv.textContent = '';
+                clienteExistente = await getResponse.json();
             }
-        }
-
-        async function editPago(id) {
-            try {
-                // CORRECCIÓN: Usar apiCall en lugar de fetch directo
-                const response = await apiCall(`${API_BASE_URL}/pagos/${id}`);
-                if (!response.ok) throw new Error(`Error ${response.status}: No se pudo cargar el pago`);
-                
-                const pago = await response.json();
-                
-                currentEditId = id;
-                currentEditType = 'pago';
-                document.getElementById('pagoModalTitle').textContent = 'Editar Pago';
-                
-                // Cargar citas disponibles primero
-                await loadCitasForSelect();
-                
-                // Llenar el formulario con los datos del pago
-                document.getElementById('citaSelectPago').value = pago.idCita;
-                document.getElementById('tipoPago').value = pago.tipoPago;
-                document.getElementById('valorPago').value = pago.valorPago || '';
-                
-                // Cargar información de la cita
-                await loadCitaInfo();
-                
-                // Mostrar resumen de pagos existentes
-                await showPaymentSummary(pago.idCita, id);
-                
-                document.getElementById('pagoModal').style.display = 'block';
-            } catch (error) {
-                console.error('Error al editar pago:', error);
-                showAlert(`Error al cargar el pago: ${error.message}`, 'error');
+            
+            const formData = {
+                NombreCompleto: document.getElementById('nombreCompleto').value.trim(),
+                Contacto: document.getElementById('contactoCliente').value.trim() || null,
+                Direccion: document.getElementById('direccionCliente').value.trim() || null,
+                IdUsuario: clienteExistente ? clienteExistente.idUsuario : null
+            };
+            
+            const url = currentEditId ? 
+                `${API_BASE_URL}/Clientes/${currentEditId}` : 
+                `${API_BASE_URL}/Clientes`;
+            
+            const method = currentEditId ? 'PUT' : 'POST';
+            
+            if (currentEditId) {
+                formData.IdCliente = parseInt(currentEditId, 10);
             }
-        }
-
-        async function showPaymentSummary(citaId, excludePaymentId = null) {
-            try {
-                const response = await apiCall(`${API_BASE_URL}/pagos/cita/${citaId}`);
-                if (!response.ok) return;
-                
-                const pagos = await response.json();
-                const filteredPagos = excludePaymentId ? 
-                    pagos.filter(p => p.idPago !== excludePaymentId) : pagos;
-                
-                if (filteredPagos.length > 0) {
-                    const totalPagado = filteredPagos.reduce((sum, pago) => sum + (pago.valorPago || 0), 0);
-                    
-                    let summaryHTML = `<div class="payment-info"><span>Total pagado anteriormente:</span><span class="payment-total">${totalPagado.toFixed(2)}</span></div>`;
-                    summaryHTML += '<div style="margin-top: 0.5rem;"><strong>Pagos existentes:</strong></div>';
-                    
-                    filteredPagos.forEach(pago => {
-                        summaryHTML += `<div class="payment-info">
-                            <span>${pago.tipoPago}</span>
-                            <span>${(pago.valorPago || 0).toFixed(2)}</span>
-                        </div>`;
-                    });
-                    
-                    document.getElementById('paymentSummaryContent').innerHTML = summaryHTML;
-                    document.getElementById('paymentSummary').style.display = 'block';
+            
+            const response = await apiCall(url, {
+                method: method,
+                body: JSON.stringify(formData)
+            });
+            
+            if (!response.ok) {
+                let errorMessage = `Error ${response.status}`;
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await response.json();
+                    errorMessage = errorData.title || errorData.message || errorMessage;
                 } else {
+                    const errorText = await response.text();
+                    if (errorText) errorMessage = errorText;
+                }
+                throw new Error(errorMessage);
+            }
+            
+            showAlert(
+                currentEditId ? 'Cliente actualizado exitosamente' : 'Cliente creado exitosamente', 
+                'success'
+            );
+            closeClienteModal();
+            await loadClientes();
+        } catch (error) {
+            console.error('Error al guardar cliente:', error);
+            showAlert(error.message || 'Error al guardar el cliente', 'error');
+        }
+    });
+
+    // Formulario de servicios
+    document.getElementById('servicioForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            descripcion: document.getElementById('descripcionServicio').value,
+            duracionEstimada: parseInt(document.getElementById('duracionEstimada').value),
+            precio: parseFloat(document.getElementById('precioServicio').value),
+            categoria: document.getElementById('categoriaServicio').value || null
+        };
+        
+        try {
+            const url = currentEditId ? 
+                `${API_BASE_URL}/servicios/${currentEditId}` : 
+                `${API_BASE_URL}/servicios`;
+            
+            const method = currentEditId ? 'PUT' : 'POST';
+            
+            if (currentEditId) {
+                formData.idServicio = currentEditId;
+            }
+            
+            const response = await apiCall(url, {
+                method: method,
+                body: JSON.stringify(formData)
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || 'Error al guardar el servicio');
+            }
+            
+            showAlert(currentEditId ? 'Servicio actualizado exitosamente' : 'Servicio creado exitosamente', 'success');
+            closeServicioModal();
+            await loadServicios();
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert(error.message || 'Error al guardar el servicio', 'error');
+        }
+    });
+
+    // Formulario de empleados
+    document.getElementById('empleadoForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            nombreCompleto: document.getElementById('nombreEmpleado').value,
+            especialidad: document.getElementById('especialidadEmpleado').value || null,
+            contacto: document.getElementById('contactoEmpleado').value || null
+        };
+        
+        try {
+            const url = currentEditId ? 
+                `${API_BASE_URL}/empleados/${currentEditId}` : 
+                `${API_BASE_URL}/empleados`;
+            
+            const method = currentEditId ? 'PUT' : 'POST';
+            
+            if (currentEditId) {
+                formData.idEmpleado = currentEditId;
+            }
+            
+            const response = await apiCall(url, {
+                method: method,
+                body: JSON.stringify(formData)
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || 'Error al guardar el empleado');
+            }
+            
+            showAlert(currentEditId ? 'Empleado actualizado exitosamente' : 'Empleado creado exitosamente', 'success');
+            closeEmpleadoModal();
+            await loadEmpleados();
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert(error.message || 'Error al guardar el empleado', 'error');
+        }
+    });
+
+    // Formulario de pagos (MEJORADO)
+    document.getElementById('pagoForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const valorPago = parseFloat(document.getElementById('valorPago').value);
+        const citaId = parseInt(document.getElementById('citaSelectPago').value);
+        
+        const formData = {
+            idCita: citaId,
+            tipoPago: document.getElementById('tipoPago').value,
+            valorPago: valorPago || null
+        };
+        
+        try {
+            const url = currentEditId ? 
+                `${API_BASE_URL}/pagos/${currentEditId}` : 
+                `${API_BASE_URL}/pagos`;
+            
+            const method = currentEditId ? 'PUT' : 'POST';
+            
+            if (currentEditId) {
+                formData.idPago = currentEditId;
+            }
+            
+            const response = await apiCall(url, {
+                method: method,
+                body: JSON.stringify(formData)
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || 'Error al guardar el pago');
+            }
+            
+            const action = currentEditId ? 'actualizado' : 'registrado';
+            
+            // Si es un nuevo pago, verificar si completa la cita
+            if (!currentEditId && valorPago > 0) {
+                await checkAndUpdateCitaStatus(citaId, valorPago);
+            } else {
+                showAlert(`Pago ${action} exitosamente`, 'success');
+            }
+            
+            closePagoModal();
+            await loadPagos();
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert(error.message || 'Error al guardar el pago', 'error');
+        }
+    });
+
+    // Cerrar modales al hacer clic fuera
+    window.addEventListener('click', function(event) {
+        const modals = ['citaModal', 'clienteModal', 'servicioModal', 'empleadoModal', 'pagoModal'];
+        modals.forEach(modalId => {
+            const modal = document.getElementById(modalId);
+            if (event.target === modal) {
+                modal.style.display = 'none';
+                currentEditId = null;
+                currentEditType = null;
+                if (modalId === 'pagoModal') {
+                    currentCitaInfo = null;
                     document.getElementById('paymentSummary').style.display = 'none';
                 }
-            } catch (error) {
-                console.error('Error al cargar resumen de pagos:', error);
-                document.getElementById('paymentSummary').style.display = 'none';
             }
-        }
-
-        async function deletePago(id) {
-            if (!confirm('¿Está seguro de que desea eliminar este pago?')) return;
-            
-            try {
-                const response = await apiCall(`${API_BASE_URL}/pagos/${id}`, {
-                    method: 'DELETE'
-                });
-                
-                if (!response.ok) throw new Error('Error al eliminar pago');
-                
-                showAlert('Pago eliminado exitosamente', 'success');
-                await loadPagos();
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('Error al eliminar el pago', 'error');
-            }
-        }
-
-        function closePagoModal() {
-            document.getElementById('pagoModal').style.display = 'none';
-            document.getElementById('paymentSummary').style.display = 'none';
-            currentEditId = null;
-            currentEditType = null;
-            currentCitaInfo = null;
-        }
-
-        // Función para verificar si el pago completa la cita y cambiar su estado
-        async function checkAndUpdateCitaStatus(citaId, nuevoPago) {
-            try {
-                if (!currentCitaInfo) return;
-                
-                // Obtener todos los pagos de la cita (incluyendo el nuevo)
-                const response = await apiCall(`${API_BASE_URL}/pagos/cita/${citaId}`);
-                if (!response.ok) return;
-                
-                const pagos = await response.json();
-                const totalPagado = pagos.reduce((sum, pago) => sum + (pago.valorPago || 0), 0);
-                const precioCita = currentCitaInfo.precio || 0;
-                
-                // Si el total pagado es igual o mayor al precio de la cita, marcar como completada
-                if (totalPagado >= precioCita && currentCitaInfo.estado !== 'Completada') {
-                    const updateData = {
-                        idCita: citaId,
-                        idCliente: currentCitaInfo.idCliente,
-                        idServicio: currentCitaInfo.idServicio,
-                        idEmpleado: currentCitaInfo.idEmpleado,
-                        fechaInicio: currentCitaInfo.fechaInicio,
-                        fechaFin: currentCitaInfo.fechaFin,
-                        estado: 'Completada',
-                        notas: currentCitaInfo.notas
-                    };
-                    
-                    const updateResponse = await apiCall(`${API_BASE_URL}/citas/${citaId}`, {
-                        method: 'PUT',
-                        body: JSON.stringify(updateData)
-                    });
-                    
-                    if (updateResponse.ok) {
-                        showAlert('¡Pago registrado! La cita ha sido marcada como completada automáticamente.', 'success');
-                        // Recargar citas para reflejar el cambio
-                        if (document.getElementById('citas').classList.contains('active')) {
-                            await loadCitas();
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Error al actualizar estado de cita:', error);
-                // No mostrar error al usuario ya que el pago se registró correctamente
-            }
-        }
-
-        // ===== FUNCIONES AUXILIARES =====
-        async function loadClientesForSelect(selectId = 'clienteSelect') {
-            try {
-                if (allClientes.length === 0) {
-                    const response = await apiCall(`${API_BASE_URL}/Clientes`);
-                    if (response.ok) {
-                        allClientes = await response.json();
-                    }
-                }
-
-                const select = document.getElementById(selectId);
-                select.innerHTML = '<option value="">Seleccione un cliente</option>';
-                
-                allClientes.forEach(cliente => {
-                    const option = document.createElement('option');
-                    option.value = cliente.idCliente;
-                    option.textContent = cliente.nombreCompleto;
-                    select.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error al cargar clientes:', error);
-            }
-        }
-
-        async function loadServiciosForSelect(selectId = 'servicioSelect') {
-            try {
-                if (allServicios.length === 0) {
-                    const response = await apiCall(`${API_BASE_URL}/servicios`);
-                    if (response.ok) {
-                        allServicios = await response.json();
-                    }
-                }
-
-                const select = document.getElementById(selectId);
-                select.innerHTML = '<option value="">Seleccione un servicio</option>';
-                
-                allServicios.forEach(servicio => {
-                    const option = document.createElement('option');
-                    option.value = servicio.idServicio;
-                    option.textContent = servicio.descripcion;
-                    select.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error al cargar servicios:', error);
-            }
-        }
-
-        async function loadEmpleadosForSelect(selectId = 'empleadoSelect') {
-            try {
-                if (allEmpleados.length === 0) {
-                    const response = await apiCall(`${API_BASE_URL}/empleados`);
-                    if (response.ok) {
-                        allEmpleados = await response.json();
-                    }
-                }
-
-                const select = document.getElementById(selectId);
-                select.innerHTML = '<option value="">Sin asignar</option>';
-                
-                allEmpleados.forEach(empleado => {
-                    const option = document.createElement('option');
-                    option.value = empleado.idEmpleado;
-                    option.textContent = empleado.nombreCompleto;
-                    select.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error al cargar empleados:', error);
-            }
-        }
-
-        // Funciones de formato
-        function formatDateTime(dateTimeString) {
-            if (!dateTimeString) return 'N/A';
-            const date = new Date(dateTimeString);
-            return date.toLocaleString('es-ES', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-
-        function formatDateTimeForInput(dateTimeString) {
-            if (!dateTimeString) return '';
-            const date = new Date(dateTimeString);
-            return date.toISOString().slice(0, 16);
-        }
-
-        // Funciones de loading
-        function showLoading(loadingId) {
-            const loadingElement = document.getElementById(loadingId);
-            if (loadingElement) {
-                loadingElement.style.display = 'block';
-            }
-        }
-
-        function hideLoading(loadingId) {
-            const loadingElement = document.getElementById(loadingId);
-            if (loadingElement) {
-                loadingElement.style.display = 'none';
-            }
-        }
-
-        // Función para mostrar alertas
-        function showAlert(message, type = 'success') {
-            const alert = document.createElement('div');
-            alert.className = `alert alert-${type === 'success' ? 'success' : 'error'}`;
-            alert.textContent = message;
-            
-            const container = document.querySelector('.container');
-            container.insertBefore(alert, container.firstChild);
-            
-            setTimeout(() => {
-                if (alert.parentNode) {
-                    alert.parentNode.removeChild(alert);
-                }
-            }, 5000);
-        }
-
-        // Funciones de búsqueda
-        function searchCitas(searchTerm) {
-            if (!allCitas) return;
-            const filteredCitas = allCitas.filter(cita => 
-                (cita.nombreCliente || cita.nombreCompletoCliente || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (cita.nombreServicio || cita.descripcionServicio || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (cita.nombreEmpleado || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (cita.estado || '').toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            displayCitas(filteredCitas);
-        }
-
-        function searchClientes(searchTerm) {
-            if (!allClientes) return;
-            const filteredClientes = allClientes.filter(cliente => 
-                (cliente.nombreCompleto || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (cliente.contacto || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (cliente.direccion || '').toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            displayClientes(filteredClientes);
-        }
-
-        function searchServicios(searchTerm) {
-            if (!allServicios) return;
-            const filteredServicios = allServicios.filter(servicio => 
-                (servicio.descripcion || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (servicio.categoria || '').toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            displayServicios(filteredServicios);
-        }
-
-        function searchEmpleados(searchTerm) {
-            if (!allEmpleados) return;
-            const filteredEmpleados = allEmpleados.filter(empleado => 
-                (empleado.nombreCompleto || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (empleado.especialidad || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (empleado.contacto || '').toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            displayEmpleados(filteredEmpleados);
-        }
-
-        function searchPagos(searchTerm) {
-            if (!allPagos) return;
-            const filteredPagos = allPagos.filter(pago => 
-                pago.idPago.toString().includes(searchTerm.toLowerCase()) ||
-                pago.idCita.toString().includes(searchTerm.toLowerCase()) ||
-                (pago.tipoPago || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (pago.estadoCita || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (pago.nombreCliente || '').toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            displayPagos(filteredPagos);
-        }
-
-        // Funciones de filtro
-        function filterCitasByEstado(estado) {
-            if (!allCitas) return;
-            const filteredCitas = estado ? allCitas.filter(cita => cita.estado === estado) : allCitas;
-            displayCitas(filteredCitas);
-        }
-
-        function filterPagosByTipo(tipo) {
-            if (!allPagos) return;
-            const filteredPagos = tipo ? allPagos.filter(pago => pago.tipoPago === tipo) : allPagos;
-            displayPagos(filteredPagos);
-        }
-
-        // Event Listeners para formularios
-        document.addEventListener('DOMContentLoaded', function() {
-            // Formulario de citas
-            document.getElementById('citaForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const formData = {
-                    idCliente: parseInt(document.getElementById('clienteSelectCita').value),
-                    idServicio: parseInt(document.getElementById('servicioSelectCita').value),
-                    idEmpleado: document.getElementById('empleadoSelectCita').value ? 
-                        parseInt(document.getElementById('empleadoSelectCita').value) : null,
-                    fechaInicio: document.getElementById('fechaInicio').value,
-                    fechaFin: document.getElementById('fechaFin').value,
-                    estado: document.getElementById('estadoCita').value,
-                    notas: document.getElementById('notasCita').value || null
-                };
-                
-                try {
-                    const url = currentEditId ? 
-                        `${API_BASE_URL}/citas/${currentEditId}` : 
-                        `${API_BASE_URL}/citas`;
-                    
-                    const method = currentEditId ? 'PUT' : 'POST';
-                    
-                    if (currentEditId) {
-                        formData.idCita = currentEditId;
-                    }
-                    
-                    const response = await apiCall(url, {
-                        method: method,
-                        body: JSON.stringify(formData)
-                    });
-                    
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(errorText || 'Error al guardar la cita');
-                    }
-                    
-                    showAlert(currentEditId ? 'Cita actualizada exitosamente' : 'Cita creada exitosamente', 'success');
-                    closeCitaModal();
-                    await loadCitas();
-                } catch (error) {
-                    console.error('Error:', error);
-                    showAlert(error.message || 'Error al guardar la cita', 'error');
-                }
-            });
-
-            // Formulario de clientes
-            document.getElementById('clienteForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                try {
-                    let clienteExistente = null;
-                    
-                    if (currentEditId) {
-                        const getResponse = await apiCall(`${API_BASE_URL}/Clientes/${currentEditId}`);
-                        if (!getResponse.ok) {
-                            throw new Error(`Error al obtener datos actuales del cliente: ${getResponse.status}`);
-                        }
-                        clienteExistente = await getResponse.json();
-                    }
-                    
-                    const formData = {
-                        NombreCompleto: document.getElementById('nombreCompleto').value.trim(),
-                        Contacto: document.getElementById('contactoCliente').value.trim() || null,
-                        Direccion: document.getElementById('direccionCliente').value.trim() || null,
-                        IdUsuario: clienteExistente ? clienteExistente.idUsuario : null
-                    };
-                    
-                    const url = currentEditId ? 
-                        `${API_BASE_URL}/Clientes/${currentEditId}` : 
-                        `${API_BASE_URL}/Clientes`;
-                    
-                    const method = currentEditId ? 'PUT' : 'POST';
-                    
-                    if (currentEditId) {
-                        formData.IdCliente = parseInt(currentEditId, 10);
-                    }
-                    
-                    const response = await apiCall(url, {
-                        method: method,
-                        body: JSON.stringify(formData)
-                    });
-                    
-                    if (!response.ok) {
-                        let errorMessage = `Error ${response.status}`;
-                        const contentType = response.headers.get('content-type');
-                        if (contentType && contentType.includes('application/json')) {
-                            const errorData = await response.json();
-                            errorMessage = errorData.title || errorData.message || errorMessage;
-                        } else {
-                            const errorText = await response.text();
-                            if (errorText) errorMessage = errorText;
-                        }
-                        throw new Error(errorMessage);
-                    }
-                    
-                    showAlert(
-                        currentEditId ? 'Cliente actualizado exitosamente' : 'Cliente creado exitosamente', 
-                        'success'
-                    );
-                    closeClienteModal();
-                    await loadClientes();
-                } catch (error) {
-                    console.error('Error al guardar cliente:', error);
-                    showAlert(error.message || 'Error al guardar el cliente', 'error');
-                }
-            });
-
-            // Formulario de servicios
-            document.getElementById('servicioForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const formData = {
-                    descripcion: document.getElementById('descripcionServicio').value,
-                    duracionEstimada: parseInt(document.getElementById('duracionEstimada').value),
-                    precio: parseFloat(document.getElementById('precioServicio').value),
-                    categoria: document.getElementById('categoriaServicio').value || null
-                };
-                
-                try {
-                    const url = currentEditId ? 
-                        `${API_BASE_URL}/servicios/${currentEditId}` : 
-                        `${API_BASE_URL}/servicios`;
-                    
-                    const method = currentEditId ? 'PUT' : 'POST';
-                    
-                    if (currentEditId) {
-                        formData.idServicio = currentEditId;
-                    }
-                    
-                    const response = await apiCall(url, {
-                        method: method,
-                        body: JSON.stringify(formData)
-                    });
-                    
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(errorText || 'Error al guardar el servicio');
-                    }
-                    
-                    showAlert(currentEditId ? 'Servicio actualizado exitosamente' : 'Servicio creado exitosamente', 'success');
-                    closeServicioModal();
-                    await loadServicios();
-                } catch (error) {
-                    console.error('Error:', error);
-                    showAlert(error.message || 'Error al guardar el servicio', 'error');
-                }
-            });
-
-            // Formulario de empleados
-            document.getElementById('empleadoForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const formData = {
-                    nombreCompleto: document.getElementById('nombreEmpleado').value,
-                    especialidad: document.getElementById('especialidadEmpleado').value || null,
-                    contacto: document.getElementById('contactoEmpleado').value || null
-                };
-                
-                try {
-                    const url = currentEditId ? 
-                        `${API_BASE_URL}/empleados/${currentEditId}` : 
-                        `${API_BASE_URL}/empleados`;
-                    
-                    const method = currentEditId ? 'PUT' : 'POST';
-                    
-                    if (currentEditId) {
-                        formData.idEmpleado = currentEditId;
-                    }
-                    
-                    const response = await apiCall(url, {
-                        method: method,
-                        body: JSON.stringify(formData)
-                    });
-                    
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(errorText || 'Error al guardar el empleado');
-                    }
-                    
-                    showAlert(currentEditId ? 'Empleado actualizado exitosamente' : 'Empleado creado exitosamente', 'success');
-                    closeEmpleadoModal();
-                    await loadEmpleados();
-                } catch (error) {
-                    console.error('Error:', error);
-                    showAlert(error.message || 'Error al guardar el empleado', 'error');
-                }
-            });
-
-            // Formulario de pagos (MEJORADO)
-            document.getElementById('pagoForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const valorPago = parseFloat(document.getElementById('valorPago').value);
-                const citaId = parseInt(document.getElementById('citaSelectPago').value);
-                
-                const formData = {
-                    idCita: citaId,
-                    tipoPago: document.getElementById('tipoPago').value,
-                    valorPago: valorPago || null
-                };
-                
-                try {
-                    const url = currentEditId ? 
-                        `${API_BASE_URL}/pagos/${currentEditId}` : 
-                        `${API_BASE_URL}/pagos`;
-                    
-                    const method = currentEditId ? 'PUT' : 'POST';
-                    
-                    if (currentEditId) {
-                        formData.idPago = currentEditId;
-                    }
-                    
-                    const response = await apiCall(url, {
-                        method: method,
-                        body: JSON.stringify(formData)
-                    });
-                    
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(errorText || 'Error al guardar el pago');
-                    }
-                    
-                    const action = currentEditId ? 'actualizado' : 'registrado';
-                    
-                    // Si es un nuevo pago, verificar si completa la cita
-                    if (!currentEditId && valorPago > 0) {
-                        await checkAndUpdateCitaStatus(citaId, valorPago);
-                    } else {
-                        showAlert(`Pago ${action} exitosamente`, 'success');
-                    }
-                    
-                    closePagoModal();
-                    await loadPagos();
-                } catch (error) {
-                    console.error('Error:', error);
-                    showAlert(error.message || 'Error al guardar el pago', 'error');
-                }
-            });
-
-            // Cerrar modales al hacer clic fuera
-            window.addEventListener('click', function(event) {
-                const modals = ['citaModal', 'clienteModal', 'servicioModal', 'empleadoModal', 'pagoModal'];
-                modals.forEach(modalId => {
-                    const modal = document.getElementById(modalId);
-                    if (event.target === modal) {
-                        modal.style.display = 'none';
-                        currentEditId = null;
-                        currentEditType = null;
-                        if (modalId === 'pagoModal') {
-                            currentCitaInfo = null;
-                            document.getElementById('paymentSummary').style.display = 'none';
-                        }
-                    }
-                });
-            });
-
-            // Cargar datos iniciales
-            const today = new Date().toISOString().split('T')[0];
-            const fechaConsulta = document.getElementById('fechaConsulta');
-            if (fechaConsulta) {
-                fechaConsulta.min = today;
-                fechaConsulta.value = today;
-            }
-            
-            // Cargar tab inicial
-            loadTabData('citas');
         });
-    </script>
+    });
+
+    // Cargar datos iniciales
+    const today = new Date().toISOString().split('T')[0];
+    const fechaConsulta = document.getElementById('fechaConsulta');
+    if (fechaConsulta) {
+        fechaConsulta.min = today;
+        fechaConsulta.value = today;
+    }
+    
+    // Cargar tab inicial
+    loadTabData('citas');
+});
+</script>
 </body>
 </html>
