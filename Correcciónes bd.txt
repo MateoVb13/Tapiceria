@@ -22,22 +22,22 @@ COLLATE = utf8mb4_0900_ai_ci; -- Usar la collación del esquema
 -- Table `tapiceria`.`clientes`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `tapiceria`.`clientes` (
-  `IdCliente` INT NOT NULL AUTO_INCREMENT,
-  `IdUsuario` INT NULL DEFAULT NULL, -- Puede ser NULL si un cliente no tiene cuenta de usuario
-  `NombreCompleto` VARCHAR(100) NOT NULL,
-  `Contacto` VARCHAR(100) NULL DEFAULT NULL, 
-  `Direccion` VARCHAR(200) NULL DEFAULT NULL,
-  PRIMARY KEY (`IdCliente`),
-  INDEX `fk_clientes_usuarios_idx` (`IdUsuario` ASC) VISIBLE,
-  CONSTRAINT `fk_clientes_usuarios`
-    FOREIGN KEY (`IdUsuario`)
-    REFERENCES `tapiceria`.`usuarios` (`IdUsuario`)
-    ON DELETE SET NULL -- Si se elimina el usuario, la FK en cliente se pone a NULL
-    ON UPDATE NO ACTION
-)
+`IdCliente` INT NOT NULL AUTO_INCREMENT,
+`IdUsuario` INT NULL DEFAULT NULL, -- Puede ser NULL si un cliente no tiene cuenta de usuario
+`NombreCompleto` VARCHAR(100) NOT NULL,
+`Contacto` VARCHAR(100) NULL DEFAULT NULL,
+`Direccion` VARCHAR(200) NULL DEFAULT NULL,
+PRIMARY KEY (`IdCliente`),
+INDEX `fk_clientes_usuarios_idx` (`IdUsuario` ASC) VISIBLE,
+CONSTRAINT `fk_clientes_usuarios`
+FOREIGN KEY (`IdUsuario`)
+REFERENCES `tapiceria`.`usuarios` (`IdUsuario`)
+ON DELETE SET NULL -- Si se elimina el usuario, la FK en cliente se pone a NULL
+ON UPDATE NO ACTION)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
+COLLATE = utf8mb4_0900_ai_ci; -- Usar la collación del esquema
+
 
 -- -----------------------------------------------------
 -- Table `tapiceria`.`servicios`
@@ -164,6 +164,11 @@ CREATE TABLE IF NOT EXISTS `horarios_base_agendamiento` (
     ON DELETE SET NULL -- Si se elimina el servicio, el horario sigue aplicándose a todos los servicios
     ON UPDATE NO ACTION
 ) ENGINE = InnoDB;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 
 -- =============================================
 -- INICIO DE PROCEDIMIENTOS ALMACENADOS
@@ -1064,6 +1069,7 @@ BEGIN
     SELECT 
         CONCAT('Se crearon ', v_ContadorCreados, ' horarios base para el día ', p_DiaSemana) AS Resultado;
 END$$
+
 
 DELIMITER ;
 

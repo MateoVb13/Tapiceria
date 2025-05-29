@@ -484,80 +484,111 @@ namespace Tapiceria.Views
 
         private async void OnConfirmarClicked(object sender, EventArgs e)
         {
-            // Verificar nuevamente que los datos del cliente estén completos antes de confirmar
-            if (!_datosClienteCompletos)
-            {
-                bool irAPerfil = await DisplayAlert(
-                    "Información incompleta",
-                    "Debes completar tu información de contacto y dirección antes de agendar una cita.",
-                    "Completar ahora", "Cancelar");
-
-                if (irAPerfil)
-                {
-                    await Navigation.PushAsync(new PerfilPage());
-                }
-                return;
-            }
-
-            if (_servicioSeleccionado == null || _horarioSeleccionado == null)
-            {
-                await DisplayAlert("Información incompleta", "Por favor selecciona un servicio y un horario disponible.", "OK");
-                return;
-            }
-
-            // Mostrar confirmación
-            bool confirmar = await DisplayAlert("Confirmar cita",
-                $"¿Deseas confirmar tu cita para {_servicioSeleccionado.Descripcion} el {datePicker.Date.ToString("D")} a las {_horarioSeleccionado.FechaInicio.ToString("hh:mm tt")}?",
-                "Confirmar", "Cancelar");
-
-            if (!confirmar) return;
-
             try
             {
-                activityIndicator.IsRunning = true;
-                btnConfirmar.IsEnabled = false;
+                // Validación adicional antes de confirmar - Verificar citas pendientes
+                var cliente = await PerfilService.GetClienteActual();
 
-                // Crear objeto DTO para la cita
+                if (cliente == null)
+                {
+                    await DisplayAlert("Error", "No se pudo obtener la información del cliente.", "OK");
+                    return;
+                }
+
+                // Verificar nuevamente si tiene citas pendientes (por si cambió mientras estaba en la página)
+                var citasService = new Services.CitasService();
+                bool tieneCitasPendientes = await citasService.TieneCitasPendientesAsync(cliente.IdCliente);
+
+                if (tieneCitasPendientes)
+                {
+                    await DisplayAlert("Restricción",
+                        "Se detectó una cita pendiente. No puedes agendar nuevas citas hasta que confirmes o canceles la cita pendiente.",
+                        "OK");
+
+                    // Navegar de vuelta a Mis Citas
+                    await Navigation.PopAsync();
+                    return;
+                }
+
+                // Validaciones existentes
+                if (servicePicker.SelectedItem == null)
+                {
+                    await DisplayAlert("Error", "Por favor selecciona un servicio.", "OK");
+                    return;
+                }
+
+                if (_horarioSeleccionado == null)
+                {
+                    await DisplayAlert("Error", "Por favor selecciona un horario.", "OK");
+                    return;
+                }
+
+                var servicioSeleccionado = (Servicio)servicePicker.SelectedItem;
+
+                // Crear el DTO para la nueva cita
                 var nuevaCita = new CitaCreacionDto
                 {
-                    IdCliente = _clienteId,
-                    IdServicio = _servicioSeleccionado.IdServicio,
+                    IdCliente = cliente.IdCliente,
+                    IdServicio = servicioSeleccionado.IdServicio,
                     IdEmpleado = _horarioSeleccionado.IdEmpleado,
                     FechaInicio = _horarioSeleccionado.FechaInicio,
                     FechaFin = _horarioSeleccionado.FechaFin,
                     Estado = "Pendiente",
-                    Notas = string.IsNullOrWhiteSpace(notasEditor.Text) ? null : notasEditor.Text
+                    Notas = string.IsNullOrWhiteSpace(notasEditor.Text) ? string.Empty : notasEditor.Text.Trim()
                 };
 
-                // Enviar la cita a la API en segundo plano
-                var citaCreada = false;
-                await Task.Run(async () => {
-                    citaCreada = await _citasService.CreateCitaAsync(nuevaCita) != null;
-                });
+                // Mostrar indicador de carga
+                btnConfirmar.IsEnabled = false;
+                btnConfirmar.Text = "Confirmando...";
 
-                if (citaCreada)
+                // Llamar al servicio para crear la cita
+                var citaCreada = await citasService.CreateCitaAsync(nuevaCita);
+
+                if (citaCreada != null)
                 {
-                    await DisplayAlert("¡Cita Agendada!",
-                        "Tu cita ha sido agendada exitosamente. Recibirás una confirmación pronto.\n\n" +
-                        $"Servicio: {_servicioSeleccionado.Descripcion}\n" +
-                        $"Fecha: {datePicker.Date.ToString("D")}\n" +
-                        $"Hora: {_horarioSeleccionado.FechaInicio.ToString("hh:mm tt")}\n" +
-                        $"Tapicero: {_horarioSeleccionado.NombreEmpleado}",
+                    await DisplayAlert("Éxito",
+                        $"¡Cita agendada exitosamente!\n\n" +
+                        $"Servicio: {servicioSeleccionado.Descripcion}\n" +
+                        $"Fecha: {_horarioSeleccionado.FechaInicio:dd/MM/yyyy}\n" +
+                        $"Hora: {_horarioSeleccionado.FechaInicio:HH:mm}\n" +
+                        $"Empleado: {_horarioSeleccionado.NombreEmpleado}",
                         "OK");
 
-                    // Volver a la página anterior
+                    // Limpiar formulario
+                    LimpiarFormulario();
+
+                    // Regresar a la página anterior
                     await Navigation.PopAsync();
+                }
+                else
+                {
+                    await DisplayAlert("Error", "No se pudo crear la cita. Inténtalo de nuevo.", "OK");
                 }
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error", $"No se pudo agendar la cita: {ex.Message}", "OK");
+                await DisplayAlert("Error", $"Error al procesar la cita: {ex.Message}", "OK");
             }
             finally
             {
-                activityIndicator.IsRunning = false;
+                // Restaurar el botón
                 btnConfirmar.IsEnabled = true;
+                btnConfirmar.Text = "Confirmar Cita";
             }
+        }
+
+        // Método auxiliar para limpiar el formulario
+        private void LimpiarFormulario()
+        {
+            servicePicker.SelectedIndex = -1;
+            datePicker.Date = DateTime.Today.AddDays(1);
+            gridHorarios.Children.Clear();
+            frameCitaSeleccionada.IsVisible = false;
+            notasEditor.Text = string.Empty;
+            lblDuracion.Text = "--";
+            lblPrecio.Text = "--";
+            btnConfirmar.IsEnabled = false;
+            _horarioSeleccionado = null;
         }
     }
 }

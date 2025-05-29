@@ -130,5 +130,26 @@ namespace Tapiceria.Services
                 throw new Exception($"Error de conexión: {ex.Message}", ex);
             }
         }
+        public async Task<bool> TieneCitasPendientesAsync(int idCliente)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{_baseUrl}api/citas/cliente/{idCliente}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var citas = await response.Content.ReadFromJsonAsync<List<CitaListItemDto>>();
+
+                    // Verificar si tiene alguna cita en estado "Pendiente"
+                    return citas?.Any(c => c.Estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase)) ?? false;
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al verificar citas pendientes: {ex.Message}", ex);
+            }
+        }
     }
 }

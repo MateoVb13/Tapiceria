@@ -130,10 +130,39 @@ namespace Tapiceria.Views
             }
         }
 
+
         private async void OnNuevaCitaClicked(object sender, EventArgs e)
         {
-            // Navegar a la página de agendar cita
-            await Navigation.PushAsync(new AgendarCitaPage());
+            try
+            {
+                // Obtener el cliente actual
+                var cliente = await PerfilService.GetClienteActual();
+
+                if (cliente == null)
+                {
+                    await DisplayAlert("Error", "No se pudo obtener la información del cliente.", "OK");
+                    return;
+                }
+
+                // Verificar si tiene citas pendientes
+                var citasService = new Services.CitasService();
+                bool tieneCitasPendientes = await citasService.TieneCitasPendientesAsync(cliente.IdCliente);
+
+                if (tieneCitasPendientes)
+                {
+                    await DisplayAlert("Restricción",
+                        "Tienes una cita pendiente. No puedes agendar nuevas citas hasta que confirmes o canceles la cita pendiente.",
+                        "Entendido");
+                    return;
+                }
+
+                // Si no tiene citas pendientes, permitir agendar
+                await Navigation.PushAsync(new AgendarCitaPage());
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Error al verificar disponibilidad: {ex.Message}", "OK");
+            }
         }
 
         // Implementación de INotifyPropertyChanged
