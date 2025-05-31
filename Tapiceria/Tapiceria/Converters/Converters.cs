@@ -20,7 +20,6 @@ namespace Tapiceria.Converters
                     _ => "#8e8e93" // Gris por defecto
                 };
             }
-
             return "#8e8e93"; // Gris por defecto
         }
 
@@ -39,8 +38,25 @@ namespace Tapiceria.Converters
             {
                 return !string.IsNullOrEmpty(strValue);
             }
-
             return value != null;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    // Converter para mostrar el botón cancelar solo en citas pendientes
+    public class PendienteVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is string estado)
+            {
+                return estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase);
+            }
+            return false;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

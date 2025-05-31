@@ -40,7 +40,7 @@
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
                             <Frame Style="{StaticResource CardStyle}">
-                                <Grid RowDefinitions="Auto,Auto,Auto,Auto" 
+                                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" 
                                       ColumnDefinitions="*,Auto"
                                       RowSpacing="8">
 
@@ -94,6 +94,20 @@
                                                TextColor="{StaticResource TextSecondaryColor}"
                                                FontAttributes="Italic"/>
                                     </Frame>
+
+                                    <!-- Botón Cancelar Cita (solo para citas Pendientes) -->
+                                    <Button Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"
+                                            Text="Cancelar Cita"
+                                            BackgroundColor="{StaticResource ErrorColor}"
+                                            TextColor="White"
+                                            CornerRadius="8"
+                                            HeightRequest="40"
+                                            FontSize="14"
+                                            FontAttributes="Bold"
+                                            Margin="0,8,0,0"
+                                            Clicked="OnCancelarCitaClicked"
+                                            CommandParameter="{Binding}"
+                                            IsVisible="{Binding Estado, Converter={StaticResource PendienteVisibilityConverter}}" />
                                 </Grid>
                             </Frame>
                         </DataTemplate>

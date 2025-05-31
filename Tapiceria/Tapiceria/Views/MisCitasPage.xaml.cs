@@ -1,176 +1,126 @@
+using Microsoft.Maui.Controls;
 using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Windows.Input;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Tapiceria.Models;
 using Tapiceria.Services;
+using Newtonsoft.Json;
 
 namespace Tapiceria.Views
 {
-    public partial class MisCitasPage : ContentPage, INotifyPropertyChanged
+    public partial class MisCitasPage : ContentPage
     {
         private readonly CitasService _citasService;
-        private int _clienteId;
-        private bool _isRefreshing;
-        private ObservableCollection<CitaListItemDto> _citas;
+        private int _idCliente;
 
-        // Propiedad para controlar el estado de recarga
-        public bool IsRefreshing
-        {
-            get => _isRefreshing;
-            set
-            {
-                if (_isRefreshing != value)
-                {
-                    _isRefreshing = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        // Colección observable de citas
-        public ObservableCollection<CitaListItemDto> Citas
-        {
-            get => _citas;
-            set
-            {
-                if (_citas != value)
-                {
-                    _citas = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        // Comando para refrescar la lista
-        public ICommand RefreshCommand { get; }
-
-        // Constructor
         public MisCitasPage()
         {
             InitializeComponent();
-
-            // Inicializar servicio y colección
             _citasService = new CitasService();
-            _citas = new ObservableCollection<CitaListItemDto>();
-
-            // Configurar comando de refresco
-            RefreshCommand = new Command(async () =>
-            {
-                IsRefreshing = true;
-                await LoadCitas();
-                IsRefreshing = false;
-            });
-
-            // Enlazar la colección y contexto
-            citasCollectionView.ItemsSource = _citas;
-            this.BindingContext = this;
-
-            // Obtener ID de cliente desde preferencias
-            _clienteId = Preferences.Get("ClienteId", 0);
-
-            // Si no hay ID de cliente, intentar obtenerlo del ID de usuario
-            if (_clienteId <= 0)
-            {
-                int userId = Preferences.Get("UserId", 0);
-                if (userId > 0)
-                {
-                    // Necesitaríamos implementar un método para obtener el cliente por ID de usuario
-                    // Por ahora, solo mostramos una alerta
-                    DisplayAlert("Información", "Necesitas iniciar sesión para ver tus citas", "OK");
-                }
-            }
+            LoadCitas();
         }
 
-        protected override async void OnAppearing()
+        private async void LoadCitas()
         {
-            base.OnAppearing();
-
-            // Cargar las citas cada vez que la página se muestra
-            await LoadCitas();
-        }
-
-        private async Task LoadCitas()
-        {
-            if (_clienteId <= 0)
-            {
-                await DisplayAlert("Error", "No se pudo identificar al cliente. Por favor inicia sesión nuevamente.", "OK");
-                return;
-            }
-
             try
             {
-                // Mostrar indicador de carga
                 activityIndicator.IsRunning = true;
+                activityIndicator.IsVisible = true;
 
-                // Limpiar lista actual
-                _citas.Clear();
-
-                // Cargar citas desde la API
-                var citasCliente = await _citasService.GetCitasByClienteIdAsync(_clienteId);
-
-                if (citasCliente != null)
+                // Obtener el cliente actual
+                var clienteActual = await PerfilService.GetClienteActual();
+                if (clienteActual != null)
                 {
-                    // Agregar citas a la colección observable
-                    foreach (var cita in citasCliente.OrderBy(c => c.FechaInicio))
-                    {
-                        _citas.Add(cita);
-                    }
+                    _idCliente = clienteActual.IdCliente;
+
+                    // Cargar las citas del cliente
+                    var citas = await _citasService.GetCitasByClienteIdAsync(_idCliente);
+                    citasCollectionView.ItemsSource = citas;
+                }
+                else
+                {
+                    await DisplayAlert("Error", "No se pudo obtener la información del cliente", "OK");
                 }
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error", $"No se pudieron cargar las citas: {ex.Message}", "OK");
+                await DisplayAlert("Error", $"Error al cargar las citas: {ex.Message}", "OK");
             }
             finally
             {
-                // Ocultar indicador de carga
                 activityIndicator.IsRunning = false;
+                activityIndicator.IsVisible = false;
             }
         }
 
-
-        private async void OnNuevaCitaClicked(object sender, EventArgs e)
+        private async void OnCancelarCitaClicked(object sender, EventArgs e)
         {
             try
             {
-                // Obtener el cliente actual
-                var cliente = await PerfilService.GetClienteActual();
+                var button = sender as Button;
+                var cita = button?.CommandParameter as CitaListItemDto;
 
-                if (cliente == null)
+                if (cita == null)
                 {
-                    await DisplayAlert("Error", "No se pudo obtener la información del cliente.", "OK");
+                    await DisplayAlert("Error", "No se pudo obtener la información de la cita", "OK");
                     return;
                 }
 
-                // Verificar si tiene citas pendientes
-                var citasService = new Services.CitasService();
-                bool tieneCitasPendientes = await citasService.TieneCitasPendientesAsync(cliente.IdCliente);
+                // Confirmar cancelación
+                bool confirmar = await DisplayAlert(
+                    "Cancelar Cita",
+                    $"¿Estás seguro de que quieres cancelar la cita de {cita.NombreServicio} programada para el {cita.Fecha}?",
+                    "Sí, Cancelar",
+                    "No");
 
-                if (tieneCitasPendientes)
-                {
-                    await DisplayAlert("Restricción",
-                        "Tienes una cita pendiente. No puedes agendar nuevas citas hasta que confirmes o canceles la cita pendiente.",
-                        "Entendido");
+                if (!confirmar)
                     return;
-                }
 
-                // Si no tiene citas pendientes, permitir agendar
-                await Navigation.PushAsync(new AgendarCitaPage());
+                // Mostrar indicador de carga
+                activityIndicator.IsRunning = true;
+                activityIndicator.IsVisible = true;
+
+                // Cancelar la cita
+                bool exitoso = await _citasService.CancelarCitaAsync(cita.IdCita);
+
+                if (exitoso)
+                {
+                    await DisplayAlert("Éxito", "La cita ha sido cancelada correctamente", "OK");
+
+                    // Recargar la lista de citas
+                    LoadCitas();
+                }
+                else
+                {
+                    await DisplayAlert("Error", "No se pudo cancelar la cita. Por favor, intenta nuevamente.", "OK");
+                }
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error", $"Error al verificar disponibilidad: {ex.Message}", "OK");
+                await DisplayAlert("Error", $"Error al cancelar la cita: {ex.Message}", "OK");
+            }
+            finally
+            {
+                activityIndicator.IsRunning = false;
+                activityIndicator.IsVisible = false;
             }
         }
 
-        // Implementación de INotifyPropertyChanged
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        private async void OnNuevaCitaClicked(object sender, EventArgs e)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            await Navigation.PushAsync(new AgendarCitaPage());
+        }
+
+        private async void OnRefreshClicked(object sender, EventArgs e)
+        {
+            LoadCitas();
+        }
+
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            // Recargar las citas cada vez que la página aparece
+            LoadCitas();
         }
     }
 }

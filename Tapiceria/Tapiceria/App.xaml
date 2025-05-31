@@ -14,16 +14,23 @@
             <!-- Converters -->
             <converters:EstadoColorConverter x:Key="EstadoColorConverter" />
             <converters:IsNotNullOrEmptyConverter x:Key="IsNotNullOrEmptyConverter" />
+            <converters:PendienteVisibilityConverter x:Key="PendienteVisibilityConverter" />
 
-            <!-- Gradientes adicionales para el diseño moderno -->
+            <!-- Gradientes usando SOLO la paleta naranja/amarillo -->
             <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="#FF9500" Offset="0.0" />
-                <GradientStop Color="#FFCC00" Offset="1.0" />
+                <GradientStop Color="#F17C3A" Offset="0.0" />
+                <GradientStop Color="#FFC069" Offset="1.0" />
             </LinearGradientBrush>
 
             <LinearGradientBrush x:Key="AccentGradient" StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="#FF6600" Offset="0.0" />
-                <GradientStop Color="#FF9500" Offset="1.0" />
+                <GradientStop Color="#FFC069" Offset="0.0" />
+                <GradientStop Color="#FFDEBD" Offset="1.0" />
+            </LinearGradientBrush>
+
+            <LinearGradientBrush x:Key="BackgroundGradient" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#FFDEBD" Offset="0.0" />
+                <GradientStop Color="#FFC069" Offset="0.6" />
+                <GradientStop Color="#F17C3A" Offset="1.0" />
             </LinearGradientBrush>
 
             <!-- Sombras para elementos -->

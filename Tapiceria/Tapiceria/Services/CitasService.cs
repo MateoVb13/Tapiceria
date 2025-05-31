@@ -130,6 +130,34 @@ namespace Tapiceria.Services
                 throw new Exception($"Error de conexión: {ex.Message}", ex);
             }
         }
+
+        // Cancelar una cita (cambiar estado a Cancelada)
+        public async Task<bool> CancelarCitaAsync(int idCita)
+        {
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"{_baseUrl}api/citas/{idCita}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+                else
+                {
+                    // Manejar error de API
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Error al cancelar cita: {errorContent}");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Manejar excepciones de conexión
+                System.Diagnostics.Debug.WriteLine($"Error de conexión al cancelar cita: {ex.Message}");
+                return false;
+            }
+        }
+
         public async Task<bool> TieneCitasPendientesAsync(int idCliente)
         {
             try
