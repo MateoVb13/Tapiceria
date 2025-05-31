@@ -106,27 +106,28 @@ namespace APITapiceria.Controllers
         {
             try
             {
-                var parameters = new MySqlParameter[] { new MySqlParameter("@p_IdUsuario", id) };
-                var usuarios = await ExecuteSelectProcedure(
-                    "ObtenerUsuarioPorId",
-                    reader => new UserDto // Función de mapeo a UserDto
+                var usuario = await _context.Usuarios
+                    .Where(u => u.IdUsuario == id)
+                    .Select(u => new UserDto
                     {
-                        IdUsuario = reader.GetInt32("IdUsuario"),
-                        NombreUsuario = reader.GetString("NombreUsuario"),
-                        Correo = reader.GetString("Correo")
-                    },
-                    parameters
-                );
-                var usuario = usuarios.FirstOrDefault();
+                        IdUsuario = u.IdUsuario,
+                        NombreUsuario = u.NombreUsuario,
+                        Correo = u.Correo
+                    })
+                    .FirstOrDefaultAsync();
 
                 if (usuario == null) return NotFound();
                 return Ok(usuario);
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener usuario por ID."); }
+            catch (Exception ex)
+            {
+                /* Log ex */
+                return StatusCode(500, "Error al obtener usuario por ID.");
+            }
         }
 
         // POST: api/usuarios
-[HttpPost("registro")]
+        [HttpPost("registro")]
         public async Task<IActionResult> Registrar([FromBody] Usuarios usuario)
         {
             try

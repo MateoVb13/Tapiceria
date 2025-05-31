@@ -1,4 +1,3 @@
-
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -362,6 +361,39 @@ tr:hover {
     font-size: 1.1rem;
     color: #667eea;
 }
+
+.password-toggle {
+    position: relative;
+}
+
+.password-toggle input[type="password"],
+.password-toggle input[type="text"] {
+    padding-right: 3rem;
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 1.2rem;
+    padding: 0;
+    line-height: 1;
+}
+
+.password-toggle-btn:hover {
+    color: #333;
+}
+
+.form-help {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.25rem;
+}
 </style>
 </head>
 <body>
@@ -375,6 +407,7 @@ tr:hover {
     <button class="nav-tab" onclick="showTab('clientes')">👥 Clientes</button>
     <button class="nav-tab" onclick="showTab('servicios')">🔧 Servicios</button>
     <button class="nav-tab" onclick="showTab('empleados')">👨‍💼 Empleados</button>
+    <button class="nav-tab" onclick="showTab('usuarios')">👤 Usuarios</button>
     <button class="nav-tab" onclick="showTab('pagos')">💰 Pagos</button>
 </div>
 
@@ -522,6 +555,39 @@ tr:hover {
             </table>
         </div>
     </div>
+
+    <!-- Tab Usuarios -->
+<div id="usuarios" class="tab-pane">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h2>👤 Gestión de Usuarios</h2>
+        <button class="btn" onclick="openCreateUsuarioModal()">➕ Nuevo Usuario</button>
+    </div>
+
+    <div class="search-container">
+        <input type="text" class="search-input" placeholder="🔍 Buscar usuarios..." onkeyup="searchUsuarios(this.value)">
+    </div>
+
+    <div class="loading" id="usuariosLoading">
+        <div class="spinner"></div>
+        <p>Cargando usuarios...</p>
+    </div>
+
+    <div class="table-container">
+        <table id="usuariosTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre de Usuario</th>
+                    <th>Correo Electrónico</th>
+                    <th>Cliente Asociado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="usuariosTableBody">
+            </tbody>
+        </table>
+    </div>
+</div>
 
     <!-- Tab Pagos -->
     <div id="pagos" class="tab-pane">
@@ -856,8 +922,53 @@ tr:hover {
 </div>
 </div>
 
+<!-- Modal para Crear/Editar Usuario -->
+<div id="usuarioModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeUsuarioModal()">&times;</span>
+        <h2 id="usuarioModalTitle">Nuevo Usuario</h2>
+        <form id="usuarioForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nombreUsuario">Nombre de Usuario:</label>
+                    <input type="text" id="nombreUsuario" required>
+                    <div class="form-help">Nombre que verá el usuario en la aplicación móvil</div>
+                </div>
+                <div class="form-group">
+                    <label for="correoUsuario">Correo Electrónico:</label>
+                    <input type="email" id="correoUsuario" required>
+                    <div class="form-help">Se usará para iniciar sesión en la app móvil</div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="contrasenaUsuario">Contraseña:</label>
+                    <div class="password-toggle">
+                        <input type="password" id="contrasenaUsuario" required minlength="6">
+                        <button type="button" class="password-toggle-btn" onclick="togglePassword('contrasenaUsuario')">👁️</button>
+                    </div>
+                    <div class="form-help">Mínimo 6 caracteres</div>
+                </div>
+                <div class="form-group">
+                    <label for="confirmarContrasena">Confirmar Contraseña:</label>
+                    <div class="password-toggle">
+                        <input type="password" id="confirmarContrasena" required minlength="6">
+                        <button type="button" class="password-toggle-btn" onclick="togglePassword('confirmarContrasena')">👁️</button>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeUsuarioModal()">Cancelar</button>
+                <button type="submit" class="btn">Guardar</button>
+            </div>
+        </form>
+    </div>
+    </div>
+    
+
+
 <script>
-const API_BASE_URL = 'https://ddf2-190-90-17-227.ngrok-free.app/api'; 
+const API_BASE_URL = 'https://ee59-190-217-65-135.ngrok-free.app/api'; 
 
 const DEFAULT_HEADERS = {
     'Content-Type': 'application/json',
@@ -885,6 +996,7 @@ let allCitas = [];
 let allClientes = [];
 let allServicios = [];
 let allEmpleados = [];
+let allUsuarios = [];
 let allPagos = [];
 let allCitasForPagos = [];
 let currentCitaInfo = null; // Para almacenar info de la cita seleccionada
@@ -922,6 +1034,9 @@ async function loadTabData(tabName) {
         case 'disponibilidad':
             await loadServiciosForAvailability();
             break;
+        case 'usuarios':
+            await loadUsuarios();
+        break;
     }
 }
 
@@ -1103,6 +1218,34 @@ async function editCliente(id) {
 }
 
 async function deleteCliente(id) {
+    // Verificar si el cliente tiene citas antes de intentar eliminar
+    try {
+        const citasResponse = await apiCall(`${API_BASE_URL}/citas`);
+        if (citasResponse.ok) {
+            const citas = await citasResponse.json();
+            const citasDelCliente = citas.filter(cita => cita.idCliente === id);
+            
+            if (citasDelCliente.length > 0) {
+                // Cliente tiene citas asociadas - mostrar mensaje informativo
+                const clienteResponse = await apiCall(`${API_BASE_URL}/Clientes/${id}`);
+                let nombreCliente = `Cliente ID: ${id}`;
+                if (clienteResponse.ok) {
+                    const cliente = await clienteResponse.json();
+                    nombreCliente = cliente.nombreCompleto;
+                }
+                
+                showAlert(
+                    `❌ No se puede eliminar al cliente "${nombreCliente}" porque tiene ${citasDelCliente.length} cita(s) asociada(s). 
+                    Para eliminar este cliente, primero debe eliminar o reasignar todas sus citas.`, 
+                    'error'
+                );
+                return;
+            }
+        }
+    } catch (error) {
+        console.error('Error al verificar citas del cliente:', error);
+    }
+
     if (!confirm('¿Está seguro de que desea eliminar este cliente?')) return;
     
     try {
@@ -1124,14 +1267,37 @@ async function deleteCliente(id) {
             } catch (e) {
                 console.error('Error al leer respuesta:', e);
             }
+            
+            // Detectar error de clave foránea y mostrar mensaje amigable
+            if (errorMessage.includes('foreign key constraint fails') || 
+                errorMessage.includes('fk_citas_clientes') ||
+                errorMessage.includes('Cannot delete or update a parent row')) {
+                showAlert(
+                    `❌ No se puede eliminar este cliente porque tiene citas asociadas. 
+                    Para eliminarlo, primero debe eliminar o reasignar todas sus citas.`, 
+                    'error'
+                );
+                return;
+            }
+            
             throw new Error(errorMessage);
         }
         
-        showAlert('Cliente eliminado exitosamente', 'success');
+        showAlert('✅ Cliente eliminado exitosamente', 'success');
         await loadClientes();
     } catch (error) {
         console.error('Error al eliminar cliente:', error);
-        showAlert(`Error: ${error.message}`, 'error');
+        
+        // Manejo específico para errores de base de datos
+        let userMessage = error.message;
+        if (error.message.includes('foreign key constraint fails') || 
+            error.message.includes('fk_citas_clientes') ||
+            error.message.includes('Cannot delete or update a parent row')) {
+            userMessage = `❌ No se puede eliminar este cliente porque tiene citas asociadas. 
+            Para eliminarlo, primero debe eliminar o reasignar todas sus citas.`;
+        }
+        
+        showAlert(userMessage, 'error');
     }
 }
 
@@ -1140,6 +1306,228 @@ function closeClienteModal() {
     currentEditId = null;
     currentEditType = null;
 }
+
+// ===== GESTIÓN DE USUARIOS =====
+async function loadUsuarios() {
+    showLoading('usuariosLoading');
+    try {
+        const response = await apiCall(`${API_BASE_URL}/usuarios`);
+        if (!response.ok) throw new Error('Error al cargar usuarios');
+        
+        allUsuarios = await response.json();
+        
+        // Enriquecer con información de clientes asociados
+        await enrichUsuariosData();
+        
+        displayUsuarios(allUsuarios);
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Error al cargar los usuarios', 'error');
+    } finally {
+        hideLoading('usuariosLoading');
+    }
+}
+
+async function enrichUsuariosData() {
+    try {
+        // Cargar clientes si no están disponibles
+        if (allClientes.length === 0) {
+            const clientesResponse = await apiCall(`${API_BASE_URL}/Clientes`);
+            if (clientesResponse.ok) {
+                allClientes = await clientesResponse.json();
+            }
+        }
+        
+        // Enriquecer cada usuario con información del cliente asociado
+        allUsuarios = allUsuarios.map(usuario => {
+            const clienteAsociado = allClientes.find(cliente => cliente.idUsuario === usuario.idUsuario);
+            return {
+                ...usuario,
+                clienteAsociado: clienteAsociado ? clienteAsociado.nombreCompleto : null
+            };
+        });
+    } catch (error) {
+        console.error('Error al enriquecer datos de usuarios:', error);
+    }
+}
+
+function displayUsuarios(usuarios) {
+    const tbody = document.getElementById('usuariosTableBody');
+    tbody.innerHTML = '';
+
+    usuarios.forEach(usuario => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${usuario.idUsuario}</td>
+            <td>${usuario.nombreUsuario}</td>
+            <td>${usuario.correo}</td>
+            <td>${usuario.clienteAsociado || 'Sin cliente asociado'}</td>
+            <td class="actions">
+                <button class="btn btn-sm" onclick="editUsuario(${usuario.idUsuario})">✏️ Editar</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteUsuario(${usuario.idUsuario})">🗑️ Eliminar</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function openCreateUsuarioModal() {
+    currentEditId = null;
+    currentEditType = 'usuario';
+    document.getElementById('usuarioModalTitle').textContent = 'Nuevo Usuario';
+    document.getElementById('usuarioForm').reset();
+    
+    // Limpiar los campos de contraseña
+    document.getElementById('contrasenaUsuario').type = 'password';
+    document.getElementById('confirmarContrasena').type = 'password';
+    
+    document.getElementById('usuarioModal').style.display = 'block';
+}
+
+async function editUsuario(id) {
+    try {
+        const response = await apiCall(`${API_BASE_URL}/usuarios/${id}`);
+        if (!response.ok) throw new Error(`Error ${response.status}: No se pudo cargar el usuario`);
+        
+        const usuario = await response.json();
+        
+        currentEditId = id;
+        currentEditType = 'usuario';
+        document.getElementById('usuarioModalTitle').textContent = 'Editar Usuario';
+        
+        document.getElementById('nombreUsuario').value = usuario.nombreUsuario || '';
+        document.getElementById('correoUsuario').value = usuario.correo || '';
+        
+        // Para edición, hacer que las contraseñas no sean requeridas
+        document.getElementById('contrasenaUsuario').required = false;
+        document.getElementById('confirmarContrasena').required = false;
+        document.getElementById('contrasenaUsuario').placeholder = 'Dejar vacío para mantener contraseña actual';
+        document.getElementById('confirmarContrasena').placeholder = 'Dejar vacío para mantener contraseña actual';
+        
+        document.getElementById('usuarioModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error al editar usuario:', error);
+        showAlert(`Error al cargar el usuario: ${error.message}`, 'error');
+    }
+}
+
+async function deleteUsuario(id) {
+    // Verificar si el usuario tiene un cliente asociado
+    try {
+        const clientesResponse = await apiCall(`${API_BASE_URL}/Clientes`);
+        if (clientesResponse.ok) {
+            const clientes = await clientesResponse.json();
+            const clienteAsociado = clientes.find(cliente => cliente.idUsuario === id);
+            
+            if (clienteAsociado) {
+                const usuarioResponse = await apiCall(`${API_BASE_URL}/usuarios/${id}`);
+                let nombreUsuario = `Usuario ID: ${id}`;
+                if (usuarioResponse.ok) {
+                    const usuario = await usuarioResponse.json();
+                    nombreUsuario = usuario.nombreUsuario;
+                }
+                
+                showAlert(
+                    `❌ No se puede eliminar al usuario "${nombreUsuario}" porque tiene un cliente asociado (${clienteAsociado.nombreCompleto}). 
+                    Para eliminar este usuario, primero debe eliminar el cliente asociado.`, 
+                    'error'
+                );
+                return;
+            }
+        }
+    } catch (error) {
+        console.error('Error al verificar cliente asociado:', error);
+    }
+
+    if (!confirm('¿Está seguro de que desea eliminar este usuario?')) return;
+    
+    try {
+        const response = await apiCall(`${API_BASE_URL}/usuarios/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+            let errorMessage = `Error ${response.status}`;
+            try {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await response.json();
+                    errorMessage = errorData.title || errorData.message || errorMessage;
+                } else {
+                    const errorText = await response.text();
+                    if (errorText) errorMessage = errorText;
+                }
+            } catch (e) {
+                console.error('Error al leer respuesta:', e);
+            }
+            
+            // Detectar error de clave foránea
+            if (errorMessage.includes('foreign key constraint fails') || 
+                errorMessage.includes('fk_clientes_usuarios') ||
+                errorMessage.includes('Cannot delete or update a parent row')) {
+                showAlert(
+                    `❌ No se puede eliminar este usuario porque tiene un cliente asociado. 
+                    Para eliminarlo, primero debe eliminar el cliente asociado.`, 
+                    'error'
+                );
+                return;
+            }
+            
+            throw new Error(errorMessage);
+        }
+        
+        showAlert('✅ Usuario eliminado exitosamente', 'success');
+        await loadUsuarios();
+    } catch (error) {
+        console.error('Error al eliminar usuario:', error);
+        
+        let userMessage = error.message;
+        if (error.message.includes('foreign key constraint fails') || 
+            error.message.includes('fk_clientes_usuarios') ||
+            error.message.includes('Cannot delete or update a parent row')) {
+            userMessage = `❌ No se puede eliminar este usuario porque tiene un cliente asociado. 
+            Para eliminarlo, primero debe eliminar el cliente asociado.`;
+        }
+        
+        showAlert(userMessage, 'error');
+    }
+}
+
+function closeUsuarioModal() {
+    document.getElementById('usuarioModal').style.display = 'none';
+    currentEditId = null;
+    currentEditType = null;
+    
+    // Restaurar campos de contraseña como requeridos para la próxima vez
+    document.getElementById('contrasenaUsuario').required = true;
+    document.getElementById('confirmarContrasena').required = true;
+    document.getElementById('contrasenaUsuario').placeholder = '';
+    document.getElementById('confirmarContrasena').placeholder = '';
+}
+
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const button = input.nextElementSibling;
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        button.textContent = '🙈';
+    } else {
+        input.type = 'password';
+        button.textContent = '👁️';
+    }
+}
+
+function searchUsuarios(searchTerm) {
+    if (!allUsuarios) return;
+    const filteredUsuarios = allUsuarios.filter(usuario => 
+        (usuario.nombreUsuario || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (usuario.correo || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (usuario.clienteAsociado || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    displayUsuarios(filteredUsuarios);
+}
+
 
 // ===== GESTIÓN DE SERVICIOS =====
 async function loadServicios() {
@@ -1751,20 +2139,42 @@ function hideLoading(loadingId) {
     }
 }
 
-// Función para mostrar alertas
+// Función para mostrar alertas mejorada
 function showAlert(message, type = 'success') {
+    // Remover alertas anteriores
+    const existingAlerts = document.querySelectorAll('.alert');
+    existingAlerts.forEach(alert => {
+        if (alert.parentNode) {
+            alert.parentNode.removeChild(alert);
+        }
+    });
+
     const alert = document.createElement('div');
     alert.className = `alert alert-${type === 'success' ? 'success' : 'error'}`;
-    alert.textContent = message;
+    
+    // Formatear mensaje para múltiples líneas
+    const formattedMessage = message.replace(/\n/g, '<br>');
+    alert.innerHTML = formattedMessage;
     
     const container = document.querySelector('.container');
     container.insertBefore(alert, container.firstChild);
     
+    // Scroll al inicio para mostrar la alerta
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Auto-remover después de más tiempo para mensajes largos
+    const timeout = message.length > 100 ? 8000 : 5000;
     setTimeout(() => {
         if (alert.parentNode) {
-            alert.parentNode.removeChild(alert);
+            alert.style.opacity = '0';
+            alert.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 500);
         }
-    }, 5000);
+    }, timeout);
 }
 
 // Funciones de búsqueda
@@ -1942,6 +2352,87 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Formulario de usuarios
+document.getElementById('usuarioForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const contrasena = document.getElementById('contrasenaUsuario').value;
+    const confirmarContrasena = document.getElementById('confirmarContrasena').value;
+    
+    // Validar contraseñas solo si se están proporcionando
+    if (contrasena || confirmarContrasena) {
+        if (contrasena !== confirmarContrasena) {
+            showAlert('Las contraseñas no coinciden', 'error');
+            return;
+        }
+        
+        if (contrasena.length < 6) {
+            showAlert('La contraseña debe tener al menos 6 caracteres', 'error');
+            return;
+        }
+    }
+    
+    const formData = {
+        NombreUsuario: document.getElementById('nombreUsuario').value.trim(),
+        Correo: document.getElementById('correoUsuario').value.trim(),
+        Contrasena: contrasena || null
+    };
+    
+    try {
+        const url = currentEditId ? 
+            `${API_BASE_URL}/usuarios/${currentEditId}` : 
+            `${API_BASE_URL}/usuarios/registro`;
+        
+        const method = currentEditId ? 'PUT' : 'POST';
+        
+        if (currentEditId) {
+            formData.IdUsuario = currentEditId;
+            // Si no se proporciona contraseña en edición, no incluirla
+            if (!contrasena) {
+                delete formData.Contrasena;
+            }
+        }
+        
+        const response = await apiCall(url, {
+            method: method,
+            body: JSON.stringify(formData)
+        });
+        
+        if (!response.ok) {
+            let errorMessage = `Error ${response.status}`;
+            try {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await response.json();
+                    errorMessage = errorData.mensaje || errorData.message || errorData.title || errorMessage;
+                } else {
+                    const errorText = await response.text();
+                    if (errorText) errorMessage = errorText;
+                }
+            } catch (e) {
+                console.error('Error al leer respuesta:', e);
+            }
+            
+            if (errorMessage.includes('correo') && errorMessage.includes('existe')) {
+                errorMessage = 'Ya existe un usuario con este correo electrónico';
+            } else if (errorMessage.includes('nombre') && errorMessage.includes('existe')) {
+                errorMessage = 'Ya existe un usuario con este nombre de usuario';
+            }
+            
+            throw new Error(errorMessage);
+        }
+        
+        const action = currentEditId ? 'actualizado' : 'creado';
+        showAlert(`Usuario ${action} exitosamente`, 'success');
+        
+        closeUsuarioModal();
+        await loadUsuarios();
+    } catch (error) {
+        console.error('Error al guardar usuario:', error);
+        showAlert(error.message || 'Error al guardar el usuario', 'error');
+    }
+});
+
     // Formulario de servicios
     document.getElementById('servicioForm').addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -2076,7 +2567,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Cerrar modales al hacer clic fuera
     window.addEventListener('click', function(event) {
-        const modals = ['citaModal', 'clienteModal', 'servicioModal', 'empleadoModal', 'pagoModal'];
+        const modals = ['citaModal', 'clienteModal', 'servicioModal', 'empleadoModal', 'usuarioModal', 'pagoModal'];
         modals.forEach(modalId => {
             const modal = document.getElementById(modalId);
             if (event.target === modal) {
@@ -2088,6 +2579,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('paymentSummary').style.display = 'none';
                 }
             }
+
+            if (modalId === 'usuarioModal') {
+    // Restaurar campos de contraseña
+    document.getElementById('contrasenaUsuario').required = true;
+    document.getElementById('confirmarContrasena').required = true;
+    document.getElementById('contrasenaUsuario').placeholder = '';
+    document.getElementById('confirmarContrasena').placeholder = '';
+}
         });
     });
 
