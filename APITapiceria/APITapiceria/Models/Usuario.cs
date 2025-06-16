@@ -4,22 +4,21 @@ namespace APITapiceria.Models
 {
     public class Usuarios
     {
-        [Key] // Indica que IdUsuario es la clave primaria
+        [Key]
         public int IdUsuario { get; set; }
 
-        [Required] // Indica que este campo es obligatorio
+        [Required]
         public string NombreUsuario { get; set; }
 
         [Required]
-        public string Correo { get; set; } // UNIQUE en BD
+        public string Correo { get; set; }
 
         [Required]
-        // Almacena el HASH seguro de la contraseña en la base de datos
         public string Contrasena { get; set; }
     }
 
 
-    public class UserDto // DTO para representar datos de Usuario (sin contraseña)
+    public class UserDto
     {
         public int IdUsuario { get; set; }
         public string NombreUsuario { get; set; }

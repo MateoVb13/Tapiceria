@@ -11,7 +11,7 @@ namespace APITapiceria.Controllers
     [ApiController]
     public class EmpleadoDisponibilidadController : ControllerBase
     {
-        private readonly TapiceriaContext _context; // Necesario para GetDbConnection()
+        private readonly TapiceriaContext _context;
 
         public EmpleadoDisponibilidadController(TapiceriaContext context)
         {
@@ -32,7 +32,6 @@ namespace APITapiceria.Controllers
 
                 using (var reader = await command.ExecuteReaderAsync())
                 {
-                    // Cast DbDataReader to MySqlDataReader
                     var mySqlReader = (MySqlDataReader)reader;
                     while (await mySqlReader.ReadAsync())
                     {
@@ -46,13 +45,13 @@ namespace APITapiceria.Controllers
         {
             var connection = _context.Database.GetDbConnection();
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
-            using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteScalarAsync(); }
+            using (var command = connection.CreateCommand()) {command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteScalarAsync(); }
         }
         private async Task<int> ExecuteNonQueryProcedure(string procedureName, params MySqlParameter[] parameters)
         {
             var connection = _context.Database.GetDbConnection();
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
-            using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteNonQueryAsync(); }
+            using (var command = connection.CreateCommand()) {command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteNonQueryAsync(); }
         }
 
         [HttpGet("empleado/{employeeId}")]
@@ -63,24 +62,24 @@ namespace APITapiceria.Controllers
                 var parameters = new MySqlParameter[] { new MySqlParameter("@p_IdEmpleado", employeeId) };
                 var disponibilidad = await ExecuteSelectProcedure(
                     "ObtenerDisponibilidadEmpleado",
-                    reader => new EmployeeAvailabilityDto // Función de mapeo a EmployeeAvailabilityDto
+                    reader => new EmployeeAvailabilityDto
                     {
                         IdEmpleadoDisponibilidad = reader.GetInt32("IdEmpleadoDisponibilidad"),
                         IdEmpleado = reader.GetInt32("IdEmpleado"),
                         DiaSemana = reader.GetInt32("DiaSemana"),
-                        HoraInicio = reader.GetTimeSpan("HoraInicio"), // Mapea TIME a TimeSpan
-                        HoraFin = reader.GetTimeSpan("HoraFin") // Mapea TIME a TimeSpan
+                        HoraInicio = reader.GetTimeSpan("HoraInicio"),
+                        HoraFin = reader.GetTimeSpan("HoraFin") 
                     },
                     parameters
                 );
                 return Ok(disponibilidad);
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener disponibilidad del empleado."); }
+            catch (Exception ex) {return StatusCode(500, "Error al obtener disponibilidad del empleado."); }
         }
 
         // POST: api/empleadodisponibilidad
         [HttpPost]
-        public async Task<ActionResult<EmployeeAvailabilityDto>> PostDisponibilidadEmpleado(EmpleadoDisponibilidad disponibilidad) // Usa el modelo como entrada
+        public async Task<ActionResult<EmployeeAvailabilityDto>> PostDisponibilidadEmpleado(EmpleadoDisponibilidad disponibilidad)
         {
 
             bool empleadoExiste = await _context.Empleados.AnyAsync(e => e.IdEmpleado == disponibilidad.IdEmpleado);
@@ -92,8 +91,8 @@ namespace APITapiceria.Controllers
                 {
                     new MySqlParameter("@p_IdEmpleado", disponibilidad.IdEmpleado),
                     new MySqlParameter("@p_DiaSemana", disponibilidad.DiaSemana),
-                    new MySqlParameter("@p_HoraInicio", disponibilidad.HoraInicio), // Pasa TimeSpan a TIME en BD
-                    new MySqlParameter("@p_HoraFin", disponibilidad.HoraFin) // Pasa TimeSpan a TIME en BD
+                    new MySqlParameter("@p_HoraInicio", disponibilidad.HoraInicio),
+                    new MySqlParameter("@p_HoraFin", disponibilidad.HoraFin)
                 };
 
                 object? result = await ExecuteScalarProcedure("InsertarDisponibilidadEmpleado", parameters);
@@ -101,9 +100,8 @@ namespace APITapiceria.Controllers
                 if (result != null && result != DBNull.Value)
                 {
                     int nuevoIdDisponibilidad = Convert.ToInt32(result);
-                    // Opcional: Obtener el bloque recién creado para devolverlo como DTO
                     var newBlock = (await ExecuteSelectProcedure(
-                       "ObtenerDisponibilidadEmpleado", // Reusa el SP de obtención (necesitaría filtrar por IdEmpleadoDisponibilidad)
+                       "ObtenerDisponibilidadEmpleado",
                         reader => new EmployeeAvailabilityDto
                         {
                             IdEmpleadoDisponibilidad = reader.GetInt32("IdEmpleadoDisponibilidad"),
@@ -112,13 +110,12 @@ namespace APITapiceria.Controllers
                             HoraInicio = reader.GetTimeSpan("HoraInicio"),
                             HoraFin = reader.GetTimeSpan("HoraFin")
                         },
-                       new MySqlParameter("@p_IdEmpleado", disponibilidad.IdEmpleado) // El SP actual solo filtra por IdEmpleado
-                                                                                      // necesitarías un SP ObtenerDisponibilidadEmpleadoPorId si quieres uno solo
-                   )).FirstOrDefault(b => b.IdEmpleadoDisponibilidad == nuevoIdDisponibilidad); // Filtramos en código C# temporalmente
+                       new MySqlParameter("@p_IdEmpleado", disponibilidad.IdEmpleado) 
+                   )).FirstOrDefault(b => b.IdEmpleadoDisponibilidad == nuevoIdDisponibilidad);
 
                     if (newBlock != null)
                     {
-                       return StatusCode(201, newBlock); // Retorna 201 con el objeto creado
+                       return StatusCode(201, newBlock);
                     }
                     else
                     {
@@ -130,7 +127,7 @@ namespace APITapiceria.Controllers
                     return StatusCode(500, "Error al crear la disponibilidad a través del procedimiento almacenado.");
                 }
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al crear disponibilidad."); }
+            catch (Exception ex) {return StatusCode(500, "Error al crear disponibilidad."); }
         }
 
      [HttpPut("{id}")]
@@ -138,7 +135,6 @@ namespace APITapiceria.Controllers
         {
             if (id != disponibilidad.IdEmpleadoDisponibilidad) return BadRequest("El ID de la URL no coincide con el ID de la disponibilidad.");
 
-            // Opcional: Validar que IdEmpleado exista en la tabla Empleados
             bool empleadoExiste = await _context.Empleados.AnyAsync(e => e.IdEmpleado == disponibilidad.IdEmpleado);
             if (!empleadoExiste) return BadRequest("El IdEmpleado especificado no existe.");
 
@@ -156,11 +152,11 @@ namespace APITapiceria.Controllers
 
                 int filasAfectadas = await ExecuteNonQueryProcedure("ActualizarDisponibilidadEmpleado", parameters);
 
-                if (filasAfectadas == 0) return NotFound(); // Bloque no encontrado/actualizado
+                if (filasAfectadas == 0) return NotFound();
 
-                return NoContent(); // 204 No Content
+                return NoContent();
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al actualizar disponibilidad."); }
+            catch (Exception ex) {return StatusCode(500, "Error al actualizar disponibilidad."); }
         }
 
         // DELETE: api/empleadodisponibilidad/{id}
@@ -173,11 +169,11 @@ namespace APITapiceria.Controllers
 
                 int filasAfectadas = await ExecuteNonQueryProcedure("EliminarDisponibilidadEmpleado", parameters);
 
-                if (filasAfectadas == 0) return NotFound(); // Bloque no encontrado/eliminado
+                if (filasAfectadas == 0) return NotFound();
 
-                return NoContent(); // 204 No Content
+                return NoContent();
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al eliminar disponibilidad."); }
+            catch (Exception ex) {return StatusCode(500, "Error al eliminar disponibilidad."); }
         }
     }
 }

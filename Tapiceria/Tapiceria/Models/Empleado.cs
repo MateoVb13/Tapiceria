@@ -11,6 +11,6 @@ namespace Tapiceria.Models
         public int IdEmpleado { get; set; }
         public string NombreEmpleado { get; set; }
         public string Especialidad { get; set; }
-        public string Contacto { get; set; } // Asumiendo que la API retorna el contacto si es relevante para el cliente
+        public string Contacto { get; set; }
     }
 }

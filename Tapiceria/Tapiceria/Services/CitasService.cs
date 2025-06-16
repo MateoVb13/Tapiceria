@@ -21,7 +21,6 @@ namespace Tapiceria.Services
             _baseUrl = ApiConfig.BaseUrl;
         }
 
-        // Obtener todos los servicios disponibles
         public async Task<List<Servicio>> GetServiciosAsync()
         {
             try
@@ -34,51 +33,42 @@ namespace Tapiceria.Services
                 }
                 else
                 {
-                    // Manejar error de API
                     var errorContent = await response.Content.ReadAsStringAsync();
                     throw new Exception($"Error al obtener servicios: {errorContent}");
                 }
             }
             catch (Exception ex)
             {
-                // Manejar excepciones de conexión
                 throw new Exception($"Error de conexión: {ex.Message}", ex);
             }
         }
 
-        // Obtener horarios disponibles para un servicio y fecha específicos
         public async Task<List<DisponibilidadHoraria>> GetHorariosDisponiblesAsync(int idServicio, DateTime fecha)
         {
             try
             {
-                // Formatear la fecha como yyyy-MM-dd para la API
                 string fechaFormateada = fecha.ToString("yyyy-MM-dd");
 
-                // La ruta debe coincidir con tu API. Ajustar según sea necesario.
                 var response = await _httpClient.GetAsync(
                     $"{_baseUrl}api/Disponibilidad?idServicio={idServicio}&fecha={fechaFormateada}");
 
                 if (response.IsSuccessStatusCode)
                 {
-                    // La respuesta debería ser una lista de objetos con hora de inicio y fin
                     var horariosJson = await response.Content.ReadFromJsonAsync<List<DisponibilidadHoraria>>();
                     return horariosJson;
                 }
                 else
                 {
-                    // Manejar error de API
                     var errorContent = await response.Content.ReadAsStringAsync();
                     throw new Exception($"Error al obtener horarios disponibles: {errorContent}");
                 }
             }
             catch (Exception ex)
             {
-                // Manejar excepciones de conexión
                 throw new Exception($"Error de conexión: {ex.Message}", ex);
             }
         }
 
-        // Obtener las citas de un cliente
         public async Task<List<CitaListItemDto>> GetCitasByClienteIdAsync(int idCliente)
         {
             try
@@ -91,24 +81,20 @@ namespace Tapiceria.Services
                 }
                 else
                 {
-                    // Manejar error de API
                     var errorContent = await response.Content.ReadAsStringAsync();
                     throw new Exception($"Error al obtener citas del cliente: {errorContent}");
                 }
             }
             catch (Exception ex)
             {
-                // Manejar excepciones de conexión
                 throw new Exception($"Error de conexión: {ex.Message}", ex);
             }
         }
 
-        // Crear una nueva cita
         public async Task<CitaListItemDto> CreateCitaAsync(CitaCreacionDto citaDto)
         {
             try
             {
-                // Convertir el DTO a JSON
                 var content = JsonContent.Create(citaDto);
 
                 var response = await _httpClient.PostAsync($"{_baseUrl}api/citas", content);
@@ -119,19 +105,16 @@ namespace Tapiceria.Services
                 }
                 else
                 {
-                    // Manejar error de API
                     var errorContent = await response.Content.ReadAsStringAsync();
                     throw new Exception($"Error al crear cita: {errorContent}");
                 }
             }
             catch (Exception ex)
             {
-                // Manejar excepciones de conexión
                 throw new Exception($"Error de conexión: {ex.Message}", ex);
             }
         }
 
-        // Cancelar una cita (cambiar estado a Cancelada)
         public async Task<bool> CancelarCitaAsync(int idCita)
         {
             try
@@ -144,7 +127,6 @@ namespace Tapiceria.Services
                 }
                 else
                 {
-                    // Manejar error de API
                     var errorContent = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine($"Error al cancelar cita: {errorContent}");
                     return false;
@@ -152,7 +134,6 @@ namespace Tapiceria.Services
             }
             catch (Exception ex)
             {
-                // Manejar excepciones de conexión
                 System.Diagnostics.Debug.WriteLine($"Error de conexión al cancelar cita: {ex.Message}");
                 return false;
             }
@@ -168,7 +149,6 @@ namespace Tapiceria.Services
                 {
                     var citas = await response.Content.ReadFromJsonAsync<List<CitaListItemDto>>();
 
-                    // Verificar si tiene alguna cita en estado "Pendiente"
                     return citas?.Any(c => c.Estado.Equals("Pendiente", StringComparison.OrdinalIgnoreCase)) ?? false;
                 }
 

@@ -22,12 +22,10 @@ namespace Tapiceria.Services
             _baseUrl = ApiConfig.BaseUrl;
         }
 
-        // Obtener pagos pendientes del cliente
         public async Task<List<PagoDto>> GetPagosPendientesAsync(int idCliente)
         {
             try
             {
-                // Primero obtenemos todas las citas completadas del cliente
                 var citasResponse = await _httpClient.GetAsync($"{_baseUrl}api/citas/cliente/{idCliente}");
 
                 if (!citasResponse.IsSuccessStatusCode)
@@ -43,7 +41,6 @@ namespace Tapiceria.Services
 
                 foreach (var cita in citasCompletadas)
                 {
-                    // Verificar si ya existe un pago para esta cita
                     var pagosResponse = await _httpClient.GetAsync($"{_baseUrl}api/pagos/cita/{cita.IdCita}");
 
                     if (pagosResponse.IsSuccessStatusCode)
@@ -51,10 +48,8 @@ namespace Tapiceria.Services
                         var pagosJson = await pagosResponse.Content.ReadAsStringAsync();
                         var pagosExistentes = JsonConvert.DeserializeObject<List<PaymentDto>>(pagosJson);
 
-                        // Si no hay pagos registrados para esta cita, es un pago pendiente
                         if (pagosExistentes == null || pagosExistentes.Count == 0)
                         {
-                            // Obtener el precio del servicio
                             var precio = await ObtenerPrecioServicio(cita.IdCita);
 
                             pagosPendientes.Add(new PagoDto
@@ -78,7 +73,6 @@ namespace Tapiceria.Services
             }
         }
 
-        // Procesar pago simulado
         public async Task<bool> ProcesarPagoSimuladoAsync(int idCita, string tipoPago, decimal monto)
         {
             try
@@ -105,12 +99,10 @@ namespace Tapiceria.Services
             }
         }
 
-        // Obtener historial de pagos del cliente
         public async Task<List<PaymentDto>> GetHistorialPagosAsync(int idCliente)
         {
             try
             {
-                // Obtener todas las citas del cliente
                 var citasResponse = await _httpClient.GetAsync($"{_baseUrl}api/citas/cliente/{idCliente}");
 
                 if (!citasResponse.IsSuccessStatusCode)

@@ -11,19 +11,17 @@ namespace APITapiceria.Models
         [Required]
         public string NombreCompleto { get; set; }
 
-        public string? Especialidad { get; set; } // Nullable en BD
+        public string? Especialidad { get; set; }
 
-        public string? Contacto { get; set; } // Nullable en BD
+        public string? Contacto { get; set; }
 
-        public DateTime? HorarioDisponible { get; set; }
     }
 
-    public class EmployeeDto // DTO para representar Empleado (sin info de Usuario que ya no tiene FK)
+    public class EmployeeDto 
     {
         public int IdEmpleado { get; set; }
         public string NombreCompleto { get; set; }
-        public string? Especialidad { get; set; } // Nullable
-        public string? Contacto { get; set; } // Nullable
-        // HorarioDisponible ya no está en la tabla principal, se obtiene de EmpleadoDisponibilidad
+        public string? Especialidad { get; set; }
+        public string? Contacto { get; set; } 
     }
 }

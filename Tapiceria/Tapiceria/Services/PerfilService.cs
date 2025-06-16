@@ -21,17 +21,14 @@ namespace Tapiceria.Services
             _httpClient = new HttpClient();
             _baseUrl = ApiConfig.BaseUrl;
 
-            // Configurar timeout y headers
             _httpClient.Timeout = TimeSpan.FromSeconds(30);
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Accept.Add(
                 new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
-            // Para depuración
-            System.Diagnostics.Debug.WriteLine($"🌐 PerfilService configurado con URL base: {_baseUrl}");
+            System.Diagnostics.Debug.WriteLine($"PerfilService configurado con URL base: {_baseUrl}");
         }
 
-        // Obtener información del cliente por ID de usuario
         public async Task<Cliente> GetClienteByUsuarioIdAsync(int idUsuario)
         {
             try
@@ -44,7 +41,6 @@ namespace Tapiceria.Services
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    // Cliente no encontrado para este usuario
                     return null;
                 }
                 else
@@ -59,7 +55,6 @@ namespace Tapiceria.Services
             }
         }
 
-        // Actualizar información del cliente
         public async Task<bool> UpdateClienteAsync(Cliente cliente)
         {
             try
@@ -69,7 +64,6 @@ namespace Tapiceria.Services
 
                 var response = await _httpClient.PutAsync($"{_baseUrl}api/clientes/{cliente.IdCliente}", content);
 
-                // Simplificado: cualquier código que no sea de error se considera éxito
                 bool esExitoso = !response.StatusCode.ToString().StartsWith("4") &&
                                 !response.StatusCode.ToString().StartsWith("5");
 
@@ -84,16 +78,13 @@ namespace Tapiceria.Services
             }
         }
 
-        // Obtener citas completadas del cliente
         public async Task<List<CitaListItemDto>> GetCitasCompletadasAsync(int idCliente)
         {
             try
             {
-                // Obtenemos todas las citas del cliente
                 var citasService = new CitasService();
                 var todasLasCitas = await citasService.GetCitasByClienteIdAsync(idCliente);
 
-                // Filtramos solo las completadas
                 return todasLasCitas.Where(c => c.Estado.Equals("Completada", StringComparison.OrdinalIgnoreCase)).ToList();
             }
             catch (Exception ex)
@@ -102,19 +93,16 @@ namespace Tapiceria.Services
             }
         }
 
-        // Validar si el cliente tiene datos completos
         public bool TieneDatosCompletos(Cliente cliente)
         {
             return cliente != null &&
                    !string.IsNullOrWhiteSpace(cliente.Contacto) &&
                    !string.IsNullOrWhiteSpace(cliente.Direccion);
         }
-        // Agregar este método a la clase ClienteService o usar PerfilService
         public static async Task<Cliente> GetClienteActual()
         {
             try
             {
-                // Recuperar el usuario de las preferencias
                 string userJson = Preferences.Get("usuario_actual", string.Empty);
                 if (string.IsNullOrEmpty(userJson))
                 {
@@ -123,7 +111,6 @@ namespace Tapiceria.Services
 
                 var usuario = JsonConvert.DeserializeObject<UserDto>(userJson);
 
-                // Usar el servicio de perfil para obtener los datos del cliente
                 var perfilService = new PerfilService();
                 return await perfilService.GetClienteByUsuarioIdAsync(usuario.IdUsuario);
             }
@@ -132,7 +119,6 @@ namespace Tapiceria.Services
                 return null;
             }
         }
-        // Obtener información del cliente por ID
         public async Task<Cliente> GetClienteByIdAsync(int idCliente)
         {
             try
@@ -145,7 +131,6 @@ namespace Tapiceria.Services
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    // Cliente no encontrado
                     return null;
                 }
                 else

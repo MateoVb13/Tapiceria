@@ -11,20 +11,20 @@ namespace APITapiceria.Models
         public string Descripcion { get; set; }
 
         [Required]
-        public int DuracionEstimada { get; set; } // Asume minutos
+        public int DuracionEstimada { get; set; }
 
         [Required]
         public decimal Precio { get; set; }
 
-        public string? Categoria { get; set; } // Nullable en BD
+        public string? Categoria { get; set; }
     }
 
-    public class ServiceDto // DTO para representar Servicio
+    public class ServiceDto
     {
         public int IdServicio { get; set; }
         public string Descripcion { get; set; }
         public int DuracionEstimada { get; set; }
         public decimal Precio { get; set; }
-        public string? Categoria { get; set; } // Nullable
+        public string? Categoria { get; set; }
     }
 }

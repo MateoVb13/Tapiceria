@@ -20,10 +20,8 @@ namespace Tapiceria.Models
         [JsonProperty("categoria")]
         public string Categoria { get; set; } = string.Empty;
 
-        // Propiedad adicional para usar en el Picker, mapeando desde Descripcion
         public string NombreServicio => Descripcion;
 
-        // Opcional: Propiedad para obtener la duración como TimeSpan en la app si la necesitas
         public TimeSpan DuracionEstimadaTimeSpan => TimeSpan.FromMinutes(DuracionEstimada);
     }
 }

@@ -9,47 +9,44 @@ namespace APITapiceria.Models
         public int IdPago { get; set; }
 
         [Required]
-        public int IdCita { get; set; } // Clave foránea
+        public int IdCita { get; set; }
 
         [Required]
         public string TipoPago { get; set; }
 
-        // ¡NUEVO! Mapea a la columna ValorPago en la BD
-        public decimal? ValorPago { get; set; } // Nullable en BD (DECIMAL NULL)
+        public decimal? ValorPago { get; set; }
 
-        // Propiedad de navegación a la Cita asociada
         [ForeignKey("IdCita")]
         public virtual Citas Citas { get; set; }
     }
 
-    public class PaymentDto // DTO para representar Pago con info básica de Cita
+    public class PaymentDto
     {
         public int IdPago { get; set; }
         public int IdCita { get; set; }
         public string TipoPago { get; set; }
-        public decimal? ValorPago { get; set; } // Nullable
-        // Info básica de la cita relacionada (del join en el SP)
+        public decimal? ValorPago { get; set; }
         public DateTime FechaCita { get; set; }
         public string EstadoCita { get; set; }
     }
 
-    public class CreatePaymentDto // DTO para entrada POST Pagos
+    public class CreatePaymentDto
     {
         [Required]
         public int IdCita { get; set; }
         [Required]
         public string TipoPago { get; set; }
-        public decimal? ValorPago { get; set; } // Nullable
-    }
+        public decimal? ValorPago { get; set; }
 
-    public class UpdatePaymentDto // DTO para entrada PUT Pagos
-    {
-        [Required]
-        public int IdPago { get; set; } // Se necesita el ID para saber cuál actualizar
-        [Required]
-        public int IdCita { get; set; }
-        [Required]
-        public string TipoPago { get; set; }
-        public decimal? ValorPago { get; set; } // Nullable
+        public class UpdatePaymentDto
+        {
+            [Required]
+            public int IdPago { get; set; }
+            [Required]
+            public int IdCita { get; set; }
+            [Required]
+            public string TipoPago { get; set; }
+            public decimal? ValorPago { get; set; }
+        }
     }
 }

@@ -12,7 +12,7 @@ namespace APITapiceria.Controllers
     [ApiController]
     public class EmpleadosController : ControllerBase
     {
-        private readonly TapiceriaContext _context; // Necesario para GetDbConnection()
+        private readonly TapiceriaContext _context;
 
         public EmpleadosController(TapiceriaContext context)
         {
@@ -30,7 +30,7 @@ namespace APITapiceria.Controllers
                 command.CommandType = CommandType.StoredProcedure;
                 if (parameters != null) command.Parameters.AddRange(parameters);
 
-                using (var reader = await command.ExecuteReaderAsync() as MySqlDataReader) // Cast to MySqlDataReader
+                using (var reader = await command.ExecuteReaderAsync() as MySqlDataReader)
                 {
                     if (reader == null) throw new InvalidCastException("Failed to cast DbDataReader to MySqlDataReader.");
                     while (await reader.ReadAsync())
@@ -45,13 +45,13 @@ namespace APITapiceria.Controllers
         {
             var connection = _context.Database.GetDbConnection();
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
-            using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteScalarAsync(); }
+            using (var command = connection.CreateCommand()) {command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteScalarAsync(); }
         }
         private async Task<int> ExecuteNonQueryProcedure(string procedureName, params MySqlParameter[] parameters)
         {
             var connection = _context.Database.GetDbConnection();
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
-            using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteNonQueryAsync(); }
+            using (var command = connection.CreateCommand()) {command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteNonQueryAsync(); }
         }
 
         [HttpGet]
@@ -61,18 +61,17 @@ namespace APITapiceria.Controllers
             {
                 var empleados = await ExecuteSelectProcedure(
                     "ObtenerEmpleados",
-                    reader => new EmployeeDto // Función de mapeo a EmployeeDto
+                    reader => new EmployeeDto
                     {
                         IdEmpleado = reader.GetInt32("IdEmpleado"),
                         NombreCompleto = reader.GetString("NombreCompleto"),
                         Especialidad = reader.IsDBNull("Especialidad") ? null : reader.GetString("Especialidad"),
                         Contacto = reader.IsDBNull("Contacto") ? null : reader.GetString("Contacto")
-                        // HorarioDisponible ya no está en este SP de obtención básica
                     }
                 );
                 return Ok(empleados);
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener empleados."); }
+            catch (Exception ex) {return StatusCode(500, "Error al obtener empleados."); }
         }
 
         // GET: api/empleados/{id}
@@ -84,7 +83,7 @@ namespace APITapiceria.Controllers
                 var parameters = new MySqlParameter[] { new MySqlParameter("@p_IdEmpleado", id) };
                 var empleados = await ExecuteSelectProcedure(
                     "ObtenerEmpleadoPorId",
-                    reader => new EmployeeDto // Función de mapeo a EmployeeDto
+                    reader => new EmployeeDto
                     {
                         IdEmpleado = reader.GetInt32("IdEmpleado"),
                         NombreCompleto = reader.GetString("NombreCompleto"),
@@ -98,7 +97,7 @@ namespace APITapiceria.Controllers
                 if (empleado == null) return NotFound();
                 return Ok(empleado);
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener empleado por ID."); }
+            catch (Exception ex) {return StatusCode(500, "Error al obtener empleado por ID."); }
         }
 
 
@@ -119,7 +118,6 @@ namespace APITapiceria.Controllers
                 if (result != null && result != DBNull.Value)
                 {
                     int nuevoIdEmpleado = Convert.ToInt32(result);
-                    // Obtener el empleado recién creado para devolverlo como DTO
                     var newEmployee = (await ExecuteSelectProcedure(
                        "ObtenerEmpleadoPorId",
                         reader => new EmployeeDto
@@ -146,7 +144,7 @@ namespace APITapiceria.Controllers
                     return StatusCode(500, "Error al crear el empleado a través del procedimiento almacenado.");
                 }
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al crear empleado."); }
+            catch (Exception ex) {return StatusCode(500, "Error al crear empleado."); }
         }
 
         [HttpPut("{id}")]
@@ -166,11 +164,11 @@ namespace APITapiceria.Controllers
 
                 int filasAfectadas = await ExecuteNonQueryProcedure("ActualizarEmpleado", parameters);
 
-                if (filasAfectadas == 0) return NotFound(); // Empleado no encontrado/actualizado
+                if (filasAfectadas == 0) return NotFound();
 
-                return NoContent(); // 204 No Content
+                return NoContent();
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al actualizar empleado."); }
+            catch (Exception ex) {return StatusCode(500, "Error al actualizar empleado."); }
         }
 
         // DELETE: api/empleados/{id}
@@ -183,15 +181,15 @@ namespace APITapiceria.Controllers
 
                 int filasAfectadas = await ExecuteNonQueryProcedure("EliminarEmpleado", parameters);
 
-                if (filasAfectadas == 0) return NotFound(); // Empleado no encontrado/eliminado
+                if (filasAfectadas == 0) return NotFound();
 
-                return NoContent(); // 204 No Content
+                return NoContent();
             }
             catch (MySqlException ex)
             {
                 return StatusCode(500, $"Error de base de datos al eliminar: {ex.Message}. Verifique si hay citas o disponibilidad vinculadas.");
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al eliminar empleado."); }
+            catch (Exception ex) {return StatusCode(500, "Error al eliminar empleado."); }
         }
     }
 }

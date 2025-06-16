@@ -1,17 +1,17 @@
-﻿using APITapiceria.Data; // Tu namespace para el DbContext
-using APITapiceria.Models; // Tu namespace para los modelos y DTOs
+﻿using APITapiceria.Data;
+using APITapiceria.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore; // Necesario para GetDbConnection()
-using MySqlConnector; // Necesario para MySqlConnection y MySqlCommand
-using System.Data; // Necesario para CommandType
+using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
+using System.Data;
 
 namespace APITapiceria.Controllers
 {
-    [Route("api/[controller]")] // La ruta base será /api/citas
-    [ApiController] // Indica que es un controlador de API
+    [Route("api/[controller]")]
+    [ApiController]
     public class CitasController : ControllerBase
     {
-        private readonly TapiceriaContext _context; // Necesario para GetDbConnection()
+        private readonly TapiceriaContext _context;
 
         public CitasController(TapiceriaContext context)
         {
@@ -36,7 +36,6 @@ namespace APITapiceria.Controllers
 
                 using (var reader = await command.ExecuteReaderAsync())
                 {
-                    // Cast the DbDataReader to MySqlDataReader
                     var mySqlReader = (MySqlDataReader)reader;
 
                     while (await mySqlReader.ReadAsync())
@@ -52,7 +51,7 @@ namespace APITapiceria.Controllers
         {
             var connection = _context.Database.GetDbConnection();
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
-            using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteScalarAsync(); }
+            using (var command = connection.CreateCommand()) {command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteScalarAsync(); }
         }
         private async Task<int> ExecuteNonQueryProcedure(string procedureName, params MySqlParameter[] parameters)
         {
@@ -65,9 +64,9 @@ namespace APITapiceria.Controllers
                 command.CommandType = CommandType.StoredProcedure;
                 if (parameters != null) command.Parameters.AddRange(parameters);
 
-                return await command.ExecuteNonQueryAsync(); // Devuelve el número de filas afectadas
+                return await command.ExecuteNonQueryAsync();
             }
-            // La conexión se gestiona por el ciclo de vida del DbContext
+
         }
 
         [HttpGet]
@@ -77,7 +76,7 @@ namespace APITapiceria.Controllers
             {
                 var citas = await ExecuteSelectProcedure(
                     "ObtenerCitas",
-                    reader => new CitaDto // Función de mapeo a CitaDto
+                    reader => new CitaDto
                     {
                         IdCita = reader.GetInt32("IdCita"),
                         IdCliente = reader.GetInt32("IdCliente"),
@@ -96,7 +95,7 @@ namespace APITapiceria.Controllers
                 );
                 return Ok(citas);
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener las citas."); }
+            catch (Exception ex) {return StatusCode(500, "Error al obtener las citas."); }
         }
 
         // GET: api/citas/{id}
@@ -108,7 +107,7 @@ namespace APITapiceria.Controllers
                 var parameters = new MySqlParameter[] { new MySqlParameter("@p_IdCita", id) };
                 var citas = await ExecuteSelectProcedure(
                     "ObtenerCitaPorId",
-                    reader => new CitaDto // Función de mapeo a CitaDto
+                    reader => new CitaDto
                     {
                         IdCita = reader.GetInt32("IdCita"),
                         IdCliente = reader.GetInt32("IdCliente"),
@@ -131,7 +130,7 @@ namespace APITapiceria.Controllers
                 if (cita == null) return NotFound();
                 return Ok(cita);
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener la cita por ID."); }
+            catch (Exception ex) {return StatusCode(500, "Error al obtener la cita por ID."); }
         }
 
         // GET: api/citas/cliente/{clientId}
@@ -143,7 +142,7 @@ namespace APITapiceria.Controllers
                 var parameters = new MySqlParameter[] { new MySqlParameter("@p_IdCliente", clientId) };
                 var citas = await ExecuteSelectProcedure(
                     "ObtenerCitasPorCliente",
-                    reader => new CitaDto // Función de mapeo a CitaDto
+                    reader => new CitaDto
                     {
                         IdCita = reader.GetInt32("IdCita"),
                         IdCliente = reader.GetInt32("IdCliente"),
@@ -163,7 +162,7 @@ namespace APITapiceria.Controllers
                 );
                 return Ok(citas);
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener las citas del cliente."); }
+            catch (Exception ex) {return StatusCode(500, "Error al obtener las citas del cliente."); }
         }
 
         // GET: api/citas/empleado/{employeeId}
@@ -175,7 +174,7 @@ namespace APITapiceria.Controllers
                 var parameters = new MySqlParameter[] { new MySqlParameter("@p_IdEmpleado", employeeId) };
                 var citas = await ExecuteSelectProcedure(
                     "ObtenerCitasPorEmpleado",
-                    reader => new CitaDto // Función de mapeo a CitaDto
+                    reader => new CitaDto
                     {
                         IdCita = reader.GetInt32("IdCita"),
                         IdCliente = reader.GetInt32("IdCliente"),
@@ -184,7 +183,7 @@ namespace APITapiceria.Controllers
                         NombreServicio = reader.GetString("NombreServicio"),
                         DuracionEstimada = reader.GetInt32("DuracionEstimada"),
                         Precio = reader.GetDecimal("Precio"),
-                        IdEmpleado = reader.GetInt32("IdEmpleado"), // Aquí no es nullable porque filtramos por un empleado específico
+                        IdEmpleado = reader.GetInt32("IdEmpleado"),
                         NombreEmpleado = reader.GetString("NombreEmpleado"),
                         FechaInicio = reader.GetDateTime("FechaInicio"),
                         FechaFin = reader.GetDateTime("FechaFin"),
@@ -195,30 +194,26 @@ namespace APITapiceria.Controllers
                 );
                 return Ok(citas);
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener las citas del empleado."); }
+            catch (Exception ex) {return StatusCode(500, "Error al obtener las citas del empleado."); }
         }
 
 
         // POST: api/citas
         [HttpPost]
-        public async Task<ActionResult<CitaDto>> PostCita([FromBody] CrearCitaDto citaDto) // Recibe el DTO de entrada
+        public async Task<ActionResult<CitaDto>> PostCita([FromBody] CrearCitaDto citaDto)
         {
-            // --- Lógica de Negocio Crítica (Validación y Disponibilidad) ---
 
-            // 1. Validar que Cliente y Servicio existan
             bool clienteExiste = await _context.Clientes.AnyAsync(c => c.IdCliente == citaDto.IdCliente);
             if (!clienteExiste) return BadRequest("El IdCliente especificado no existe.");
 
             bool servicioExiste = await _context.Servicios.AnyAsync(s => s.IdServicio == citaDto.IdServicio);
             if (!servicioExiste) return BadRequest("El IdServicio especificado no existe.");
 
-            // 2. Validar que Empleado exista si se proporcionó
             if (citaDto.IdEmpleado.HasValue)
             {
                 bool empleadoExiste = await _context.Empleados.AnyAsync(e => e.IdEmpleado == citaDto.IdEmpleado.Value);
                 if (!empleadoExiste) return BadRequest("El IdEmpleado especificado no existe.");
 
-                // 3. Verificar disponibilidad del empleado (Llamando al SP CheckEmpleadoOcupadoEnRango)
                 var availabilityParams = new MySqlParameter[]
                 {
                      new MySqlParameter("@p_IdEmpleado", citaDto.IdEmpleado.Value),
@@ -227,7 +222,7 @@ namespace APITapiceria.Controllers
                 };
 
                 object? overlapResult = await ExecuteScalarProcedure("CheckEmpleadoOcupadoEnRango", availabilityParams);
-                int citasSolapadas = Convert.ToInt32(overlapResult ?? 0); // Convertir el resultado del SP a int
+                int citasSolapadas = Convert.ToInt32(overlapResult ?? 0);
 
                 if (citasSolapadas > 0)
                 {
@@ -237,29 +232,26 @@ namespace APITapiceria.Controllers
 
             }
 
-            // 4. Validaciones adicionales de fechas, estado, etc.
             if (citaDto.FechaFin <= citaDto.FechaInicio) return BadRequest("La FechaFin debe ser posterior a la FechaInicio.");
 
             try
             {
-                // Si todas las validaciones y verificaciones pasan, llamar al SP InsertarCita
                 var parameters = new MySqlParameter[]
                 {
                     new MySqlParameter("@p_IdCliente", citaDto.IdCliente),
                     new MySqlParameter("@p_IdServicio", citaDto.IdServicio),
-                    new MySqlParameter("@p_IdEmpleado", citaDto.IdEmpleado ?? (object)DBNull.Value), // Manejar nulo
+                    new MySqlParameter("@p_IdEmpleado", citaDto.IdEmpleado ?? (object)DBNull.Value),
                     new MySqlParameter("@p_FechaInicio", citaDto.FechaInicio),
                     new MySqlParameter("@p_FechaFin", citaDto.FechaFin),
-                    new MySqlParameter("@p_Estado", citaDto.Estado ?? "Pendiente"), // Usar estado del DTO o por defecto
-                    new MySqlParameter("@p_Notas", citaDto.Notas ?? (object)DBNull.Value) // Manejar nulo
+                    new MySqlParameter("@p_Estado", citaDto.Estado ?? "Pendiente"),
+                    new MySqlParameter("@p_Notas", citaDto.Notas ?? (object)DBNull.Value)
                 };
 
-                object? result = await ExecuteScalarProcedure("InsertarCita", parameters); // SP devuelve nuevo ID
+                object? result = await ExecuteScalarProcedure("InsertarCita", parameters);
 
                 if (result != null && result != DBNull.Value)
                 {
                     int nuevoIdCita = Convert.ToInt32(result);
-                    // Obtener la cita recién creada con detalles para la respuesta
                     var nuevaCitaCreada = (await ExecuteSelectProcedure(
                        "ObtenerCitaPorId",
                         reader => new CitaDto
@@ -283,7 +275,6 @@ namespace APITapiceria.Controllers
 
                     if (nuevaCitaCreada != null)
                     {
-                        // Retorna 201 Created con la URL de la nueva cita y su DTO
                         return CreatedAtAction(nameof(GetCita), new { id = nuevoIdCita }, nuevaCitaCreada);
                     }
                     else
@@ -298,77 +289,67 @@ namespace APITapiceria.Controllers
             }
             catch (MySqlException ex)
             {
-                // Log ex
                 return StatusCode(500, $"Error de base de datos: {ex.Message}");
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al crear cita."); }
+            catch (Exception ex) {return StatusCode(500, "Error al crear cita."); }
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCita(int id, CitasUpdate cita) // Usa el modelo Citas como entrada
+        public async Task<IActionResult> PutCita(int id, CitasUpdate cita)
         {
             if (id != cita.IdCita) return BadRequest("El ID de la URL no coincide con el ID de la cita.");
 
-            // --- Lógica de Negocio (Validación y Posible Re-validación de Disponibilidad) ---
-            // Verificar que la cita con 'id' exista
             bool citaExiste = await _context.Citas.AnyAsync(c => c.IdCita == id);
             if (!citaExiste) return NotFound();
 
-            // Validar que Cliente y Servicio existan
             bool clienteExiste = await _context.Clientes.AnyAsync(c => c.IdCliente == cita.IdCliente);
             if (!clienteExiste) return BadRequest("El IdCliente especificado no existe.");
 
             bool servicioExiste = await _context.Servicios.AnyAsync(s => s.IdServicio == cita.IdServicio);
             if (!servicioExiste) return BadRequest("El IdServicio especificado no existe.");
 
-            // Si se proporcionó un IdEmpleado y/o se cambió el horario, ¡VERIFICAR DISPONIBILIDAD!
             if (cita.IdEmpleado.HasValue)
             {
                 bool empleadoExiste = await _context.Empleados.AnyAsync(e => e.IdEmpleado == cita.IdEmpleado.Value);
                 if (!empleadoExiste) return BadRequest("El IdEmpleado especificado no existe.");
             }
-            // Validaciones adicionales de fechas, estado, etc.
             if (cita.FechaFin <= cita.FechaInicio) return BadRequest("La FechaFin debe ser posterior a la FechaInicio.");
 
-            // --- Fin Lógica de Negocio ---
 
             try
             {
-                // Si las validaciones pasan, llamar al SP ActualizarCita
                 var parameters = new MySqlParameter[]
                 {
                     new MySqlParameter("@p_IdCita", id),
                     new MySqlParameter("@p_IdCliente", cita.IdCliente),
                     new MySqlParameter("@p_IdServicio", cita.IdServicio),
-                    new MySqlParameter("@p_IdEmpleado", cita.IdEmpleado ?? (object)DBNull.Value), // Manejar nulo
+                    new MySqlParameter("@p_IdEmpleado", cita.IdEmpleado ?? (object)DBNull.Value),
                     new MySqlParameter("@p_FechaInicio", cita.FechaInicio),
                     new MySqlParameter("@p_FechaFin", cita.FechaFin),
                     new MySqlParameter("@p_Estado", cita.Estado),
-                    new MySqlParameter("@p_Notas", cita.Notas ?? (object)DBNull.Value) // Manejar nulo
+                    new MySqlParameter("@p_Notas", cita.Notas ?? (object)DBNull.Value)
                 };
 
-                int filasAfectadas = await ExecuteNonQueryProcedure("ActualizarCita", parameters); // SP devuelve filas afectadas
+                int filasAfectadas = await ExecuteNonQueryProcedure("ActualizarCita", parameters);
 
                 if (filasAfectadas == 0)
                 {
-                    return NotFound(); // Ocurre si la cita no fue encontrada/actualizada por el SP
+                    return NotFound();
                 }
 
-                return NoContent(); // 204 No Content
+                return NoContent();
             }
             catch (MySqlException ex)
             {
-                // Log ex
                 return StatusCode(500, $"Error de base de datos: {ex.Message}");
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al actualizar cita."); }
+            catch (Exception ex) {return StatusCode(500, "Error al actualizar cita."); }
         }
 
         // DELETE: api/citas/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCita(int id)
         {
-            // Opcional: Verificar si la cita existe antes de intentar eliminar
             bool citaExiste = await _context.Citas.AnyAsync(c => c.IdCita == id);
             if (!citaExiste) return NotFound();
 
@@ -381,8 +362,7 @@ namespace APITapiceria.Controllers
 
                 if (filasAfectadas == 0)
                 {
-                    // No se afectaron filas (la cita no existía o el SP falló)
-                    return NotFound(); // La cita no fue encontrada/eliminada por el SP
+                    return NotFound();
                 }
 
                 return NoContent();
@@ -391,7 +371,7 @@ namespace APITapiceria.Controllers
             {
                 return StatusCode(500, $"Error de base de datos al eliminar: {ex.Message}. Verifique si hay pagos vinculados.");
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al eliminar cita."); }
+            catch (Exception ex) {return StatusCode(500, "Error al eliminar cita."); }
         }
         // GET: api/Citas/AvailableSlotsForService?idServicio={idServicio}&fecha={fecha}
         [HttpGet("AvailableSlotsForService")]
@@ -400,38 +380,55 @@ namespace APITapiceria.Controllers
             [FromQuery] DateTime fecha
         )
         {
-            // Validar que los parámetros sean razonables (ej. idServicio > 0, fecha no muy en el pasado)
             if (idServicio <= 0)
             {
                 return BadRequest("El ID del servicio no es válido.");
             }
-   
 
             try
             {
-                var parameters = new MySqlParameter[]
+                var fechaSoloFecha = fecha.Date;
+
+                int diaSemana = (int)fechaSoloFecha.DayOfWeek;
+                if (diaSemana == 0) diaSemana = 7;
+
+                var horariosBase = await _context.HorariosBaseAgendamiento
+                    .Where(hb => (hb.IdServicio == idServicio || hb.IdServicio == null) &&
+                                hb.DiaSemana == diaSemana &&
+                                hb.Activo == true)
+                    .ToListAsync();
+
+                var horariosDisponibles = new List<TimeSpan>();
+
+                foreach (var horarioBase in horariosBase)
                 {
-                    new MySqlParameter("@p_IdServicio", idServicio),
-                    new MySqlParameter("@p_Fecha", fecha)
-                };
+                    var fechaHoraInicio = fechaSoloFecha.Add(horarioBase.HoraInicio);
+                    var fechaHoraFin = fechaHoraInicio.AddMinutes(horarioBase.DuracionMinutos);
 
-                var horariosDisponibles = await ExecuteSelectProcedure(
-                    "ObtenerHorariosDisponiblesPorServicioYFecha", 
-                    reader => reader.GetTimeSpan("HoraInicio"),
-                    parameters
-                );
+                    bool horarioOcupado = await _context.Citas
+                        .AnyAsync(c => c.FechaInicio < fechaHoraFin && c.FechaFin > fechaHoraInicio);
 
-                return Ok(horariosDisponibles);
-            }
-            catch (MySqlException mySqlEx)
-            {
+                    if (!horarioOcupado)
+                    {
+                        bool hayEmpleadoDisponible = await _context.Empleados
+                            .AnyAsync(e => _context.EmpleadoDisponibilidad
+                                .Any(ed => ed.IdEmpleado == e.IdEmpleado &&
+                                          ed.DiaSemana == diaSemana &&
+                                          ed.HoraInicio <= horarioBase.HoraInicio &&
+                                          ed.HoraFin >= TimeSpan.FromTicks(horarioBase.HoraInicio.Ticks + TimeSpan.FromMinutes(horarioBase.DuracionMinutos).Ticks)));
 
-                return StatusCode(500, $"Error de base de datos al calcular disponibilidad: {mySqlEx.Message}");
+                        if (hayEmpleadoDisponible)
+                        {
+                            horariosDisponibles.Add(horarioBase.HoraInicio);
+                        }
+                    }
+                }
+
+                return Ok(horariosDisponibles.OrderBy(h => h));
             }
             catch (Exception ex)
             {
-                // Log ex
-                return StatusCode(500, "Error interno del servidor al calcular horarios disponibles.");
+                return StatusCode(500, $"Error interno del servidor al calcular horarios disponibles: {ex.Message}");
             }
         }
     }

@@ -35,10 +35,6 @@
             <Label Text="¡Bienvenido a TapizPro!"
                    Style="{StaticResource TitleStyle}" />
 
-            <!-- Descripción -->
-            <Label Text="Transformamos el interior de tu vehículo con servicios de tapicería automotriz premium. Desde asientos de cuero hasta detalles personalizados, hacemos que tu auto luzca como nuevo."
-                   Style="{StaticResource BodyTextStyle}" />
-
             <!-- Servicios destacados como tarjetas -->
             <Label Text="Nuestros Servicios" 
                    Style="{StaticResource SubtitleStyle}" 

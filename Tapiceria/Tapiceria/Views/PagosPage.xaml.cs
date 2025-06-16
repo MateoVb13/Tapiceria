@@ -109,7 +109,6 @@ namespace Tapiceria.Views
         {
             try
             {
-                // Mostrar opciones de pago simulado
                 string tipoPago = await DisplayActionSheet(
                     "Selecciona método de pago",
                     "Cancelar",
@@ -121,7 +120,6 @@ namespace Tapiceria.Views
                 if (tipoPago == "Cancelar" || string.IsNullOrEmpty(tipoPago))
                     return;
 
-                // Confirmar el pago
                 bool confirmar = await DisplayAlert(
                     "Confirmar Pago",
                     $"¿Confirmas el pago de {pago.MontoString} por {tipoPago} para el servicio {pago.NombreServicio}?",
@@ -131,11 +129,9 @@ namespace Tapiceria.Views
                 if (!confirmar)
                     return;
 
-                // Simular procesamiento
                 await DisplayAlert("Procesando...", "Procesando tu pago...", "OK");
-                await Task.Delay(2000); // Simular tiempo de procesamiento
+                await Task.Delay(2000);
 
-                // Procesar pago
                 bool exito = await _pagosService.ProcesarPagoSimuladoAsync(
                     pago.IdCita,
                     tipoPago,
@@ -148,7 +144,6 @@ namespace Tapiceria.Views
                         $"Tu pago de {pago.MontoString} ha sido procesado correctamente.\n\nMétodo: {tipoPago}\nServicio: {pago.NombreServicio}",
                         "Aceptar");
 
-                    // Recargar las listas
                     await CargarPagosPendientes();
                     await CargarHistorialPagos();
                 }

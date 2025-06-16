@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 using System.Data;
+using static APITapiceria.Models.CreatePaymentDto;
 
 namespace APITapiceria.Controllers
 {
@@ -12,7 +13,7 @@ namespace APITapiceria.Controllers
     [ApiController]
     public class PagosController : ControllerBase
     {
-        private readonly TapiceriaContext _context; // Necesario para GetDbConnection()
+        private readonly TapiceriaContext _context;
 
         public PagosController(TapiceriaContext context)
         {
@@ -30,7 +31,7 @@ namespace APITapiceria.Controllers
                 command.CommandType = CommandType.StoredProcedure;
                 if (parameters != null) command.Parameters.AddRange(parameters);
 
-                using (var reader = await command.ExecuteReaderAsync() as MySqlDataReader) // Cast to MySqlDataReader
+                using (var reader = await command.ExecuteReaderAsync() as MySqlDataReader)
                 {
                     if (reader == null) throw new InvalidCastException("The DbDataReader could not be cast to MySqlDataReader.");
                     while (await reader.ReadAsync())
@@ -45,13 +46,13 @@ namespace APITapiceria.Controllers
         {
             var connection = _context.Database.GetDbConnection();
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
-            using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteScalarAsync(); }
+            using (var command = connection.CreateCommand()) {command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteScalarAsync(); }
         }
         private async Task<int> ExecuteNonQueryProcedure(string procedureName, params MySqlParameter[] parameters)
         {
             var connection = _context.Database.GetDbConnection();
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
-            using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteNonQueryAsync(); }
+            using (var command = connection.CreateCommand()) {command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteNonQueryAsync(); }
         }
 
         [HttpGet]
@@ -61,7 +62,7 @@ namespace APITapiceria.Controllers
             {
                 var pagos = await ExecuteSelectProcedure(
                     "ObtenerPagos",
-                    reader => new PaymentDto // Función de mapeo a PaymentDto
+                    reader => new PaymentDto
                     {
                         IdPago = reader.GetInt32("IdPago"),
                         IdCita = reader.GetInt32("IdCita"),
@@ -73,7 +74,7 @@ namespace APITapiceria.Controllers
                 );
                 return Ok(pagos);
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener pagos."); }
+            catch (Exception ex) {return StatusCode(500, "Error al obtener pagos."); }
         }
 
         // GET: api/pagos/{id}
@@ -85,7 +86,7 @@ namespace APITapiceria.Controllers
                 var parameters = new MySqlParameter[] { new MySqlParameter("@p_IdPago", id) };
                 var pagos = await ExecuteSelectProcedure(
                     "ObtenerPagoPorId",
-                    reader => new PaymentDto // Función de mapeo a PaymentDto
+                    reader => new PaymentDto
                     {
                         IdPago = reader.GetInt32("IdPago"),
                         IdCita = reader.GetInt32("IdCita"),
@@ -101,7 +102,7 @@ namespace APITapiceria.Controllers
                 if (pago == null) return NotFound();
                 return Ok(pago);
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener pago por ID."); }
+            catch (Exception ex) {return StatusCode(500, "Error al obtener pago por ID."); }
         }
 
         // GET: api/pagos/cita/{citaId}
@@ -113,7 +114,7 @@ namespace APITapiceria.Controllers
                 var parameters = new MySqlParameter[] { new MySqlParameter("@p_IdCita", citaId) };
                 var pagos = await ExecuteSelectProcedure(
                     "ObtenerPagosPorCita",
-                     reader => new PaymentDto // Función de mapeo a PaymentDto
+                     reader => new PaymentDto
                      {
                          IdPago = reader.GetInt32("IdPago"),
                          IdCita = reader.GetInt32("IdCita"),
@@ -126,15 +127,14 @@ namespace APITapiceria.Controllers
                 );
                 return Ok(pagos);
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener pagos por cita."); }
+            catch (Exception ex) {return StatusCode(500, "Error al obtener pagos por cita."); }
         }
 
 
         // POST: api/pagos
         [HttpPost]
-        public async Task<ActionResult<PaymentDto>> PostPago(CreatePaymentDto pagoDto) // Usa DTO de entrada
+        public async Task<ActionResult<PaymentDto>> PostPago(CreatePaymentDto pagoDto)
         {
-            // Opcional: Validar que IdCita exista
             bool citaExiste = await _context.Citas.AnyAsync(c => c.IdCita == pagoDto.IdCita);
             if (!citaExiste) return BadRequest("El IdCita especificado no existe.");
 
@@ -144,15 +144,14 @@ namespace APITapiceria.Controllers
                 {
                     new MySqlParameter("@p_IdCita", pagoDto.IdCita),
                     new MySqlParameter("@p_TipoPago", pagoDto.TipoPago),
-                    new MySqlParameter("@p_ValorPago", pagoDto.ValorPago ?? (object)DBNull.Value) // Manejar nulo
+                    new MySqlParameter("@p_ValorPago", pagoDto.ValorPago ?? (object)DBNull.Value)
                 };
 
-                object? result = await ExecuteScalarProcedure("InsertarPago", parameters); // SP devuelve nuevo ID
+                object? result = await ExecuteScalarProcedure("InsertarPago", parameters);
 
                 if (result != null && result != DBNull.Value)
                 {
                     int nuevoIdPago = Convert.ToInt32(result);
-                    // Obtener el pago recién creado con detalles para la respuesta
                     var newPayment = (await ExecuteSelectProcedure(
                        "ObtenerPagoPorId",
                         reader => new PaymentDto
@@ -183,24 +182,20 @@ namespace APITapiceria.Controllers
             }
             catch (MySqlException ex)
             {
-                // Manejar errores de FK si IdCita no existe (aunque ya validamos)
-                // Log ex
                 return StatusCode(500, $"Error de base de datos: {ex.Message}");
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al crear pago."); }
+            catch (Exception ex) {return StatusCode(500, "Error al crear pago."); }
         }
 
         // PUT: api/pagos/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPago(int id, UpdatePaymentDto pagoDto) // Usa DTO de entrada para actualizar
+        public async Task<IActionResult> PutPago(int id, UpdatePaymentDto pagoDto)
         {
             if (id != pagoDto.IdPago) return BadRequest("El ID de la URL no coincide con el ID del pago.");
 
-            // Opcional: Validar que el pago con 'id' exista
             bool pagoExiste = await _context.Pagos.AnyAsync(p => p.IdPago == id);
             if (!pagoExiste) return NotFound();
 
-            // Opcional: Validar que IdCita exista
             bool citaExiste = await _context.Citas.AnyAsync(c => c.IdCita == pagoDto.IdCita);
             if (!citaExiste) return BadRequest("El IdCita especificado no existe.");
 
@@ -211,33 +206,29 @@ namespace APITapiceria.Controllers
                     new MySqlParameter("@p_IdPago", id),
                     new MySqlParameter("@p_IdCita", pagoDto.IdCita),
                     new MySqlParameter("@p_TipoPago", pagoDto.TipoPago),
-                    new MySqlParameter("@p_ValorPago", pagoDto.ValorPago ?? (object)DBNull.Value) // Manejar nulo
+                    new MySqlParameter("@p_ValorPago", pagoDto.ValorPago ?? (object)DBNull.Value)
                 };
 
-                int filasAfectadas = await ExecuteNonQueryProcedure("ActualizarPago", parameters); // SP devuelve filas afectadas
+                int filasAfectadas = await ExecuteNonQueryProcedure("ActualizarPago", parameters);
 
                 if (filasAfectadas == 0)
                 {
-                    // No se afectaron filas (el pago no existía o el SP falló)
-                    return NotFound(); // Ocurre si el pago no fue encontrado/actualizado por el SP
+                    return NotFound();
                 }
 
-                return NoContent(); // 204 No Content
+                return NoContent();
             }
             catch (MySqlException ex)
             {
-                // Manejar errores de FK si IdCita no existe (aunque ya validamos)
-                // Log ex
                 return StatusCode(500, $"Error de base de datos: {ex.Message}");
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al actualizar pago."); }
+            catch (Exception ex) {return StatusCode(500, "Error al actualizar pago."); }
         }
 
         // DELETE: api/pagos/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePago(int id)
         {
-            // Opcional: Verificar si el pago existe antes de intentar eliminar
             bool pagoExiste = await _context.Pagos.AnyAsync(p => p.IdPago == id);
             if (!pagoExiste) return NotFound();
 
@@ -245,17 +236,16 @@ namespace APITapiceria.Controllers
             {
                 var parameters = new MySqlParameter[] { new MySqlParameter("@p_IdPago", id) };
 
-                int filasAfectadas = await ExecuteNonQueryProcedure("EliminarPago", parameters); // SP devuelve filas afectadas
+                int filasAfectadas = await ExecuteNonQueryProcedure("EliminarPago", parameters);
 
                 if (filasAfectadas == 0)
                 {
-                    // No se afectaron filas (el pago no existía o el SP falló)
-                    return NotFound(); // El pago no fue encontrado/eliminado por el SP
+                    return NotFound();
                 }
 
-                return NoContent(); // 204 No Content
+                return NoContent();
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al eliminar pago."); }
+            catch (Exception ex) {return StatusCode(500, "Error al eliminar pago."); }
         }
     }
 }

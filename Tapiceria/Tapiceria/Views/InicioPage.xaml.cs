@@ -11,12 +11,10 @@ namespace Tapiceria.Views
             InitializeComponent();
         }
 
-        // En Tapiceria/Views/InicioPage.xaml.cs - Modificar el método OnAgendarCitaClicked
         private async void OnAgendarCitaClicked(object sender, EventArgs e)
         {
             try
             {
-                // Obtener el cliente actual
                 var cliente = await PerfilService.GetClienteActual();
 
                 if (cliente == null)
@@ -25,7 +23,6 @@ namespace Tapiceria.Views
                     return;
                 }
 
-                // Verificar si tiene citas pendientes
                 var citasService = new Services.CitasService();
                 bool tieneCitasPendientes = await citasService.TieneCitasPendientesAsync(cliente.IdCliente);
 
@@ -48,7 +45,6 @@ namespace Tapiceria.Views
 
         private async void OnVerMisCitasClicked(object sender, EventArgs e)
         {
-            // Navegar a la página mejorada de mis citas
             await Navigation.PushAsync(new MisCitasPage());
         }
 
@@ -58,12 +54,10 @@ namespace Tapiceria.Views
 
             if (logout)
             {
-                // Limpiar datos de sesión
                 Preferences.Remove("ClienteId");
                 Preferences.Remove("UserId");
                 Preferences.Remove("Username");
 
-                // Navegar al inicio/login
                 Application.Current.MainPage = new NavigationPage(new MainPage());
             }
         }

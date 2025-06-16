@@ -11,7 +11,7 @@ namespace APITapiceria.Controllers
     [ApiController]
     public class ClientesController : ControllerBase
     {
-        private readonly TapiceriaContext _context; // Necesario para GetDbConnection()
+        private readonly TapiceriaContext _context;
 
         public ClientesController(TapiceriaContext context)
         {
@@ -29,7 +29,7 @@ namespace APITapiceria.Controllers
                 command.CommandType = CommandType.StoredProcedure;
                 if (parameters != null) command.Parameters.AddRange(parameters);
 
-                using (var reader = await command.ExecuteReaderAsync() as MySqlDataReader) // Cast to MySqlDataReader
+                using (var reader = await command.ExecuteReaderAsync() as MySqlDataReader)
                 {
                     if (reader == null) throw new InvalidCastException("The DbDataReader could not be cast to MySqlDataReader.");
                     while (await reader.ReadAsync())
@@ -44,7 +44,7 @@ namespace APITapiceria.Controllers
         {
             var connection = _context.Database.GetDbConnection();
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
-            using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteScalarAsync(); }
+            using (var command = connection.CreateCommand()) {command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteScalarAsync(); }
         }
         private async Task<int> ExecuteNonQueryProcedure(string procedureName, params MySqlParameter[] parameters)
         {
@@ -57,9 +57,8 @@ namespace APITapiceria.Controllers
                 command.CommandType = CommandType.StoredProcedure;
                 if (parameters != null) command.Parameters.AddRange(parameters);
 
-                return await command.ExecuteNonQueryAsync(); // Devuelve el número de filas afectadas
+                return await command.ExecuteNonQueryAsync();
             }
-            // La conexión se gestiona por el ciclo de vida del DbContext
         }
 
         [HttpGet]
@@ -69,7 +68,7 @@ namespace APITapiceria.Controllers
             {
                 var clientes = await ExecuteSelectProcedure(
                     "ObtenerClientes",
-                    reader => new ClientDto // Función de mapeo a ClientDto
+                    reader => new ClientDto
                     {
                         IdCliente = reader.GetInt32("IdCliente"),
                         IdUsuario = reader.IsDBNull("IdUsuario") ? (int?)null : reader.GetInt32("IdUsuario"),
@@ -77,12 +76,12 @@ namespace APITapiceria.Controllers
                         Contacto = reader.IsDBNull("Contacto") ? null : reader.GetString("Contacto"),
                         Direccion = reader.IsDBNull("Direccion") ? null : reader.GetString("Direccion"),
                         NombreUsuario = reader.IsDBNull("NombreUsuario") ? null : reader.GetString("NombreUsuario"),
-                        CorreoUsuario = reader.IsDBNull("Correo") ? null : reader.GetString("Correo") // Correo de usuario
+                        CorreoUsuario = reader.IsDBNull("Correo") ? null : reader.GetString("Correo")
                     }
                 );
                 return Ok(clientes);
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener clientes."); }
+            catch (Exception ex) {return StatusCode(500, "Error al obtener clientes."); }
         }
 
         // GET: api/clientes/{id}
@@ -94,7 +93,7 @@ namespace APITapiceria.Controllers
                 var parameters = new MySqlParameter[] { new MySqlParameter("@p_IdCliente", id) };
                 var clientes = await ExecuteSelectProcedure(
                     "ObtenerClientePorId",
-                    reader => new ClientDto // Función de mapeo a ClientDto
+                    reader => new ClientDto
                     {
                         IdCliente = reader.GetInt32("IdCliente"),
                         IdUsuario = reader.IsDBNull("IdUsuario") ? (int?)null : reader.GetInt32("IdUsuario"),
@@ -111,12 +110,11 @@ namespace APITapiceria.Controllers
                 if (cliente == null) return NotFound();
                 return Ok(cliente);
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener cliente por ID."); }
+            catch (Exception ex) {return StatusCode(500, "Error al obtener cliente por ID."); }
         }
 
-        // Dentro de la clase ClientesController en tu proyecto de API
 
-        [HttpGet("PorUsuario/{userId}")] // Esta ruta coincide con lo que la app espera
+        [HttpGet("PorUsuario/{userId}")]
         public async Task<ActionResult<ClientDto>> GetClientePorUsuario(int userId)
         {
 
@@ -141,23 +139,20 @@ namespace APITapiceria.Controllers
 
                 if (cliente == null)
                 {
-                    // Si no se encuentra un cliente para ese IdUsuario, retorna 404
                     return NotFound("No se encontró un cliente asociado a este usuario.");
                 }
-                return Ok(cliente); // Retorna 200 OK con el DTO del cliente
+                return Ok(cliente);
             }
             catch (Exception ex)
             {
-                // Log ex (considera loggear el error real en el servidor)
                 return StatusCode(500, "Error interno del servidor al obtener cliente por ID de usuario.");
             }
         }
 
         // POST: api/clientes
         [HttpPost]
-        public async Task<ActionResult<ClientDto>> PostCliente(Clientes cliente) // Usa el modelo Clientes como entrada
+        public async Task<ActionResult<ClientDto>> PostCliente(Clientes cliente)
         {
-            // Opcional: Validar que IdUsuario (si no es null) exista en la tabla Usuarios
             if (cliente.IdUsuario.HasValue)
             {
                 bool usuarioExiste = await _context.Usuarios.AnyAsync(u => u.IdUsuario == cliente.IdUsuario.Value);
@@ -179,7 +174,6 @@ namespace APITapiceria.Controllers
                 if (result != null && result != DBNull.Value)
                 {
                     int nuevoIdCliente = Convert.ToInt32(result);
-                    // Obtener el cliente recién creado para devolverlo como DTO
                     var newClient = (await ExecuteSelectProcedure(
                        "ObtenerClientePorId",
                         reader => new ClientDto
@@ -209,10 +203,10 @@ namespace APITapiceria.Controllers
                     return StatusCode(500, "Error al crear el cliente a través del procedimiento almacenado.");
                 }
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al crear cliente."); }
+            catch (Exception ex) {return StatusCode(500, "Error al crear cliente."); }
         }
 
-        // PUT: api/clientes/{id} - Versión temporal para depuración
+        // PUT: api/clientes/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCliente(int id, Clientes cliente)
         {
@@ -239,7 +233,6 @@ namespace APITapiceria.Controllers
 
                 if (filasAfectadas == 0) return NotFound();
 
-                // Temporalmente devolver Ok() en lugar de NoContent() para depuración
                 return Ok(new { mensaje = "Cliente actualizado correctamente", filasAfectadas = filasAfectadas });
             }
             catch (Exception ex)
@@ -259,16 +252,16 @@ namespace APITapiceria.Controllers
 
                 int filasAfectadas = await ExecuteNonQueryProcedure("EliminarCliente", parameters);
 
-                if (filasAfectadas == 0) return NotFound(); // Cliente no encontrado/eliminado
+                if (filasAfectadas == 0) return NotFound();
 
-                return NoContent(); // 204 No Content
+                return NoContent();
             }
             catch (MySqlException ex)
             {
 
                 return StatusCode(500, $"Error de base de datos al eliminar: {ex.Message}. Verifique si hay citas vinculadas.");
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al eliminar cliente."); }
+            catch (Exception ex) {return StatusCode(500, "Error al eliminar cliente."); }
         }
     }
 }

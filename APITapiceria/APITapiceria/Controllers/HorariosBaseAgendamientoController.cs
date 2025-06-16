@@ -19,79 +19,44 @@ namespace APITapiceria.Controllers
             _context = context;
         }
 
-
-        private async Task<List<T>> ExecuteSelectProcedure<T>(string procedureName, Func<MySqlDataReader, T> mapFunction, params MySqlParameter[] parameters)
-        {
-            List<T> results = new List<T>();
-            var connection = _context.Database.GetDbConnection();
-            if (connection.State != ConnectionState.Open) await connection.OpenAsync();
-            using (var command = connection.CreateCommand())
-            {
-                command.CommandText = procedureName;
-                command.CommandType = CommandType.StoredProcedure;
-                if (parameters != null) command.Parameters.AddRange(parameters);
-                using (var reader = await command.ExecuteReaderAsync() as MySqlDataReader)
-                {
-                    if (reader == null) throw new InvalidCastException("The DbDataReader could not be cast to MySqlDataReader.");
-                    while (await reader.ReadAsync()) results.Add(mapFunction(reader));
-                }
-            }
-            return results;
-        }
-
-        private async Task<object?> ExecuteScalarProcedure(string procedureName, params MySqlParameter[] parameters)
-        {
-            var connection = _context.Database.GetDbConnection();
-            if (connection.State != ConnectionState.Open) await connection.OpenAsync();
-            using (var command = connection.CreateCommand())
-            {
-                command.CommandText = procedureName;
-                command.CommandType = CommandType.StoredProcedure;
-                if (parameters != null) command.Parameters.AddRange(parameters);
-                return await command.ExecuteScalarAsync();
-            }
-        }
-
-        private async Task<int> ExecuteNonQueryProcedure(string procedureName, params MySqlParameter[] parameters)
-        {
-            var connection = _context.Database.GetDbConnection();
-            if (connection.State != ConnectionState.Open) await connection.OpenAsync();
-            using (var command = connection.CreateCommand())
-            {
-                command.CommandText = procedureName;
-                command.CommandType = CommandType.StoredProcedure;
-                if (parameters != null) command.Parameters.AddRange(parameters);
-                return await command.ExecuteNonQueryAsync();
-            }
-        }
-
         // GET: api/HorariosBaseAgendamiento
         [HttpGet]
         public async Task<ActionResult<IEnumerable<HorarioBaseAgendamientoDto>>> GetHorariosBase(
-            [FromQuery] int diaSemana = 0, 
-            [FromQuery] bool soloActivos = false 
+            [FromQuery] int diaSemana = 0,
+            [FromQuery] bool soloActivos = false
         )
         {
             try
             {
-                var parameters = new MySqlParameter[] {
-                    new MySqlParameter("@p_DiaSemana", diaSemana),
-                    new MySqlParameter("@p_SoloActivos", soloActivos)
-                };
+                var query = _context.HorariosBaseAgendamiento.AsQueryable();
 
-                var horarios = await ExecuteSelectProcedure(
-                    "ObtenerHorariosBaseAgendamiento", // Tu SP para obtener lista
-                    reader => new HorarioBaseAgendamientoDto // Mapea a DTO
+                // Aplicar filtros
+                if (diaSemana > 0)
+                {
+                    query = query.Where(h => h.DiaSemana == diaSemana);
+                }
+
+                if (soloActivos)
+                {
+                    query = query.Where(h => h.Activo == true);
+                }
+
+                // Ordenar y mapear a DTO
+                var horarios = await query
+                    .OrderBy(h => h.DiaSemana)
+                    .ThenBy(h => h.HoraInicio)
+                    .Select(h => new HorarioBaseAgendamientoDto
                     {
-                        IdHorarioBase = reader.GetInt32("IdHorarioBase"),
-                        DiaSemana = reader.GetInt32("DiaSemana"),
-                        HoraInicio = reader.GetTimeSpan("HoraInicio"), // Lee como TimeSpan
-                        DuracionMinutos = reader.GetInt32("DuracionMinutos"),
-                        TipoDia = reader.IsDBNull("TipoDia") ? null : reader.GetString("TipoDia"),
-                        Activo = reader.GetBoolean("Activo")
-                    },
-                    parameters
-                );
+                        IdHorarioBase = h.IdHorarioBase,
+                        DiaSemana = h.DiaSemana,
+                        HoraInicio = h.HoraInicio,
+                        DuracionMinutos = h.DuracionMinutos,
+                        IdServicio = h.IdServicio,
+                        TipoDia = h.TipoDia,
+                        Activo = h.Activo
+                    })
+                    .ToListAsync();
+
                 return Ok(horarios);
             }
             catch (Exception ex)
@@ -107,21 +72,19 @@ namespace APITapiceria.Controllers
         {
             try
             {
-                var parameters = new MySqlParameter[] { new MySqlParameter("@p_IdHorarioBase", id) };
-                var horarios = await ExecuteSelectProcedure(
-                    "ObtenerHorarioBaseAgendamientoPorId", // Tu SP para obtener por ID
-                    reader => new HorarioBaseAgendamientoDto // Mapea a DTO
+                var horario = await _context.HorariosBaseAgendamiento
+                    .Where(h => h.IdHorarioBase == id)
+                    .Select(h => new HorarioBaseAgendamientoDto
                     {
-                        IdHorarioBase = reader.GetInt32("IdHorarioBase"),
-                        DiaSemana = reader.GetInt32("DiaSemana"),
-                        HoraInicio = reader.GetTimeSpan("HoraInicio"), // Lee como TimeSpan
-                        DuracionMinutos = reader.GetInt32("DuracionMinutos"),
-                        TipoDia = reader.IsDBNull("TipoDia") ? null : reader.GetString("TipoDia"),
-                        Activo = reader.GetBoolean("Activo")
-                    },
-                    parameters
-                );
-                var horario = horarios.FirstOrDefault();
+                        IdHorarioBase = h.IdHorarioBase,
+                        DiaSemana = h.DiaSemana,
+                        HoraInicio = h.HoraInicio,
+                        DuracionMinutos = h.DuracionMinutos,
+                        IdServicio = h.IdServicio,
+                        TipoDia = h.TipoDia,
+                        Activo = h.Activo
+                    })
+                    .FirstOrDefaultAsync();
 
                 if (horario == null) return NotFound();
                 return Ok(horario);
@@ -135,57 +98,44 @@ namespace APITapiceria.Controllers
 
         // POST: api/HorariosBaseAgendamiento
         [HttpPost]
-        public async Task<ActionResult<HorarioBaseAgendamientoDto>> PostHorarioBase(CrearHorarioBaseAgendamientoDto horarioDto) // Usa el DTO de creación
+        public async Task<ActionResult<HorarioBaseAgendamientoDto>> PostHorarioBase(CrearHorarioBaseAgendamientoDto horarioDto)
         {
- 
             try
             {
-                var parameters = new MySqlParameter[]
+                var nuevoHorario = new HorarioBaseAgendamiento
                 {
-                    new MySqlParameter("@p_DiaSemana", horarioDto.DiaSemana),
-                    new MySqlParameter("@p_HoraInicio", horarioDto.HoraInicio), // Pasa TimeSpan al SP
-                    new MySqlParameter("@p_DuracionMinutos", horarioDto.DuracionMinutos),
-                    new MySqlParameter("@p_TipoDia", horarioDto.TipoDia ?? (object)DBNull.Value), // Maneja nulos
-                    new MySqlParameter("@p_Activo", horarioDto.Activo)
+                    DiaSemana = horarioDto.DiaSemana,
+                    HoraInicio = horarioDto.HoraInicio,
+                    DuracionMinutos = horarioDto.DuracionMinutos,
+                    IdServicio = horarioDto.IdServicio, // Puede ser null
+                    TipoDia = horarioDto.TipoDia,
+                    Activo = horarioDto.Activo ?? true
                 };
 
-                object? result = await ExecuteScalarProcedure("InsertarHorarioBaseAgendamiento", parameters); // SP devuelve nuevo ID
+                _context.HorariosBaseAgendamiento.Add(nuevoHorario);
+                await _context.SaveChangesAsync();
 
-                if (result != null && result != DBNull.Value)
+                // Mapear a DTO para la respuesta
+                var horarioRespuesta = new HorarioBaseAgendamientoDto
                 {
-                    int nuevoId = Convert.ToInt32(result); 
-                    
-                    var nuevoHorario = (await ExecuteSelectProcedure(
-                       "ObtenerHorarioBaseAgendamientoPorId", // Reusa el SP de obtención por ID
-                        reader => new HorarioBaseAgendamientoDto
-                        {
-                            IdHorarioBase = reader.GetInt32("IdHorarioBase"),
-                            DiaSemana = reader.GetInt32("DiaSemana"),
-                            HoraInicio = reader.GetTimeSpan("HoraInicio"),
-                            DuracionMinutos = reader.GetInt32("DuracionMinutos"),
-                            TipoDia = reader.IsDBNull("TipoDia") ? null : reader.GetString("TipoDia"),
-                            Activo = reader.GetBoolean("Activo")
-                        },
-                        new MySqlParameter("@p_IdHorarioBase", nuevoId)
-                    )).FirstOrDefault();
+                    IdHorarioBase = nuevoHorario.IdHorarioBase,
+                    DiaSemana = nuevoHorario.DiaSemana,
+                    HoraInicio = nuevoHorario.HoraInicio,
+                    DuracionMinutos = nuevoHorario.DuracionMinutos,
+                    IdServicio = nuevoHorario.IdServicio,
+                    TipoDia = nuevoHorario.TipoDia,
+                    Activo = nuevoHorario.Activo
+                };
 
-                    if (nuevoHorario != null)
-                    {
-                        return CreatedAtAction(nameof(GetHorarioBase), new { id = nuevoId }, nuevoHorario); // Retorna 201 Created
-                    }
-                    else
-                    {
-                        return StatusCode(500, "Horario base creado, pero error al recuperar detalles.");
-                    }
-                }
-                else
-                {
-                    return StatusCode(500, "Error al crear el horario base a través del procedimiento almacenado.");
-                }
+                return CreatedAtAction(nameof(GetHorarioBase), new { id = nuevoHorario.IdHorarioBase }, horarioRespuesta);
             }
-            catch (MySqlException ex)
+            catch (DbUpdateException ex)
             {
-
+                // Verificar si es un error de duplicado (índice único)
+                if (ex.InnerException?.Message.Contains("Duplicate entry") == true)
+                {
+                    return Conflict("Ya existe un horario base con el mismo día, hora y servicio.");
+                }
                 return StatusCode(500, $"Error de base de datos: {ex.Message}");
             }
             catch (Exception ex)
@@ -197,35 +147,39 @@ namespace APITapiceria.Controllers
 
         // PUT: api/HorariosBaseAgendamiento/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutHorarioBase(int id, HorarioBaseAgendamientoDto horarioDto) // Usa el DTO para actualizar
+        public async Task<IActionResult> PutHorarioBase(int id, HorarioBaseAgendamientoDto horarioDto)
         {
-            if (id != horarioDto.IdHorarioBase) return BadRequest("El ID de la URL no coincide con el ID del horario base.");
+            if (id != horarioDto.IdHorarioBase)
+                return BadRequest("El ID de la URL no coincide con el ID del horario base.");
 
             try
             {
-                var parameters = new MySqlParameter[]
-                {
-                    new MySqlParameter("@p_IdHorarioBase", id),
-                    new MySqlParameter("@p_DiaSemana", horarioDto.DiaSemana),
-                    new MySqlParameter("@p_HoraInicio", horarioDto.HoraInicio),
-                    new MySqlParameter("@p_DuracionMinutos", horarioDto.DuracionMinutos),
-                    new MySqlParameter("@p_TipoDia", horarioDto.TipoDia ?? (object)DBNull.Value),
-                    new MySqlParameter("@p_Activo", horarioDto.Activo)
-                };
+                var horarioExistente = await _context.HorariosBaseAgendamiento.FindAsync(id);
 
-                int filasAfectadas = await ExecuteNonQueryProcedure("ActualizarHorarioBaseAgendamiento", parameters);
-
-                if (filasAfectadas == 0)
+                if (horarioExistente == null)
                 {
-  
-                    return NotFound(); 
+                    return NotFound();
                 }
+
+                // Actualizar propiedades
+                horarioExistente.DiaSemana = horarioDto.DiaSemana;
+                horarioExistente.HoraInicio = horarioDto.HoraInicio;
+                horarioExistente.DuracionMinutos = horarioDto.DuracionMinutos;
+                horarioExistente.IdServicio = horarioDto.IdServicio;
+                horarioExistente.TipoDia = horarioDto.TipoDia;
+                horarioExistente.Activo = horarioDto.Activo ?? true;
+
+                await _context.SaveChangesAsync();
 
                 return NoContent(); // 204 No Content si es exitoso
             }
-            catch (MySqlException ex)
+            catch (DbUpdateException ex)
             {
-                // Log ex
+                // Verificar si es un error de duplicado
+                if (ex.InnerException?.Message.Contains("Duplicate entry") == true)
+                {
+                    return Conflict("Ya existe un horario base con el mismo día, hora y servicio.");
+                }
                 return StatusCode(500, $"Error de base de datos: {ex.Message}");
             }
             catch (Exception ex)
@@ -239,32 +193,24 @@ namespace APITapiceria.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteHorarioBase(int id)
         {
-
-
             try
             {
-                var parameters = new MySqlParameter[] { new MySqlParameter("@p_IdHorarioBase", id) };
+                var horario = await _context.HorariosBaseAgendamiento.FindAsync(id);
 
-                int filasAfectadas = await ExecuteNonQueryProcedure("EliminarHorarioBaseAgendamiento", parameters);
-
-                if (filasAfectadas == 0)
+                if (horario == null)
                 {
-                    return NotFound(); 
+                    return NotFound();
                 }
+
+                _context.HorariosBaseAgendamiento.Remove(horario);
+                await _context.SaveChangesAsync();
 
                 return NoContent();
             }
-            catch (MySqlException ex)
-            {
-
-                return StatusCode(500, $"Error de base de datos al eliminar: {ex.Message}");
-            }
             catch (Exception ex)
-            { 
-
+            {
                 return StatusCode(500, "Error al eliminar horario base de agendamiento.");
             }
         }
-
     }
 }

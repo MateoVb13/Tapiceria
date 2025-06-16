@@ -27,13 +27,11 @@ namespace Tapiceria.Views
                 activityIndicator.IsRunning = true;
                 activityIndicator.IsVisible = true;
 
-                // Obtener el cliente actual
                 var clienteActual = await PerfilService.GetClienteActual();
                 if (clienteActual != null)
                 {
                     _idCliente = clienteActual.IdCliente;
 
-                    // Cargar las citas del cliente
                     var citas = await _citasService.GetCitasByClienteIdAsync(_idCliente);
                     citasCollectionView.ItemsSource = citas;
                 }
@@ -66,7 +64,6 @@ namespace Tapiceria.Views
                     return;
                 }
 
-                // Confirmar cancelación
                 bool confirmar = await DisplayAlert(
                     "Cancelar Cita",
                     $"¿Estás seguro de que quieres cancelar la cita de {cita.NombreServicio} programada para el {cita.Fecha}?",
@@ -76,18 +73,16 @@ namespace Tapiceria.Views
                 if (!confirmar)
                     return;
 
-                // Mostrar indicador de carga
                 activityIndicator.IsRunning = true;
                 activityIndicator.IsVisible = true;
 
-                // Cancelar la cita
                 bool exitoso = await _citasService.CancelarCitaAsync(cita.IdCita);
 
                 if (exitoso)
                 {
                     await DisplayAlert("Éxito", "La cita ha sido cancelada correctamente", "OK");
 
-                    // Recargar la lista de citas
+
                     LoadCitas();
                 }
                 else
@@ -119,7 +114,7 @@ namespace Tapiceria.Views
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            // Recargar las citas cada vez que la página aparece
+
             LoadCitas();
         }
     }

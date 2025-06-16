@@ -12,7 +12,7 @@ namespace APITapiceria.Controllers
     [ApiController]
     public class ServiciosController : ControllerBase
     {
-        private readonly TapiceriaContext _context; // Necesario para GetDbConnection()
+        private readonly TapiceriaContext _context;
 
         public ServiciosController(TapiceriaContext context)
         {
@@ -32,7 +32,6 @@ namespace APITapiceria.Controllers
 
                 using (var reader = await command.ExecuteReaderAsync())
                 {
-                    // Cast DbDataReader to MySqlDataReader
                     var mySqlReader = (MySqlDataReader)reader;
                     while (await mySqlReader.ReadAsync())
                     {
@@ -46,13 +45,13 @@ namespace APITapiceria.Controllers
         {
             var connection = _context.Database.GetDbConnection();
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
-            using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteScalarAsync(); }
+            using (var command = connection.CreateCommand()) {command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteScalarAsync(); }
         }
         private async Task<int> ExecuteNonQueryProcedure(string procedureName, params MySqlParameter[] parameters)
         {
             var connection = _context.Database.GetDbConnection();
             if (connection.State != ConnectionState.Open) await connection.OpenAsync();
-            using (var command = connection.CreateCommand()) { /* ... code ... */ command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteNonQueryAsync(); }
+            using (var command = connection.CreateCommand()) {command.CommandText = procedureName; command.CommandType = CommandType.StoredProcedure; if (parameters != null) command.Parameters.AddRange(parameters); return await command.ExecuteNonQueryAsync(); }
         }
 
         [HttpGet]
@@ -62,7 +61,7 @@ namespace APITapiceria.Controllers
             {
                 var servicios = await ExecuteSelectProcedure(
                     "ObtenerServicios",
-                    reader => new ServiceDto // Función de mapeo a ServiceDto
+                    reader => new ServiceDto
                     {
                         IdServicio = reader.GetInt32("IdServicio"),
                         Descripcion = reader.GetString("Descripcion"),
@@ -73,7 +72,7 @@ namespace APITapiceria.Controllers
                 );
                 return Ok(servicios);
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener servicios."); }
+            catch (Exception ex) {return StatusCode(500, "Error al obtener servicios."); }
         }
 
         [HttpGet("{id}")]
@@ -84,7 +83,7 @@ namespace APITapiceria.Controllers
                 var parameters = new MySqlParameter[] { new MySqlParameter("@p_IdServicio", id) };
                 var servicios = await ExecuteSelectProcedure(
                     "ObtenerServicioPorId",
-                    reader => new ServiceDto // Función de mapeo a ServiceDto
+                    reader => new ServiceDto
                     {
                         IdServicio = reader.GetInt32("IdServicio"),
                         Descripcion = reader.GetString("Descripcion"),
@@ -99,11 +98,11 @@ namespace APITapiceria.Controllers
                 if (servicio == null) return NotFound();
                 return Ok(servicio);
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al obtener servicio por ID."); }
+            catch (Exception ex) {return StatusCode(500, "Error al obtener servicio por ID."); }
         }
 
         [HttpPost]
-        public async Task<ActionResult<ServiceDto>> PostServicio(Servicios servicio) // Usa el modelo Servicios como entrada
+        public async Task<ActionResult<ServiceDto>> PostServicio(Servicios servicio)
         {
             try
             {
@@ -120,7 +119,6 @@ namespace APITapiceria.Controllers
                 if (result != null && result != DBNull.Value)
                 {
                     int nuevoIdServicio = Convert.ToInt32(result);
-                    // Obtener el servicio recién creado para devolverlo como DTO
                     var newService = (await ExecuteSelectProcedure(
                        "ObtenerServicioPorId",
                         reader => new ServiceDto
@@ -148,12 +146,12 @@ namespace APITapiceria.Controllers
                     return StatusCode(500, "Error al crear el servicio a través del procedimiento almacenado.");
                 }
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al crear servicio."); }
+            catch (Exception ex) {return StatusCode(500, "Error al crear servicio."); }
         }
 
         // PUT: api/servicios/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutServicio(int id, Servicios servicio) // Usa el modelo Servicios como entrada
+        public async Task<IActionResult> PutServicio(int id, Servicios servicio)
         {
             if (id != servicio.IdServicio) return BadRequest("El ID de la URL no coincide con el ID del servicio.");
 
@@ -170,11 +168,11 @@ namespace APITapiceria.Controllers
 
                 int filasAfectadas = await ExecuteNonQueryProcedure("ActualizarServicio", parameters);
 
-                if (filasAfectadas == 0) return NotFound(); // Servicio no encontrado/actualizado
+                if (filasAfectadas == 0) return NotFound();
 
-                return NoContent(); // 204 No Content
+                return NoContent();
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al actualizar servicio."); }
+            catch (Exception ex) {return StatusCode(500, "Error al actualizar servicio."); }
         }
 
         // DELETE: api/servicios/{id}
@@ -187,16 +185,16 @@ namespace APITapiceria.Controllers
 
                 int filasAfectadas = await ExecuteNonQueryProcedure("EliminarServicio", parameters);
 
-                if (filasAfectadas == 0) return NotFound(); // Servicio no encontrado/eliminado
+                if (filasAfectadas == 0) return NotFound();
 
-                return NoContent(); // 204 No Content
+                return NoContent();
             }
             catch (MySqlException ex)
             {
 
                 return StatusCode(500, $"Error de base de datos al eliminar: {ex.Message}. Verifique si hay citas vinculadas.");
             }
-            catch (Exception ex) { /* Log ex */ return StatusCode(500, "Error al eliminar servicio."); }
+            catch (Exception ex) {return StatusCode(500, "Error al eliminar servicio."); }
         }
     }
 }
